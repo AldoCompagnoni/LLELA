@@ -7,7 +7,7 @@ library(lme4)
 library(nlme)
 
 #read in data
-d=read.csv("Analysis/vr.csv")
+d=read.csv("Data/vr.csv")
 
 #remove died individuals (this is a GROWTH model!)
 d=subset(d, surv_t1 != 0)
@@ -30,23 +30,134 @@ d$fC_t0[is.na(d$fC_t0)]=0
 
 
 #YEAR TWO##################################################################################################
-d$plot=as.factor(d$plot)
-dat=subset(d,year==2015)
+d$plot=as.factor(d$plot) #plots need to be factors
+#only use year two
+dat=subset(d,year==2014)
+dat$logRat=log(dat$l_t1/dat$l_t0)
+library(glmmADMB) #Fit models with a Negative Binomial
 
-#NEGATIE BINOMIAL
-library(glmmADMB)
-l2=list()
-l2[[1]]=glmmadmb(l_t1 ~ log_l_t0 + (1 | plot),data=dat,family="nbinom2")
-l2[[2]]=glmmadmb(l_t1 ~ log_l_t0 + sex + (1 | plot),data=dat,family="nbinom2")
-l2[[3]]=glmmadmb(l_t1 ~ log_l_t0 * sex + (1 | plot),data=dat,family="nbinom2")
-l2[[3]]=glmmadmb(l_t1 ~ log_l_t0 + log_l_t0:sex + (1 | plot),data=dat,family="nbinom2")
-l2[[4]]=glmmadmb(l_t1 ~ log_l_t0 + mC_t0 + fC_t0 + (1 | plot),data=dat,family="nbinom2")
-l2[[5]]=glmmadmb(l_t1 ~ log_l_t0 + sex + mC_t0 + fC_t0 + (1 | plot),data=dat,family="nbinom2")
-l2[[6]]=glmmadmb(l_t1 ~ log_l_t0 * sex + mC_t0 + fC_t0 + (1 | plot),data=dat,family="nbinom2")
-l2[[7]]=glmmadmb(l_t1 ~ log_l_t0 + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex + (1 | plot),data=dat,family="nbinom2")
-l2[[8]]=glmmadmb(l_t1 ~ log_l_t0 + sex + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex + (1 | plot),data=dat,family="nbinom2")
-l2[[9]]=glmmadmb(l_t1 ~ log_l_t0 * sex + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex + (1 | plot),data=dat,family="nbinom2")
-AICtab(l2,weights=T)
+#########################################################################################################
+###RAW RESPONSE######
+#########################################################################################################
+
+#Density as "number of leaves"-----------------------------------------------------------
+lMod=list() #lMod stands for "leaf model" (density is quantified by N. of leaves)
+#Target fitness
+lMod[[1]]=glmmadmb(l_t1 ~ log_l_t0 + (1 | plot),data=dat,family="nbinom2")
+lMod[[2]]=glmmadmb(l_t1 ~ log_l_t0 + sex + (1 | plot),data=dat,family="nbinom2")
+lMod[[3]]=glmmadmb(l_t1 ~ log_l_t0 * sex + (1 | plot),data=dat,family="nbinom2")
+#Target fitness + effect = tot density 
+lMod[[4]]=glmmadmb(l_t1 ~ log_l_t0 + c_t0 + (1 | plot),data=dat,family="nbinom2")
+lMod[[5]]=glmmadmb(l_t1 ~ log_l_t0 + sex + c_t0 + (1 | plot),data=dat,family="nbinom2")
+lMod[[6]]=glmmadmb(l_t1 ~ log_l_t0 * sex + c_t0 + (1 | plot),data=dat,family="nbinom2")
+#Target fitness + effect = tot density + response=sex 
+lMod[[7]]=glmmadmb(l_t1 ~ log_l_t0 + c_t0 + c_t0:sex + (1 | plot),data=dat,family="nbinom2")
+lMod[[8]]=glmmadmb(l_t1 ~ log_l_t0 + sex + c_t0 + c_t0:sex + (1 | plot),data=dat,family="nbinom2")
+lMod[[9]]=glmmadmb(l_t1 ~ log_l_t0 * sex + c_t0 + c_t0:sex + (1 | plot),data=dat,family="nbinom2")
+#Target fitness + effect = sex 
+lMod[[10]]=glmmadmb(l_t1 ~ log_l_t0 + mC_t0 + fC_t0 + (1 | plot),data=dat,family="nbinom2")
+lMod[[11]]=glmmadmb(l_t1 ~ log_l_t0 + sex + mC_t0 + fC_t0 + (1 | plot),data=dat,family="nbinom2")
+lMod[[12]]=glmmadmb(l_t1 ~ log_l_t0 * sex + mC_t0 + fC_t0 + (1 | plot),data=dat,family="nbinom2")
+#Target fitness + effect = sex + response=sex 
+lMod[[13]]=glmmadmb(l_t1 ~ log_l_t0 + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex + (1 | plot),data=dat,family="nbinom2")
+lMod[[14]]=glmmadmb(l_t1 ~ log_l_t0 + sex + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex + (1 | plot),data=dat,family="nbinom2")
+lMod[[15]]=glmmadmb(l_t1 ~ log_l_t0 * sex + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex + (1 | plot),data=dat,family="nbinom2")
+AICtab(lMod,weights=T)
+sum(AICtab(lMod,weights=T)$weight[1:3]) #first 3 models make only 66%
+
+
+#Density as "number of leaves"-----------------------------------------------------------
+dMod=list() #dMod stands for "density model" (density is # m/f planted)
+#Target fitness
+dMod[[1]]=glmmadmb(l_t1 ~ log_l_t0 + (1 | plot),data=dat,family="nbinom2")
+dMod[[2]]=glmmadmb(l_t1 ~ log_l_t0 + sex + (1 | plot),data=dat,family="nbinom2")
+dMod[[3]]=glmmadmb(l_t1 ~ log_l_t0 * sex + (1 | plot),data=dat,family="nbinom2")
+#Target fitness + effect = tot density 
+dMod[[4]]=glmmadmb(l_t1 ~ log_l_t0 + TotDensity + (1 | plot),data=dat,family="nbinom2")
+dMod[[5]]=glmmadmb(l_t1 ~ log_l_t0 + sex + TotDensity + (1 | plot),data=dat,family="nbinom2")
+dMod[[6]]=glmmadmb(l_t1 ~ log_l_t0 * sex + TotDensity + (1 | plot),data=dat,family="nbinom2")
+#Target fitness + effect = tot density + response=sex 
+dMod[[7]]=glmmadmb(l_t1 ~ log_l_t0 + TotDensity + TotDensity:sex + (1 | plot),data=dat,family="nbinom2")
+dMod[[8]]=glmmadmb(l_t1 ~ log_l_t0 + sex + TotDensity + TotDensity:sex + (1 | plot),data=dat,family="nbinom2")
+dMod[[9]]=glmmadmb(l_t1 ~ log_l_t0 * sex + TotDensity + TotDensity:sex + (1 | plot),data=dat,family="nbinom2")
+#Target fitness + effect = sex 
+dMod[[10]]=glmmadmb(l_t1 ~ log_l_t0 + M + F + (1 | plot),data=dat,family="nbinom2")
+dMod[[11]]=glmmadmb(l_t1 ~ log_l_t0 + sex + M + F + (1 | plot),data=dat,family="nbinom2")
+dMod[[12]]=glmmadmb(l_t1 ~ log_l_t0 * sex + M + F + (1 | plot),data=dat,family="nbinom2")
+#Target fitness + effect = sex + response=sex 
+dMod[[13]]=glmmadmb(l_t1 ~ log_l_t0 + M + F + M:sex + F:sex + (1 | plot),data=dat,family="nbinom2")
+dMod[[14]]=glmmadmb(l_t1 ~ log_l_t0 + sex + M + F + M:sex + F:sex + (1 | plot),data=dat,family="nbinom2")
+dMod[[15]]=glmmadmb(l_t1 ~ log_l_t0 * sex + M + F + M:sex + F:sex + (1 | plot),data=dat,family="nbinom2")
+AICtab(dMod,weights=T)
+
+
+
+#########################################################################################################
+###LOG RATIO RESPONSE######
+#########################################################################################################
+
+
+llMod=list() #llMod stands for "leaf model", "log ratio"
+#Target fitness
+llMod[[1]]=lmer(logRat ~ (1 | plot),data=dat)
+llMod[[2]]=lmer(logRat ~ sex + (1 | plot),data=dat)
+llMod[[3]]=lmer(logRat ~ sex + (1 | plot),data=dat)
+#Target fitness + effect = tot density 
+llMod[[4]]=lmer(logRat ~ c_t0 + (1 | plot),data=dat)
+llMod[[5]]=lmer(logRat ~ sex + c_t0 + (1 | plot),data=dat)
+llMod[[6]]=lmer(logRat ~ sex + c_t0 + (1 | plot),data=dat)
+#Target fitness + effect = tot density + response=sex 
+llMod[[7]]=lmer(logRat ~ c_t0 + c_t0:sex + (1 | plot),data=dat)
+llMod[[8]]=lmer(logRat ~ sex + c_t0 + c_t0:sex + (1 | plot),data=dat)
+llMod[[9]]=lmer(logRat ~ sex + c_t0 + c_t0:sex + (1 | plot),data=dat)
+#Target fitness + effect = sex 
+llMod[[10]]=lmer(logRat ~ mC_t0 + fC_t0 + (1 | plot),data=dat)
+llMod[[11]]=lmer(logRat ~ sex + mC_t0 + fC_t0 + (1 | plot),data=dat)
+llMod[[12]]=lmer(logRat ~ sex + mC_t0 + fC_t0 + (1 | plot),data=dat)
+#Target fitness + effect = sex + response=sex 
+llMod[[13]]=lmer(logRat ~ mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex + (1 | plot),data=dat)
+llMod[[14]]=lmer(logRat ~ sex + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex + (1 | plot),data=dat)
+llMod[[15]]=lmer(logRat ~ sex + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex + (1 | plot),data=dat)
+AICtab(llMod,weights=T)
+
+
+
+
+dlMod=list() #dlMod stands for "leaf model", "log ratio"
+#Target fitness
+dlMod[[1]]=lmer(logRat ~ (1 | plot),data=dat)
+dlMod[[2]]=lmer(logRat ~ sex + (1 | plot),data=dat)
+dlMod[[3]]=lmer(logRat ~ sex + (1 | plot),data=dat)
+#Target fitness + effect = tot density 
+dlMod[[4]]=lmer(logRat ~ TotDensity + (1 | plot),data=dat)
+dlMod[[5]]=lmer(logRat ~ sex + TotDensity + (1 | plot),data=dat)
+dlMod[[6]]=lmer(logRat ~ sex + TotDensity + (1 | plot),data=dat)
+#Target fitness + effect = tot density + response=sex 
+dlMod[[7]]=lmer(logRat ~ TotDensity + TotDensity:sex + (1 | plot),data=dat)
+dlMod[[8]]=lmer(logRat ~ sex + TotDensity + TotDensity:sex + (1 | plot),data=dat)
+dlMod[[9]]=lmer(logRat ~ sex + TotDensity + TotDensity:sex + (1 | plot),data=dat)
+#Target fitness + effect = sex 
+dlMod[[10]]=lmer(logRat ~ M + F + (1 | plot),data=dat)
+dlMod[[11]]=lmer(logRat ~ sex + M + F + (1 | plot),data=dat)
+dlMod[[12]]=lmer(logRat ~ sex + M + F + (1 | plot),data=dat)
+#Target fitness + effect = sex + response=sex 
+dlMod[[13]]=lmer(logRat ~ M + F + M:sex + F:sex + (1 | plot),data=dat)
+dlMod[[14]]=lmer(logRat ~ sex + M + F + M:sex + F:sex + (1 | plot),data=dat)
+dlMod[[15]]=lmer(logRat ~ sex + M + F + M:sex + F:sex + (1 | plot),data=dat)
+AICtab(dlMod,weights=T)
+
+
+
+
+
+
+
+
+
+#########################################################################################################
+###DIFFERENCE IN N. of LEAVES######
+#########################################################################################################
+
 
 
 tiff("Results/VitalRates_simple/growth.tiff",unit="in",width=4,height=8,res=600,compression="lzw")
