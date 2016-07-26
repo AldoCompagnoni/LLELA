@@ -84,62 +84,62 @@ AICtab(dMod,weights=T)
 
 
 
-
+AICtab(lMod,weights=T)
 
 
 #
 tiff("Results/VitalRates_simple/flowering_simple.tiff",unit="in",width=4,height=8,res=600,compression="lzw")
 
+#Set up colors for plots
+sexAsInteger=as.integer(tmp$sex)
+tmp$colF=as.character(factor(sexAsInteger,labels=c("blue3","red3")))
+tmp$colM=as.character(factor(sexAsInteger,labels=c("blue","red")))
+
 par(mfrow=c(2,1),mar=c(3,3,1,0.1),mgp=c(1.4,0.5,0))
 invlogit<-function(x){exp(x)/(1+exp(x))}
 
 #Best model
-plot(tmp$flow_t1 ~ tmp$mC_t0,pch=16,xlab="Competitor leaves 2013",
-     ylab="Flowering probability, spring 2014",col="red")
-par(new=T) ; plot(tmp$flow_t1 ~ tmp$fC_t0,pch=16,xlab="",ylab="",col="blue",xaxt="n")
-title(main = "2015: best mod (64% weight)", line=0.2,cex=0.9)
+plot(tmp$flow_t1+0.015 ~ tmp$mC_t0,xlab="Number of male or female leaves (2013)",ylim=c(0,1),
+     ylab="Flowering probability, spring (2014)",pch=16,col=tmp$colM)
+par(new=T) ; plot(tmp$flow_t1-0.015 ~ tmp$fC_t0,pch=17,xlab="",ylab="",col=tmp$colF,xaxt="n",ylim=c(0,1),)
+title(main = "2015: best mod (41% weight)", line=0.2,cex=0.9)
+
 xSeq <- seq(0,max(c(tmp$fC_t0,tmp$mC_t0)),by=1)
-yFem_f=invlogit(coef(mod[[6]])[1] + coef(mod[[6]])[2]*mean(tmp$log_l_t1,na.rm=T) +
-                  coef(mod[[6]])[4]*mean(tmp$mC_t0,na.rm=T) + coef(mod[[6]])[5]*xSeq)
-yFem_m=invlogit(coef(mod[[6]])[1] + coef(mod[[6]])[2]*mean(tmp$log_l_t1,na.rm=T) +
-                  coef(mod[[6]])[4]*xSeq + coef(mod[[6]])[5]*mean(tmp$fC_t0,na.rm=T))
-yMal_f=invlogit(coef(mod[[6]])[1] + coef(mod[[6]])[2]*mean(tmp$log_l_t1,na.rm=T) + coef(mod[[6]])[3] + 
-                  coef(mod[[6]])[4]*mean(tmp$mC_t0,na.rm=T) + coef(mod[[6]])[5]*xSeq + 
-                  coef(mod[[6]])[6]*mean(tmp$log_l_t1,na.rm=T))
-yMal_m=invlogit(coef(mod[[6]])[1] + coef(mod[[6]])[2]*mean(tmp$log_l_t1,na.rm=T) + coef(mod[[6]])[3] + 
-                  coef(mod[[6]])[4]*xSeq + coef(mod[[6]])[5]*mean(tmp$fC_t0,na.rm=T) + 
-                  coef(mod[[6]])[6]*mean(tmp$log_l_t1,na.rm=T))
-lines(xSeq,yMal_m,lwd=2,col="red")
-lines(xSeq,yMal_f,lwd=2,lty=2,col="red")
-lines(xSeq,yFem_m,lwd=2,col="blue")
-lines(xSeq,yFem_f,lwd=2,lty=2,col="blue")
-legend(-15,0.5,c("Focal male, male competition",
+yf_F=invlogit(coef(lMod[[12]])[1] + coef(lMod[[12]])[2]*mean(tmp$log_l_t1,na.rm=T) +
+              coef(lMod[[12]])[4]*mean(tmp$mC_t0,na.rm=T) + coef(lMod[[12]])[5]*xSeq)
+yf_M=invlogit(coef(lMod[[12]])[1] + coef(lMod[[12]])[2]*mean(tmp$log_l_t1,na.rm=T) +
+                coef(lMod[[12]])[4]*xSeq + coef(lMod[[12]])[5]*mean(tmp$fC_t0,na.rm=T))
+ym_F=invlogit(coef(lMod[[12]])[1] + coef(lMod[[12]])[2]*mean(tmp$log_l_t1,na.rm=T) + coef(lMod[[12]])[3] + 
+                coef(lMod[[12]])[4]*mean(tmp$mC_t0,na.rm=T) + coef(lMod[[12]])[5]*xSeq + coef(lMod[[12]])[6]*mean(tmp$log_l_t1,na.rm=T))
+ym_M=invlogit(coef(lMod[[12]])[1] + coef(lMod[[12]])[2]*mean(tmp$log_l_t1,na.rm=T) + coef(lMod[[12]])[3] + 
+                coef(lMod[[12]])[4]*xSeq + coef(lMod[[12]])[5]*mean(tmp$fC_t0,na.rm=T) + coef(lMod[[12]])[6]*mean(tmp$log_l_t1,na.rm=T))
+lines(xSeq,ym_F,lwd=2,col="red3")
+lines(xSeq,ym_M,lwd=2,lty=2,col="red")
+lines(xSeq,yf_F,lwd=2,col="blue3")
+lines(xSeq,yf_M,lwd=2,lty=2,col="blue")
+
+legend(0,0.5,c("Focal male, male competition",
                  "Focal female, male competition",
                  "Focal male, female competition",
                  "Focal female, female competition"),
-       col=c("red","blue"),lty=c(1,1,2,2),lwd=2,bty="n")
+       col=c("red","blue","red3","blue3"),pch=c(16,16,17,17),lty=c(1,1,2,2),lwd=2,bty="n")
+
 
 #2nd best model
-xSeq <- seq(0,max(c(tmp$fC_t0,tmp$mC_t0)),by=1)
-yFem_f=invlogit(coef(mod[[9]])[1] + coef(mod[[9]])[2]*mean(tmp$log_l_t1,na.rm=T) +
-                  coef(mod[[9]])[4]*mean(tmp$mC_t0,na.rm=T) + coef(mod[[9]])[5]*xSeq)
-yFem_m=invlogit(coef(mod[[9]])[1] + coef(mod[[9]])[2]*mean(tmp$log_l_t1,na.rm=T) +
-                  coef(mod[[9]])[4]*xSeq + coef(mod[[9]])[5]*mean(tmp$fC_t0,na.rm=T))
+plot(tmp$flow_t1 ~ tmp$c_t0,xlab="Number of leaves in plot (2013)",
+     ylab="Flowering probability, spring 2014",pch=16,col=tmp$colM)
+title(main = "2015: best mod (20% weight)", line=0.2,cex=0.9)
 
-yMal_f=invlogit(coef(mod[[9]])[1] + coef(mod[[9]])[2]*mean(tmp$log_l_t1,na.rm=T) + coef(mod[[9]])[3] + 
-                  coef(mod[[9]])[4]*mean(tmp$mC_t0,na.rm=T) + coef(mod[[9]])[5]*xSeq + 
-                  coef(mod[[9]])[6]*mean(tmp$log_l_t1,na.rm=T))
-yMal_m=invlogit(coef(mod[[9]])[1] + coef(mod[[9]])[2]*mean(tmp$log_l_t1,na.rm=T) + coef(mod[[9]])[3] + 
-                  coef(mod[[9]])[4]*xSeq + coef(mod[[9]])[5]*mean(tmp$fC_t0,na.rm=T) + coef(mod[[9]])[7]*xSeq + 
-                  coef(mod[[9]])[6]*mean(tmp$log_l_t1,na.rm=T))
-plot(tmp$flow_t1 ~ tmp$mC_t0,pch=16,xlab="Competitor leaves 2013",
-     ylab="Flowering probability, spring 2014",col="red")
-par(new=T) ; plot(tmp$flow_t1 ~ tmp$fC_t0,pch=16,xlab="",ylab="",col="blue",xaxt="n")
-title(main = "2015: best mod (16% weight)", line=0.2,cex=0.9)
-lines(xSeq,yMal_m,lwd=2,col="red")
-lines(xSeq,yMal_f,lwd=2,lty=2,col="red")
-lines(xSeq,yFem_m,lwd=2,col="blue")
-lines(xSeq,yFem_f,lwd=2,lty=2,col="blue")
+xSeq <- seq(0,max(tmp$c_t0),by=1)
+yF=invlogit(coef(lMod[[6]])[1] + coef(lMod[[6]])[2]*mean(tmp$log_l_t1,na.rm=T) +
+                  coef(lMod[[6]])[4]*xSeq)
+yM=invlogit(coef(lMod[[6]])[1] + coef(lMod[[6]])[2]*mean(tmp$log_l_t1,na.rm=T) +
+            coef(lMod[[6]])[3] + coef(lMod[[6]])[4]*xSeq + coef(lMod[[6]])[5]*mean(tmp$log_l_t1,na.rm=T))
+lines(xSeq,yF,lwd=2,col="blue")
+lines(xSeq,yM,lwd=2,col="red")
+
+legend(0,0.45,c("Focal male","Focal female"),
+       col=c("red","blue"),lty=c(1,1),lwd=2,bty="n")
 
 dev.off()
 

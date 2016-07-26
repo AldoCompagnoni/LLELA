@@ -4,7 +4,7 @@
 setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
 library(bbmle) #For AIC weights, because I'm lazy!
 library(lme4)
-library(nlme)
+library(glmmADMB)
 
 #read in data
 d=read.csv("Data/vr.csv")
@@ -28,10 +28,26 @@ d$plot=as.factor(d$plot)
 dat=subset(d,year==2015)
 sum(dat$surv_t1==0,na.rm=T)
 
-library(glmmADMB)
+
 #Density as "number of leaves"-----------------------------------------------------------
 lMod=list() #lMod stands for "leaf model" (density is quantified by N. of leaves)
+
+#prepare the 'new_t1' column
+dat$new_t1[dat$new_t1=="SKIPPED"]=NA
+dat$new_t1[dat$new_t1=="cnf"]=NA
+dat$new_t1[dat$new_t1==""]=NA
+dat$new_t1=as.numeric(as.character(dat$new_t1))
 tmp=na.omit(dat[,c("plot","surv_t1","log_l_t0","sex","c_t0","mC_t0","fC_t0","M","F","new_t1")])
+
+############################################################################################
+#Preliminary model selection: what's best?
+############################################################################################
+
+#1. plot random effect only
+#2. plot + new tillers
+#3. new tillers, but no plot
+
+#1. plot random effect only--------------------------------------------------------------------------
 #Target fitness
 lMod[[1]]=glmmadmb(surv_t1 ~ log_l_t0 + (1 | plot),data=tmp,family="binomial")
 lMod[[2]]=glmmadmb(surv_t1 ~ log_l_t0 + sex + (1 | plot),data=tmp,family="binomial")
@@ -53,7 +69,8 @@ lMod[[13]]=glmmadmb(surv_t1 ~ log_l_t0 + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex +
 lMod[[14]]=glmmadmb(surv_t1 ~ log_l_t0 + sex + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex + (1 | plot),data=tmp,family="binomial")
 lMod[[15]]=glmmadmb(surv_t1 ~ log_l_t0 * sex + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex + (1 | plot),data=tmp,family="binomial")
 
-
+#2. plot + new tillers--------------------------------------------------------------------------
+#Use "new tillers" instead of 'plot random effect'
 lMod[[16]]=glmmadmb(surv_t1 ~ log_l_t0 + new_t1 + (1 | plot),data=tmp,family="binomial")
 lMod[[17]]=glmmadmb(surv_t1 ~ log_l_t0 + sex + new_t1 + (1 | plot),data=tmp,family="binomial")
 lMod[[18]]=glmmadmb(surv_t1 ~ log_l_t0 * sex + new_t1 + (1 | plot),data=tmp,family="binomial")
@@ -74,36 +91,42 @@ lMod[[28]]=glmmadmb(surv_t1 ~ log_l_t0 + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex +
 lMod[[29]]=glmmadmb(surv_t1 ~ log_l_t0 + sex + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex + new_t1 + (1 | plot),data=tmp,family="binomial")
 lMod[[30]]=glmmadmb(surv_t1 ~ log_l_t0 * sex + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex + new_t1 + (1 | plot),data=tmp,family="binomial")
 
-
-
-
+#3. new tillers, but no plot--------------------------------------------------------------------------
+#Use "new tillers" instead of 'plot random effect'
+lMod[[31]]=glmmadmb(surv_t1 ~ log_l_t0 + new_t1,data=tmp,family="binomial")
+lMod[[32]]=glmmadmb(surv_t1 ~ log_l_t0 + sex + new_t1,data=tmp,family="binomial")
+lMod[[33]]=glmmadmb(surv_t1 ~ log_l_t0 * sex + new_t1,data=tmp,family="binomial")
+#Target fitness + effect = tot density 
+lMod[[34]]=glmmadmb(surv_t1 ~ log_l_t0 + c_t0 + new_t1,data=tmp,family="binomial")
+lMod[[35]]=glmmadmb(surv_t1 ~ log_l_t0 + sex + c_t0 + new_t1,data=tmp,family="binomial")
+lMod[[36]]=glmmadmb(surv_t1 ~ log_l_t0 * sex + c_t0 + new_t1,data=tmp,family="binomial")
+#Target fitness + effect = tot density + response=sex 
+lMod[[37]]=glmmadmb(surv_t1 ~ log_l_t0 + c_t0 + c_t0:sex + new_t1,data=tmp,family="binomial")
+lMod[[38]]=glmmadmb(surv_t1 ~ log_l_t0 + sex + c_t0 + c_t0:sex + new_t1,data=tmp,family="binomial")
+lMod[[39]]=glmmadmb(surv_t1 ~ log_l_t0 * sex + c_t0 + c_t0:sex + new_t1,data=tmp,family="binomial")
+#Target fitness + effect = sex 
+lMod[[40]]=glmmadmb(surv_t1 ~ log_l_t0 + mC_t0 + fC_t0 + new_t1,data=tmp,family="binomial")
+lMod[[41]]=glmmadmb(surv_t1 ~ log_l_t0 + sex + mC_t0 + fC_t0 + new_t1,data=tmp,family="binomial")
+lMod[[42]]=glmmadmb(surv_t1 ~ log_l_t0 * sex + mC_t0 + fC_t0 + new_t1,data=tmp,family="binomial")
+#Target fitness + effect = sex + response=sex 
+lMod[[43]]=glmmadmb(surv_t1 ~ log_l_t0 + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex + new_t1,data=tmp,family="binomial")
+lMod[[44]]=glmmadmb(surv_t1 ~ log_l_t0 + sex + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex + new_t1,data=tmp,family="binomial")
+lMod[[45]]=glmmadmb(surv_t1 ~ log_l_t0 * sex + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex + new_t1,data=tmp,family="binomial")
 AICtab(lMod,weights=T)
 
+#plot + new_tillers is clearly best
 
-#Density as "number of individuals"-----------------------------------------------------------
-dMod=list() #dMod stands for "leaf model" (density is quantified by N. of leaves)
-tmp=na.omit(dat[,c("plot","surv_t1","log_l_t0","sex","TotDensity","M","F","M","F")])
-#Target fitness
-dMod[[1]]=glmmadmb(surv_t1 ~ log_l_t0 + (1 | plot),data=tmp,family="binomial")
-dMod[[2]]=glmmadmb(surv_t1 ~ log_l_t0 + sex + (1 | plot),data=tmp,family="binomial")
-dMod[[3]]=glmmadmb(surv_t1 ~ log_l_t0 * sex + (1 | plot),data=tmp,family="binomial")
-#Target fitness + effect = tot density 
-dMod[[4]]=glmmadmb(surv_t1 ~ log_l_t0 + TotDensity + (1 | plot),data=tmp,family="binomial")
-dMod[[5]]=glmmadmb(surv_t1 ~ log_l_t0 + sex + TotDensity + (1 | plot),data=tmp,family="binomial")
-dMod[[6]]=glmmadmb(surv_t1 ~ log_l_t0 * sex + TotDensity + (1 | plot),data=tmp,family="binomial")
-#Target fitness + effect = tot density + response=sex 
-dMod[[7]]=glmmadmb(surv_t1 ~ log_l_t0 + TotDensity + TotDensity:sex + (1 | plot),data=tmp,family="binomial")
-dMod[[8]]=glmmadmb(surv_t1 ~ log_l_t0 + sex + TotDensity + TotDensity:sex + (1 | plot),data=tmp,family="binomial")
-dMod[[9]]=glmmadmb(surv_t1 ~ log_l_t0 * sex + TotDensity + TotDensity:sex + (1 | plot),data=tmp,family="binomial")
-#Target fitness + effect = sex 
-dMod[[10]]=glmmadmb(surv_t1 ~ log_l_t0 + M + F + (1 | plot),data=tmp,family="binomial")
-dMod[[11]]=glmmadmb(surv_t1 ~ log_l_t0 + sex + M + F + (1 | plot),data=tmp,family="binomial")
-dMod[[12]]=glmmadmb(surv_t1 ~ log_l_t0 * sex + M + F + (1 | plot),data=tmp,family="binomial")
-#Target fitness + effect = sex + response=sex 
-dMod[[13]]=glmmadmb(surv_t1 ~ log_l_t0 + M + F + M:sex + F:sex + (1 | plot),data=tmp,family="binomial")
-dMod[[14]]=glmmadmb(surv_t1 ~ log_l_t0 + sex + M + F + M:sex + F:sex + (1 | plot),data=tmp,family="binomial")
-dMod[[15]]=glmmadmb(surv_t1 ~ log_l_t0 * sex + M + F + M:sex + F:sex + (1 | plot),data=tmp,family="binomial")
-AICtab(dMod,weights=T)
+#coding "experimet". Erase this as soon as upi are done with it!
+plot(tmp$c_t0,sqrt(tmp$new_t1),pch=16)
+
+prov=list()
+prov[[1]]=glmmadmb(surv_t1 ~ log_l_t0 + new_t1 + (1 | plot),data=tmp,family="binomial")
+prov[[2]]=glmmadmb(surv_t1 ~ log_l_t0 + c_t0 + (1 | plot),data=tmp,family="binomial")
+prov[[3]]=glmmadmb(surv_t1 ~ log_l_t0 + c_t0 * new_t1 + (1 | plot),data=tmp,family="binomial")
+prov[[4]]=glmmadmb(surv_t1 ~ log_l_t0*new_t1 + c_t0 + (1 | plot),data=tmp,family="binomial")
+prov[[5]]=glmmadmb(surv_t1 ~ log_l_t0 + c_t0 + log_l_t0:new_t1 + c_t0:new_t1 + new_t1 + (1 | plot),data=tmp,family="binomial")
+AICtab(prov,weights=T)
+
 
 
 
