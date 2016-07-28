@@ -59,102 +59,86 @@ AICtab(lMod,weights=T)
 ###2015######
 #########################################################################################################
 
+#I repeated models three times, only two reported:
+#1.No "new tillers" slope
+#2."new tillers" slope
+#3.NOT REPORTED: "new tillers" slope + random slope (worse in model selection)
+
 #only use year two
 d15=subset(d,year==2015)
 d15$new_t1[d15$new_t1=="SKIPPED"]=NA
 d15$new_t1[d15$new_t1=="cnf"]=NA
 d15$new_t1[d15$new_t1==""]=NA
 d15$new_t1=as.numeric(as.character(d15$new_t1))
-
-tmp=na.omit(d15[,c("l_t1","log_l_t0","plot","sex",
+#Analysis 2015
+a15=na.omit(d15[,c("l_t1","log_l_t0","plot","sex",
                    "TotDensity","M","F","new_t1")])
+
 
 #Density as "number of individuals"-----------------------------------------------------------
 dMod=list() #dMod stands for "density model" (density is # m/f planted)
+#1.No "new tillers" slope---------------------------------------------------------------------
 #Target fitness
-dMod[[1]]=glmmadmb(l_t1 ~ log_l_t0 + (1 | plot),data=tmp,family="nbinom2")
-dMod[[2]]=glmmadmb(l_t1 ~ log_l_t0 + sex + (1 | plot),data=tmp,family="nbinom2")
-dMod[[3]]=glmmadmb(l_t1 ~ log_l_t0 * sex + (1 | plot),data=tmp,family="nbinom2")
+dMod[[1]]=glmmadmb(l_t1 ~ log_l_t0 + (1 | plot),data=a15,family="nbinom2")
+dMod[[2]]=glmmadmb(l_t1 ~ log_l_t0 + sex + (1 | plot),data=a15,family="nbinom2")
+dMod[[3]]=glmmadmb(l_t1 ~ log_l_t0 * sex + (1 | plot),data=a15,family="nbinom2")
 #Target fitness + effect = tot density 
-dMod[[4]]=glmmadmb(l_t1 ~ log_l_t0 + TotDensity + (1 | plot),data=tmp,family="nbinom2")
-dMod[[5]]=glmmadmb(l_t1 ~ log_l_t0 + sex + TotDensity + (1 | plot),data=tmp,family="nbinom2")
-dMod[[6]]=glmmadmb(l_t1 ~ log_l_t0 * sex + TotDensity + (1 | plot),data=tmp,family="nbinom2")
+dMod[[4]]=glmmadmb(l_t1 ~ log_l_t0 + TotDensity + (1 | plot),data=a15,family="nbinom2")
+dMod[[5]]=glmmadmb(l_t1 ~ log_l_t0 + sex + TotDensity + (1 | plot),data=a15,family="nbinom2")
+dMod[[6]]=glmmadmb(l_t1 ~ log_l_t0 * sex + TotDensity + (1 | plot),data=a15,family="nbinom2")
 #Target fitness + effect = tot density + response=sex 
-dMod[[7]]=glmmadmb(l_t1 ~ log_l_t0 + TotDensity + TotDensity:sex + (1 | plot),data=tmp,family="nbinom2")
-dMod[[8]]=glmmadmb(l_t1 ~ log_l_t0 + sex + TotDensity + TotDensity:sex + (1 | plot),data=tmp,family="nbinom2")
-dMod[[9]]=glmmadmb(l_t1 ~ log_l_t0 * sex + TotDensity + TotDensity:sex + (1 | plot),data=tmp,family="nbinom2")
+dMod[[7]]=glmmadmb(l_t1 ~ log_l_t0 + TotDensity + TotDensity:sex + (1 | plot),data=a15,family="nbinom2")
+dMod[[8]]=glmmadmb(l_t1 ~ log_l_t0 + sex + TotDensity + TotDensity:sex + (1 | plot),data=a15,family="nbinom2")
+dMod[[9]]=glmmadmb(l_t1 ~ log_l_t0 * sex + TotDensity + TotDensity:sex + (1 | plot),data=a15,family="nbinom2")
 #Target fitness + effect = sex 
-dMod[[10]]=glmmadmb(l_t1 ~ log_l_t0 + M + F + (1 | plot),data=tmp,family="nbinom2")
-dMod[[11]]=glmmadmb(l_t1 ~ log_l_t0 + sex + M + F + (1 | plot),data=tmp,family="nbinom2")
-dMod[[12]]=glmmadmb(l_t1 ~ log_l_t0 * sex + M + F + (1 | plot),data=tmp,family="nbinom2")
+dMod[[10]]=glmmadmb(l_t1 ~ log_l_t0 + M + F + (1 | plot),data=a15,family="nbinom2")
+dMod[[11]]=glmmadmb(l_t1 ~ log_l_t0 + sex + M + F + (1 | plot),data=a15,family="nbinom2")
+dMod[[12]]=glmmadmb(l_t1 ~ log_l_t0 * sex + M + F + (1 | plot),data=a15,family="nbinom2")
 #Target fitness + effect = sex + response=sex 
-dMod[[13]]=glmmadmb(l_t1 ~ log_l_t0 + M + F + M:sex + F:sex + (1 | plot),data=tmp,family="nbinom2")
-dMod[[14]]=glmmadmb(l_t1 ~ log_l_t0 + sex + M + F + M:sex + F:sex + (1 | plot),data=tmp,family="nbinom2")
-dMod[[15]]=glmmadmb(l_t1 ~ log_l_t0 * sex + M + F + M:sex + F:sex + (1 | plot),data=tmp,family="nbinom2")
+dMod[[13]]=glmmadmb(l_t1 ~ log_l_t0 + M + F + M:sex + F:sex + (1 | plot),data=a15,family="nbinom2")
+dMod[[14]]=glmmadmb(l_t1 ~ log_l_t0 + sex + M + F + M:sex + F:sex + (1 | plot),data=a15,family="nbinom2")
+dMod[[15]]=glmmadmb(l_t1 ~ log_l_t0 * sex + M + F + M:sex + F:sex + (1 | plot),data=a15,family="nbinom2")
 
-#WITH NEW TILLERS
+#2."new tillers" slope-------------------------------------------------------------------------------------------
 #Target fitness
-dMod[[16]]=glmmadmb(l_t1 ~ log_l_t0 + new_t1 + (1 | plot),data=tmp,family="nbinom2")
-dMod[[17]]=glmmadmb(l_t1 ~ log_l_t0 + sex + new_t1 + (1 | plot),data=tmp,family="nbinom2")
-dMod[[18]]=glmmadmb(l_t1 ~ log_l_t0 * sex + new_t1 + (1 | plot),data=tmp,family="nbinom2")
+dMod[[16]]=glmmadmb(l_t1 ~ log_l_t0 + new_t1 + (1 | plot),data=a15,family="nbinom2")
+dMod[[17]]=glmmadmb(l_t1 ~ log_l_t0 + sex + new_t1 + (1 | plot),data=a15,family="nbinom2")
+dMod[[18]]=glmmadmb(l_t1 ~ log_l_t0 * sex + new_t1 + (1 | plot),data=a15,family="nbinom2")
 #Target fitness + effect = tot density 
-dMod[[19]]=glmmadmb(l_t1 ~ log_l_t0 + TotDensity + new_t1 + (1 | plot),data=tmp,family="nbinom2")
-dMod[[20]]=glmmadmb(l_t1 ~ log_l_t0 + sex + TotDensity + new_t1 + (1 | plot),data=tmp,family="nbinom2")
-dMod[[21]]=glmmadmb(l_t1 ~ log_l_t0 * sex + TotDensity + new_t1 + (1 | plot),data=tmp,family="nbinom2")
+dMod[[19]]=glmmadmb(l_t1 ~ log_l_t0 + TotDensity + new_t1 + (1 | plot),data=a15,family="nbinom2")
+dMod[[20]]=glmmadmb(l_t1 ~ log_l_t0 + sex + TotDensity + new_t1 + (1 | plot),data=a15,family="nbinom2")
+dMod[[21]]=glmmadmb(l_t1 ~ log_l_t0 * sex + TotDensity + new_t1 + (1 | plot),data=a15,family="nbinom2")
 #Target fitness + effect = tot density + response=sex 
-dMod[[22]]=glmmadmb(l_t1 ~ log_l_t0 + TotDensity + TotDensity:sex + new_t1 + (1 | plot),data=tmp,family="nbinom2")
-dMod[[23]]=glmmadmb(l_t1 ~ log_l_t0 + sex + TotDensity + TotDensity:sex + new_t1 + (1 | plot),data=tmp,family="nbinom2")
-dMod[[24]]=glmmadmb(l_t1 ~ log_l_t0 * sex + TotDensity + TotDensity:sex + new_t1 + (1 | plot),data=tmp,family="nbinom2")
+dMod[[22]]=glmmadmb(l_t1 ~ log_l_t0 + TotDensity + TotDensity:sex + new_t1 + (1 | plot),data=a15,family="nbinom2")
+dMod[[23]]=glmmadmb(l_t1 ~ log_l_t0 + sex + TotDensity + TotDensity:sex + new_t1 + (1 | plot),data=a15,family="nbinom2")
+dMod[[24]]=glmmadmb(l_t1 ~ log_l_t0 * sex + TotDensity + TotDensity:sex + new_t1 + (1 | plot),data=a15,family="nbinom2")
 #Target fitness + effect = sex 
-dMod[[25]]=glmmadmb(l_t1 ~ log_l_t0 + M + F + new_t1 + (1 | plot),data=tmp,family="nbinom2")
-dMod[[26]]=glmmadmb(l_t1 ~ log_l_t0 + sex + M + F + new_t1 + (1 | plot),data=tmp,family="nbinom2")
-dMod[[27]]=glmmadmb(l_t1 ~ log_l_t0 * sex + M + F + new_t1 + (1 | plot),data=tmp,family="nbinom2")
+dMod[[25]]=glmmadmb(l_t1 ~ log_l_t0 + M + F + new_t1 + (1 | plot),data=a15,family="nbinom2")
+dMod[[26]]=glmmadmb(l_t1 ~ log_l_t0 + sex + M + F + new_t1 + (1 | plot),data=a15,family="nbinom2")
+dMod[[27]]=glmmadmb(l_t1 ~ log_l_t0 * sex + M + F + new_t1 + (1 | plot),data=a15,family="nbinom2")
 #Target fitness + effect = sex + response=sex 
-dMod[[28]]=glmmadmb(l_t1 ~ log_l_t0 + M + F + M:sex + F:sex + new_t1 + (1 | plot),data=tmp,family="nbinom2")
-dMod[[29]]=glmmadmb(l_t1 ~ log_l_t0 + sex + M + F + M:sex + F:sex + new_t1 + (1 | plot),data=tmp,family="nbinom2")
-dMod[[30]]=glmmadmb(l_t1 ~ log_l_t0 * sex + M + F + M:sex + F:sex + new_t1 + (1 | plot),data=tmp,family="nbinom2")
-
+dMod[[28]]=glmmadmb(l_t1 ~ log_l_t0 + M + F + M:sex + F:sex + new_t1 + (1 | plot),data=a15,family="nbinom2")
+dMod[[29]]=glmmadmb(l_t1 ~ log_l_t0 + sex + M + F + M:sex + F:sex + new_t1 + (1 | plot),data=a15,family="nbinom2")
+dMod[[30]]=glmmadmb(l_t1 ~ log_l_t0 * sex + M + F + M:sex + F:sex + new_t1 + (1 | plot),data=a15,family="nbinom2")
 AICtab(dMod,weights=T)
 
 
-#Effect of plot treatment on new tillers#################################
-tmp$ratio=tmp$F/(tmp$F+tmp$M)
-tmp$ratio2=tmp$ratio^2
-mod=list()
-mod[[1]]=lm(new_t1 ~ ratio,data=tmp)
-mod[[2]]=lm(new_t1 ~ ratio2,data=tmp)
-mod[[3]]=lm(new_t1 ~ ratio + ratio2,data=tmp)
-mod[[4]]=lm(new_t1 ~ ratio + TotDensity,data=tmp)
-mod[[5]]=lm(new_t1 ~ ratio * TotDensity,data=tmp)
-mod[[6]]=lm(new_t1 ~ ratio + ratio2 + TotDensity,data=tmp)
-mod[[7]]=lm(new_t1 ~ ratio * TotDensity + ratio2,data=tmp)
-mod[[8]]=lm(new_t1 ~ ratio + ratio2 +  TotDensity + ratio:TotDensity + 
-                     ratio2:TotDensity,data=tmp)
-AICtab(mod,weights=T)
-
-plot(tmp$ratio,tmp$new_t1,pch=16)
-xSeq=seq(0,1,by=0.1)
-yPred1=coef(mod[[7]])[1] + coef(mod[[7]])[2]*xSeq + coef(mod[[7]])[4]*xSeq^2 + 
-       coef(mod[[7]])[3]*1 + coef(mod[[7]])[5]*xSeq
-yPred2=coef(mod[[7]])[1] + coef(mod[[7]])[2]*xSeq + coef(mod[[7]])[4]*xSeq^2 + 
-       coef(mod[[7]])[3]*24 + coef(mod[[7]])[5]*xSeq*24
-yPred3=coef(mod[[7]])[1] + coef(mod[[7]])[2]*xSeq + coef(mod[[7]])[4]*xSeq^2 + 
-  coef(mod[[7]])[3]*48 + coef(mod[[7]])[5]*xSeq*48
-lines(xSeq,yPred1,col="blue",lwd=2)
-lines(xSeq,yPred2,col="green",lwd=2)
-lines(xSeq,yPred3,col="red",lwd=2)
 
 #########################################################################################################
 ###GRAPHS######
 #########################################################################################################
 
 #Top two models 2014 and 2015----------------------------------------------------------------------------
-tiff("Results/VitalRates_simple/growth2Best.tiff",unit="in",width=6.3,height=7,res=600,compression="lzw")
+tiff("Results/VitalRates_simple/growth2Best_tillers.tiff",unit="in",width=6.3,height=7,res=600,compression="lzw")
 
 #Set up colors for plots
 sexAsInteger=as.integer(d14$sex)
 d14$col=as.character(factor(sexAsInteger,labels=c("blue","red")))
 d14$symb=as.integer(as.character(factor(sexAsInteger,labels=c("17","16"))))
+sexAsInteger=as.integer(a15$sex)
+a15$col=as.character(factor(sexAsInteger,labels=c("blue","red")))
+a15$symb=as.integer(as.character(factor(sexAsInteger,labels=c("17","16"))))
+
 
 #Start plotting
 par(mfcol=c(2,2),mar=c(3,3,1,0.1),mgp=c(1.4,0.5,0))
@@ -187,29 +171,34 @@ lines(xSeq,yPred,lwd=2)
 
 #2015----------------------------------------------------------------------------------------
 #best model
-plot(d15$M,d15$l_t1,pch=16,xlab="Plot density of male or female individuals",
+plot(a15$TotDensity,a15$l_t1,pch=16,xlab="Planting density in 2013",
      ylab="Target individual: Number of leaves (2015)",xlim=c(-1,48))
-par(new=T) ;  plot(d15$F+0.5,d15$l_t1,pch=17,xlab="",ylab="",xaxt="n",xlim=c(-1,48),col="grey50")
+title(main = "2015: best mod (19% weight)", line=0.2,cex=0.9)
 
-title(main = "2015: best mod (30% weight)", line=0.2,cex=0.9)
+xSeq  <- seq(1,48,by=1)
+yPred <- exp(coef(dMod[[19]])[1] + coef(dMod[[19]])[2]*mean(a15$log_l_t0,na.rm=T) + 
+             coef(dMod[[19]])[3]*xSeq + coef(dMod[[19]])[4]*mean(a15$new_t1,na.rm=T))
+lines(xSeq,yPred,lwd=3,lty=1)
+
+
+#2nd best models
+plot(a15$M,a15$l_t1,pch=16,xlab="Plot density of male or female individuals",
+     ylab="Target individual: Number of leaves (2015)",xlim=c(-1,48))
+par(new=T) ;  plot(a15$F+0.5,a15$l_t1,pch=17,xlab="",ylab="",xaxt="n",xlim=c(-1,48),col="grey50")
+
+title(main = "2015: best mod (19% weight)", line=0.2,cex=0.9)
 legend(14,86,c("Effect of Male density ","Effect of Female density"),
        col=c("black","grey50"),pch=c(16,17),bty="n")
 
 xSeq <- seq(1,48,by=1)
-y_m <- exp(coef(dMod[[10]])[1] + coef(dMod[[10]])[2]*mean(d15$log_l_t0,na.rm=T) + 
-              coef(dMod[[10]])[3]*xSeq + coef(dMod[[10]])[4]*mean(d15$F,na.rm=T))
-y_f <- exp(coef(dMod[[10]])[1] + coef(dMod[[10]])[2]*mean(d15$log_l_t0,na.rm=T) + 
-              coef(dMod[[10]])[4]*xSeq + coef(dMod[[10]])[3]*mean(d15$M,na.rm=T))
+y_m <- exp(coef(dMod[[25]])[1] + coef(dMod[[25]])[2]*mean(a15$log_l_t0,na.rm=T) + 
+             coef(dMod[[25]])[3]*xSeq + coef(dMod[[25]])[4]*mean(a15$F,na.rm=T) + 
+             coef(dMod[[25]])[5]*mean(a15$new_t1,na.rm=T))
+y_f <- exp(coef(dMod[[25]])[1] + coef(dMod[[25]])[2]*mean(a15$log_l_t0,na.rm=T) + 
+             coef(dMod[[25]])[4]*xSeq + coef(dMod[[25]])[3]*mean(a15$M,na.rm=T) + 
+             coef(dMod[[25]])[5]*mean(a15$new_t1,na.rm=T))
 lines(xSeq,y_m,lwd=3,lty=1)
 lines(xSeq,y_f,lwd=3,lty=1,col="grey50")
-
-#2nd best models
-plot(d15$TotDensity,d15$l_t1,pch=16,xlab="Total plot density",
-     ylab="Target individual: Number of leaves (2015)")
-title(main = "2015: 2nd best (19% weight)", line=0.2,cex=0.9)
-xSeq <- seq(1,48,by=1)
-ypred <- exp(coef(dMod[[4]])[1] + coef(dMod[[4]])[2]*mean(d15$log_l_t0,na.rm=T) + coef(dMod[[4]])[3]*xSeq)
-lines(xSeq,ypred,lwd=2)
 
 dev.off()
 

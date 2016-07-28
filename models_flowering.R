@@ -5,6 +5,7 @@ setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experimen
 library(bbmle) #For AIC weights, because I'm lazy!
 library(lme4)
 library(nlme)
+library(glmmADMB)
 
 #read in data
 d=read.csv("Data/vr.csv")
@@ -28,10 +29,15 @@ d$plot=as.factor(d$plot)
 dat=subset(d,year==2014)
 dat[which(dat$log_l_t1==-Inf),]=NA
 
-library(glmmADMB)
+#I repeated models three times, only ONE reported:
+#1.No "new tillers" slope
+#2.DOESN'T FIT,NOT REPORTED: "new tillers" slope
+#3.DOESN'T FIT,NOT REPORTED: "new tillers" slope + random slope
+
+
 #Density as "number of leaves"-----------------------------------------------------------
 lMod=list() #lMod stands for "leaf model" (density is quantified by N. of leaves)
-tmp=na.omit(dat[,c("plot","flow_t1","log_l_t1","sex","c_t0","mC_t0","fC_t0","M","F")])
+tmp=na.omit(dat[,c("plot","flow_t1","log_l_t1","sex","c_t0","mC_t0","fC_t0","M","F","new_t1")])
 #Target fitness
 lMod[[1]]=glmmadmb(flow_t1 ~ log_l_t1 + (1 | plot),data=tmp,family="binomial")
 lMod[[2]]=glmmadmb(flow_t1 ~ log_l_t1 + sex + (1 | plot),data=tmp,family="binomial")
@@ -81,10 +87,6 @@ dMod[[13]]=glmmadmb(flow_t1 ~ log_l_t1 + M + F + M:sex + F:sex + (1 | plot),data
 dMod[[14]]=glmmadmb(flow_t1 ~ log_l_t1 + sex + M + F + M:sex + F:sex + (1 | plot),data=tmp,family="binomial")
 dMod[[15]]=glmmadmb(flow_t1 ~ log_l_t1 * sex + M + F + M:sex + F:sex + (1 | plot),data=tmp,family="binomial")
 AICtab(dMod,weights=T)
-
-
-
-AICtab(lMod,weights=T)
 
 
 #
