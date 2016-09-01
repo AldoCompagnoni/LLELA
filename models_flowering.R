@@ -90,7 +90,7 @@ AICtab(dMod,weights=T)
 
 
 #
-tiff("Results/VitalRates_simple/flowering_simple.tiff",unit="in",width=4,height=8,res=600,compression="lzw")
+tiff("Results/VitalRates_simple/flowering.tiff",unit="in",width=4,height=8,res=600,compression="lzw")
 
 #Set up colors for plots
 sexAsInteger=as.integer(tmp$sex)

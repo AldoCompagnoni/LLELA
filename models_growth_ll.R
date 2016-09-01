@@ -135,26 +135,26 @@ par(mfcol=c(2,2),mar=c(2.8,3,1,0.1),mgp=c(1.4,0.5,0))
 
 #2014----------------------------------------------------------------------------------------
 #best model
-boxplot(d14$logRat,ylab="log ratio(target leaves 2014 / target leaves 2013)")
-title(main = "2014: best mod (86% weight)", line=0.2,cex=0.9)
+boxplot(d14$logRat,ylab="log(target leaves 2014 / target leaves 2013)")
+title(main = "2014: mod 1 (86% weight)", line=0.2,cex=0.9)
 
 #2nd best model
-boxplot(d14$logRat ~ d14$sex,col=c("blue","red"),ylab="log ratio(target leaves 2014 / target leaves 2013)",
+boxplot(d14$logRat ~ d14$sex,col=c("blue","red"),ylab="log(target leaves 2014 / target leaves 2013)",
         names=c("Females","Males"))
-title(main = "2014: 2nd best mod (14% weight)", line=0.2,cex=0.9)
+title(main = "2014: mod 2 (14% weight)", line=0.2,cex=0.9)
 
 
 #2015----------------------------------------------------------------------------------------
 #best model
-boxplot(d15$logRat,ylab="log ratio(target leaves 2015 / target leaves 2014)")
-title(main = "2015: best mod (48% weight)", line=0.2,cex=0.9)
+boxplot(d15$logRat,ylab="log(target leaves 2015 / target leaves 2014)")
+title(main = "2015: mod 1 (48% weight)", line=0.2,cex=0.9)
 
 #2nd best model
 plot(d15$logRat ~ d15$TotDensity,pch=16,xlab="Total plot density",
-     ylab="log ratio(target leaves 2015 / target leaves 2014)")
+     ylab="log(target leaves 2015 / target leaves 2014)")
 xSeq <- seq(0,48,by=1)
 yPred<- fixef(ld15[[3]])[1] + fixef(ld15[[3]])[2]*xSeq
 lines(xSeq,yPred,lwd=2)
-title(main = "2015: best mod (43% weight)", line=0.2,cex=0.9)
+title(main = "2015: mod 3 (43% weight)", line=0.2,cex=0.9)
 
 dev.off()

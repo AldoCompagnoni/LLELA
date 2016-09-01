@@ -50,40 +50,74 @@ pan14=merge(d14,panicules,all=T)
 
 pl=list() #lMod stands for "leaf model" (density is quantified by N. of leaves)
 #Target fitness
-pl[[1]]=lmer(panicule_Length_cm^(1/4) ~ log_l_t1 + (1 | plot),REML = F,data=pan14)
-pl[[2]]=lmer(panicule_Length_cm^(1/4) ~ log_l_t1 + sex + (1 | plot),REML = F,data=pan14)
-pl[[3]]=lmer(panicule_Length_cm^(1/4) ~ log_l_t1 * sex + (1 | plot),REML = F,data=pan14)
+pl[[1]]=lmer(log(panicule_Length_cm) ~ log_l_t1 + (1 | plot),REML = F,data=pan14)
+pl[[2]]=lmer(log(panicule_Length_cm) ~ log_l_t1 + sex + (1 | plot),REML = F,data=pan14)
+pl[[3]]=lmer(log(panicule_Length_cm) ~ log_l_t1 * sex + (1 | plot),REML = F,data=pan14)
 #Target fitness + effect = tot density 
-pl[[4]]=lmer(panicule_Length_cm^(1/4) ~ log_l_t1 + c_t0 + (1 | plot),REML = F,data=pan14)
-pl[[5]]=lmer(panicule_Length_cm^(1/4) ~ log_l_t1 + sex + c_t0 + (1 | plot),REML = F,data=pan14)
-pl[[6]]=lmer(panicule_Length_cm^(1/4) ~ log_l_t1 * sex + c_t0 + (1 | plot),REML = F,data=pan14)
+pl[[4]]=lmer(log(panicule_Length_cm) ~ log_l_t1 + c_t0 + (1 | plot),REML = F,data=pan14)
+pl[[5]]=lmer(log(panicule_Length_cm) ~ log_l_t1 + sex + c_t0 + (1 | plot),REML = F,data=pan14)
+pl[[6]]=lmer(log(panicule_Length_cm) ~ log_l_t1 * sex + c_t0 + (1 | plot),REML = F,data=pan14)
 #Target fitness + effect = tot density + response=sex 
-pl[[7]]=lmer(panicule_Length_cm^(1/4) ~ log_l_t1 + c_t0 + c_t0:sex + (1 | plot),REML = F,data=pan14)
-pl[[8]]=lmer(panicule_Length_cm^(1/4) ~ log_l_t1 + sex + c_t0 + c_t0:sex + (1 | plot),REML = F,data=pan14)
-pl[[9]]=lmer(panicule_Length_cm^(1/4) ~ log_l_t1 * sex + c_t0 + c_t0:sex + (1 | plot),REML = F,data=pan14)
+pl[[7]]=lmer(log(panicule_Length_cm) ~ log_l_t1 + c_t0 + c_t0:sex + (1 | plot),REML = F,data=pan14)
+pl[[8]]=lmer(log(panicule_Length_cm) ~ log_l_t1 + sex + c_t0 + c_t0:sex + (1 | plot),REML = F,data=pan14)
+pl[[9]]=lmer(log(panicule_Length_cm) ~ log_l_t1 * sex + c_t0 + c_t0:sex + (1 | plot),REML = F,data=pan14)
 #Target fitness + effect = sex 
-pl[[10]]=lmer(panicule_Length_cm^(1/4) ~ log_l_t1 + mC_t0 + fC_t0 + (1 | plot),REML = F,data=pan14)
-pl[[11]]=lmer(panicule_Length_cm^(1/4) ~ log_l_t1 + sex + mC_t0 + fC_t0 + (1 | plot),REML = F,data=pan14)
-pl[[12]]=lmer(panicule_Length_cm^(1/4) ~ log_l_t1 * sex + mC_t0 + fC_t0 + (1 | plot),REML = F,data=pan14)
+pl[[10]]=lmer(log(panicule_Length_cm) ~ log_l_t1 + mC_t0 + fC_t0 + (1 | plot),REML = F,data=pan14)
+pl[[11]]=lmer(log(panicule_Length_cm) ~ log_l_t1 + sex + mC_t0 + fC_t0 + (1 | plot),REML = F,data=pan14)
+pl[[12]]=lmer(log(panicule_Length_cm) ~ log_l_t1 * sex + mC_t0 + fC_t0 + (1 | plot),REML = F,data=pan14)
 #Target fitness + effect = sex + response=sex 
-pl[[13]]=lmer(panicule_Length_cm^(1/4) ~ log_l_t1 + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex + (1 | plot),REML = F,data=pan14)
-pl[[14]]=lmer(panicule_Length_cm^(1/4) ~ log_l_t1 + sex + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex + (1 | plot),REML = F,data=pan14)
-pl[[15]]=lmer(panicule_Length_cm^(1/4) ~ log_l_t1 * sex + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex + (1 | plot),REML = F,data=pan14)
-pl[[16]]=lmer(panicule_Length_cm^(1/4) ~ (1 | plot),REML = F,data=pan14) #null model
+pl[[13]]=lmer(log(panicule_Length_cm) ~ log_l_t1 + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex + (1 | plot),REML = F,data=pan14)
+pl[[14]]=lmer(log(panicule_Length_cm) ~ log_l_t1 + sex + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex + (1 | plot),REML = F,data=pan14)
+pl[[15]]=lmer(log(panicule_Length_cm) ~ log_l_t1 * sex + mC_t0 + fC_t0 + mC_t0:sex + fC_t0:sex + (1 | plot),REML = F,data=pan14)
+pl[[16]]=lmer(log(panicule_Length_cm) ~ (1 | plot),REML = F,data=pan14) #null model
 AICtab(pl,weights=T) #BEST MODEL IS MODEL 1
 
-#Graph
-#sexAsInteger=as.integer(pan14$sex)
-#pan14$col=as.character(factor(sexAsInteger,labels=c("blue","red")))
 
-#plot(pan14$log_l_t1,pan14$panicule_Length_cm,pch=16,col=pan14$col,
-#     ylab="log(number of target leaves)")
-#xSeq=seq(min(pan14$log_l_t1,na.rm=T),max(pan14$log_l_t1,na.rm=T),length.out=100)
-#betas=fixef(pl[[3]])
-#ym=betas[1] + betas[2]*xSeq + betas[3] + betas[4]*xSeq
-#yf=betas[1] + betas[2]*xSeq
-#lines(xSeq,ym,col="red",lwd=2)  
-#lines(xSeq,yf,col="blue",lwd=2)
+tiff("Results/VitalRates_simple/fertility.tiff",unit="in",width=3.5,height=7,res=600,compression="lzw")
+
+#Start plotting
+par(mfcol=c(2,1),mar=c(2.8,3,1,0.1),mgp=c(1.4,0.5,0))
+
+sexAsInteger=as.integer(pan14$sex)
+pan14$col=as.character(factor(sexAsInteger,labels=c("blue","red")))
+
+#best model
+plot(pan14$log_l_t1,log(pan14$panicule_Length_cm),pch=16,
+     ylab="log(Panicule length)",xlab="log(size target)")
+xSeq=seq(min(pan14$log_l_t1,na.rm=T),max(pan14$log_l_t1,na.rm=T),length.out=100)
+yPred=fixef(pl[[1]])[1] + fixef(pl[[1]])[2]*xSeq
+lines(xSeq,yPred,lwd=2)
+title(main = "2014: model 1 (26% weight)", line=0.2,cex=0.9)
+
+#2nd best model
+plot(pan14$log_l_t1,log(pan14$panicule_Length_cm),pch=16,col=pan14$col,
+     ylab="log(Panicule length)",xlab="log(size target)")
+xSeq=seq(min(pan14$log_l_t1,na.rm=T),max(pan14$log_l_t1,na.rm=T),length.out=100)
+yF=fixef(pl[[3]])[1] + fixef(pl[[3]])[2]*xSeq
+yM=fixef(pl[[3]])[1] + fixef(pl[[3]])[2]*xSeq + fixef(pl[[3]])[3] + fixef(pl[[3]])[4]*xSeq
+lines(xSeq,yF,lwd=2,col="blue")
+lines(xSeq,yM,lwd=2,col="red")
+title(main = "2014: model 2 (26% weight)", line=0.2,cex=0.9)
+
+dev.off()
+
+
+
+#Graph
+sexAsInteger=as.integer(pan14$sex)
+pan14$col=as.character(factor(sexAsInteger,labels=c("blue","red")))
+
+plot(pan14$log_l_t1,pan14$panicule_Length_cm,pch=16,col=pan14$col,
+     ylab="log(number of target leaves)")
+xSeq=seq(min(pan14$log_l_t1,na.rm=T),max(pan14$log_l_t1,na.rm=T),length.out=100)
+betas=fixef(pl[[3]])
+ym=betas[1] + betas[2]*xSeq + betas[3] + betas[4]*xSeq
+yf=betas[1] + betas[2]*xSeq
+lines(xSeq,ym,col="red",lwd=2)  
+lines(xSeq,yf,col="blue",lwd=2)
+
+dev.off()
+
 
 
 #Female seed weight----------------------------------------------------------------------------------

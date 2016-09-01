@@ -108,12 +108,13 @@ par(mfrow=c(2,1),mar=c(3,3,1,0.1),mgp=c(1.4,0.5,0))
 invlogit<-function(x){exp(x)/(1+exp(x))}
 
 #best models
-plot(a15$surv_t1+0.015 ~ a15$M,pch=16,xlab="N. of total plot leaves 2013",ylim=c(0,1),
-     ylab="Survival to spring 2015")
+plot(a15$surv_t1+0.015 ~ a15$M,pch=16,xlab="Density of male or female individuals",ylim=c(0,1),
+     ylab="Target survival to spring 2015")
 par(new=T) ; plot(a15$surv_t1-0.015 ~ a15$F,pch=17,xlab="",ylab="",ylim=c(0,1),col="grey50", xaxt="n")
 
 title(main = "2015: best mod (45% weight)", line=0.2,cex=0.9)
-legend(0,0.45,c("Male density","Female density"), col="black",lty=c(1,2),lwd=2,bty="n")
+legend(0,0.45,c("Male density","Female density"), col="black",
+       lty=c(1,2),lwd=2,bty="n",pch=c(16,17))
 #text(-15,0.1,"Predictor: Density by sex",pos=4,cex=1.2)
 xSeq <- seq(0,max(c(a15$F,a15$M)),by=1)
 y_m=invlogit(coef(dMod[[25]])[1] + coef(dMod[[25]])[2]*mean(a15$log_l_t0,na.rm=T) +
@@ -127,15 +128,15 @@ lines(xSeq,y_f,lty=2,lwd=2,col="black")
 
 
 #2nd best models
-plot(a15$surv_t1+0.015 ~ a15$M,pch=16,xlab="N. of total plot leaves 2013",ylim=c(0,1),
-     ylab="Survival to spring 2015",col=a15$col)
+plot(a15$surv_t1+0.015 ~ a15$M,pch=16,xlab="Density of male or female individuals",ylim=c(0,1),
+     ylab="Target survival to spring 2015",col=a15$col)
 par(new=T) ; plot(a15$surv_t1-0.015 ~ a15$F,pch=17,ylim=c(0,1),xlab="",ylab="",col=a15$col, xaxt="n")
 title(main = "2015: 2nd best (17% weight)", line=0.2,cex=0.9)
 legend(0,0.5,c("Focal male, male competition",
                  "Focal female, male competition",
                  "Focal male, female competition",
                  "Focal female, female competition"),
-       col=c("red","blue"),lty=c(1,1,2,2),lwd=2,bty="n")
+       col=c("red","blue"),pch=c(16,16,17,17),lty=c(1,1,2,2),lwd=2,bty="n")
 xSeq <- seq(0,max(c(a15$F,a15$M)),by=1)
 yMal_f=invlogit(coef(dMod[[26]])[1] + coef(dMod[[26]])[2]*mean(a15$log_l_t0,na.rm=T) + coef(dMod[[26]])[3] + 
                 coef(dMod[[26]])[4]*mean(a15$M,na.rm=T) + coef(dMod[[26]])[5]*xSeq + 
