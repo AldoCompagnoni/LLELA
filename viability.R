@@ -172,6 +172,101 @@ legend(0.3,4.5,c("High density plot","Low density plot"),lwd=2,lty=1,
 dev.off()
 
 
+
+###################################################################################
+#Viability model selection - NO QUADRATIC TERM
+###################################################################################
+
+
+#invlogit for graphs
+invlogit<-function(x){exp(x)/(1+exp(x))}
+
+#1. viable Seed Number according to tetrazolium assays  (Yes / fail) 
+l_viab_tetr=list()
+l_viab_tetr[[1]]=glm(cbind(Yes,fail) ~ sr_f,family="binomial", data=viabVr)
+l_viab_tetr[[2]]=glm(cbind(Yes,fail) ~ totFlow,family="binomial", data=viabVr)
+l_viab_tetr[[3]]=glm(cbind(Yes,fail) ~ sr_f + totFlow,family="binomial", data=viabVr)
+l_viab_tetr[[4]]=glm(cbind(Yes,fail) ~ sr_f * totFlow,family="binomial", data=viabVr)
+AICtab(l_viab_tetr,weights=T) #mod 6, 71% support, mod 6 + 8 have 100% support
+
+
+#2. viable Seed Number according to tetrazolium assays  (Yes / fail) 
+# This is a **less conservative** way to identify viable seeds. 
+#"Maybe" refers to seeds that were barely stained by tetrazolium.
+l_tetr_maybe=list()
+l_tetr_maybe[[1]]=glm(cbind(yesMaybe,failMaybe) ~ sr_f,family="binomial", data=viabVr)
+l_tetr_maybe[[2]]=glm(cbind(yesMaybe,failMaybe) ~ totFlow,family="binomial", data=viabVr)
+l_tetr_maybe[[3]]=glm(cbind(yesMaybe,failMaybe) ~ sr_f + totFlow,family="binomial", data=viabVr)
+l_tetr_maybe[[4]]=glm(cbind(yesMaybe,failMaybe) ~ sr_f * totFlow,family="binomial", data=viabVr)
+AICtab(l_tetr_maybe,weights=T) #mod 6, 63% support (mod 6 + 8 have 100%)
+
+
+#3. viable Seed Number according to germination assays (germTot / germFail) 
+l_viab_germ=list()
+l_viab_germ[[1]]=glm(cbind(germTot,germFail) ~ sr_f,family="binomial", data=viabVr)
+l_viab_germ[[2]]=glm(cbind(germTot,germFail) ~ totFlow,family="binomial", data=viabVr)
+l_viab_germ[[3]]=glm(cbind(germTot,germFail) ~ sr_f + totFlow,family="binomial", data=viabVr)
+l_viab_germ[[4]]=glm(cbind(germTot,germFail) ~ sr_f * totFlow,family="binomial", data=viabVr)
+AICtab(l_viab_germ,weights=T) #mod 6, 67% support (mod 6 + 8 have 100% support)
+
+
+#Graph results
+tiff("Results/VitalRates_Sept16/viability_noQuadratic.tiff",unit="in",width=6.3,height=6,res=600,compression="lzw")
+
+lower=quantile(viabVr$totFlow,prob=c(0.1))
+upper=quantile(viabVr$totFlow,prob=c(0.9))
+
+par(mfrow=c(2,2),mar=c(2.5,3,1.1,0.1),mgp=c(1.5,0.6,0))
+titlePlace=0.2
+
+plot(viabVr$sr_f,viabVr$tetra_ratio,pch=16,
+     xlab="Sex ratio",ylab="Viability rate")
+title("Tetrazolium data", line = titlePlace)
+xSeq=seq(min(viabVr$sr_f),max(viabVr$sr_f),length.out=100)
+beta=coef(l_viab_tetr[[4]])
+yMeanLow=invlogit(beta[1] + beta[2]*xSeq + beta[3]*lower + beta[4]*xSeq*lower)
+yMeanHigh=invlogit(beta[1] + beta[2]*xSeq + beta[3]*upper + beta[4]*xSeq*upper)
+lines(xSeq,yMeanLow,lwd=2,col="blue")
+lines(xSeq,yMeanHigh,lwd=2,col="red")
+
+plot(viabVr$sr_f,viabVr$tetra_maybe_ratio,pch=16,
+     xlab="Sex ratio",ylab="Viability rate")
+title("Tetrazolium maybe", line = titlePlace)
+xSeq=seq(min(viabVr$sr_f),max(viabVr$sr_f),length.out=100)
+beta=coef(l_tetr_maybe[[4]])
+yMeanLow=invlogit(beta[1] + beta[2]*xSeq + beta[3]*lower + beta[4]*xSeq*lower)
+yMeanHigh=invlogit(beta[1] + beta[2]*xSeq + beta[3]*upper + beta[4]*xSeq*upper)
+lines(xSeq,yMeanLow,lwd=2,col="blue")
+lines(xSeq,yMeanHigh,lwd=2,col="red")
+
+
+plot(viabVr$sr_f,viabVr$germ_ratio,pch=16,
+     xlab="Sex ratio",ylab="Germination rate")
+title("Germination data", line = titlePlace)
+xSeq=seq(min(viabVr$sr_f),max(viabVr$sr_f),length.out=100)
+beta=coef(l_viab_germ[[3]])
+yMeanLow=invlogit(beta[1] + beta[2]*xSeq + beta[3]*lower)
+yMeanHigh=invlogit(beta[1] + beta[2]*xSeq + beta[3]*upper)
+lines(xSeq,yMeanLow,lwd=2,col="blue")
+lines(xSeq,yMeanHigh,lwd=2,col="red")
+
+plot(c(1:10),type="n",bty="n",xaxt="n",yaxt="n",ylab="",xlab="") #
+text(0.3,10,"Tetrazolium data model:",pos=4)
+text(0.3,9.3,"OSR * Density",pos=4)
+
+text(0.3,8,"Tetrazolium maybe model:",pos=4)
+text(0.3,7.3,"OSR * Density",pos=4)
+
+text(0.3,6,"Germination model:",pos=4)
+text(0.3,5.3,"OSR + Density",pos=4)
+
+legend(0.3,4.5,c("High density plot","Low density plot"),lwd=2,lty=1,
+       col=c("blue","red"),bty="n")
+
+dev.off()
+
+
+
 ###################################################################################
 #DEBUG
 ###################################################################################
@@ -202,8 +297,8 @@ AICtab(l_viab_germ,weights=T) #mod 6, 67% support (mod 6 + 8 have 100% support)
 ##1. Is the decrease in prob. of fertilization a consequence of sr_f=100% data points biasing sr_f2 results?
 tiff("Results/VitalRates_Sept16/viability_choppedData.tiff",unit="in",width=6.3,height=6,res=600,compression="lzw")
 
-lower=quantile(viabVr$totFlow,prob=c(0.3))
-upper=quantile(viabVr$totFlow,prob=c(0.7))
+lower=quantile(viabVr$totFlow,prob=c(0.1))
+upper=quantile(viabVr$totFlow,prob=c(0.9))
 
 par(mfrow=c(3,2),mar=c(2.5,3,1.1,0.1),mgp=c(1.5,0.6,0))
 
@@ -225,10 +320,8 @@ plot(plotViab$sr_f,plotViab$germ_ratio,pch=16,xlab="Sex ratio",ylab="Germination
 title("All data", line = titlePlace)
 xSeq=seq(min(plotViab$sr_f),max(plotViab$sr_f),length.out=100)
 xSeq2=xSeq^2
-yMeanLow=invlogit(beta[1] + beta[2]*xSeq + beta[3]*lower + 
-                    beta[4]*xSeq2 + beta[5]*xSeq*lower)
-yMeanHigh=invlogit(beta[1] + beta[2]*xSeq + beta[3]*upper + 
-                     beta[4]*xSeq2 + beta[5]*xSeq*upper)
+yMeanLow=invlogit(beta[1] + beta[2]*xSeq + beta[3]*lower + beta[4]*xSeq2)
+yMeanHigh=invlogit(beta[1] + beta[2]*xSeq + beta[3]*upper + beta[4]*xSeq2)
 lines(xSeq,yMeanLow,lwd=2,col="blue")
 lines(xSeq,yMeanHigh,lwd=2,col="red")
 
