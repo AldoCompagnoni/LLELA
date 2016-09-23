@@ -14,8 +14,6 @@ d=d[-which(d$plot ==36 & d$focalI =="m3"),]
 #logtransform leaf numbers
 d$log_l_t0=log(d$l_t0)
 d$log_l_t1=log(d$l_t1)
-d$mC_t0[is.na(d$mC_t0)]=0
-d$fC_t0[is.na(d$fC_t0)]=0
 d$plot=as.factor(d$plot) #glmmadmb wants plot as a factor
 
 #Transform densities to SEX RATIO
@@ -53,9 +51,6 @@ nt[[4]]=lm(new_t1 ~ TotDensity + TotDensity2 + sr,data=d15)
 nt[[5]]=lm(new_t1 ~ sr * TotDensity,data=d15)
 nt[[6]]=lm(new_t1 ~ sr * TotDensity + TotDensity2,data=d15)
 nt[[7]]=lm(new_t1 ~ sr * TotDensity + TotDensity2*sr,data=d15)
-#nt[[6]]=lm(new_t1 ~ sr + sr2 + TotDensity,data=d15)
-#nt[[7]]=lm(new_t1 ~ sr * TotDensity + sr2,data=d15)
-#nt[[8]]=lm(new_t1 ~ sr + sr2 + TotDensity + sr:TotDensity + sr2:TotDensity,data=d15)
 AICtab(nt,weights=T)
 
 
