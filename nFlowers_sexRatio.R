@@ -1,10 +1,10 @@
 ##Sex predictor of flowering probability: SEX RATIO (female individuals/total individuals)
 setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
 library(bbmle) #For AIC weights, because I'm lazy!
-library(lme4) #; library(glmmADMB)
+library(lme4) ; library(glmmADMB)
+source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
 
-
-#read in data
+# read in data
 d <- read.csv("Data/vr.csv")
 
 #Remove resuscitated individuals (dead in spring 2014, alive in 2015)
@@ -16,13 +16,13 @@ d <- d[-which(d$plot == 46 & d$focalI =="f1"),]
 d <- d[-which(d$plot == 83 & d$focalI =="f5"),]
 d <- d[-which(d$plot == 36 & d$focalI =="m3"),]
 
-#logtransform leaf numbers
+# logtransform leaf numbers
 d$log_l_t0 <- log(d$l_t0)
 d$log_l_t1 <- log(d$l_t1)
-#make "plot" a factor to fit models 
+# make "plot" a factor to fit models 
 d$plot <- as.factor(d$plot) 
 
-#Transform densities to SEX RATIO
+# Transform densities to SEX RATIO
 d$sr <- d$F / d$TotDensity
 
 
@@ -60,60 +60,53 @@ nfMod[[12]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + sr + TotDensity + (1 | plot),da
 nfMod[[13]]=glmmadmb(flowN_t1 ~ log_l_t0 + sr + TotDensity + sr:sex + TotDensity:sex +(1 | plot),data=f14,family="poisson")
 nfMod[[14]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex + sr + TotDensity + sr:sex + TotDensity:sex + (1 | plot),data=f14,family="poisson")
 nfMod[[15]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + sr + TotDensity + sr:sex + TotDensity:sex  + (1 | plot),data=f14,family="poisson")
-mod_select = AICtab(nfMod,weights=T)
 
-
-# Model average (Models that make up more than 95% of weight)
-betaList      <- list()
-mod_rank <- do.call(rbind,strsplit(attributes(mod_select)$row.names , "model"))
-mod_rank <- as.numeric(mod_rank[,2])
-
-# First 11 models make up 95% of weight (sum(mod_select$weight[1:11]))
-for(i in 1:11 ){
-
-  coefficients = coef(nfMod[[mod_rank[i]]])
-  betaList[[i]] <-  data.frame(predictor = names(coefficients),
-                               parameter = coefficients)
-  names(betaList[[i]])[2] <- paste0("parameter_",i)
-  
-}
-
-# Model averages
-beta_avg      <- Reduce(function(...) merge(...,all=T), betaList)
-beta_avg[is.na(beta_avg)] <- 0
-weights       <- mod_select$weight[1:11]
-beta_avg$avg  <- as.matrix(beta_avg[,-1]) %*% weights / sum(mod_select$weight[1:11]) 
-
-write.csv(beta_avg[,c("predictor","avg")], 
-          "Results/VitalRates_3/nFlowers_best.csv", row.names = F)
+# Model average
+n_flow_select <- AICtab(nfMod,weights=T)
+n_flow_avg    <- model_avg(n_flow_select, nfMod)
+write.csv(n_flow_avg, "Results/VitalRates_3/n_flowers_best.csv", row.names = F)
 
 
 # GRAPHS ---------------------------------------------------------------------------------------------------------------
 
-beta = beta_avg[,c("predictor","avg")]$avg
+tiff("Results/VitalRates_3/flowering.tiff",unit="in",width=3.5,height=3.5,res=600,compression="lzw")
 
-plot( f14$sr, f14$flowN_t1 , pch = 16,
-      ylab = "Number of flowers")
+par(mfrow=c(1,1),mar=c(3,3,0.1,0.1),mgp=c(1.4,0.35,0),cex.lab=0.8,cex.axis=0.8,
+    cex.main=0.9)
+
+# Set up colors for plots
+f14$col <- as.character(factor(as.integer(f14$sex),labels=c("blue","red")))
+mal14   <- subset(f14,sex=="m")
+fem14   <- subset(f14,sex=="f")
+
+plot( fem14$flowN_t1+0.05 ~ fem14$sr, pch = 16,ylim=c(0,7),xlim=c(0,1),
+      ylab = "Number of flowers", xlab="Proportion of female individuals", col = "blue")
+par(new=T) ; plot( mal14$flowN_t1-0.05 ~ mal14$sr,pch = 16,ylim=c(0,7),xlim=c(0,1),
+                  ylab = "Number of flowers", xlab="",col = "red")
 
 low   <- 5
 high  <- 42
 size  <- mean(f14$log_l_t0)
 xSeq  <- seq(0,1,by = 0.1)
+beta  <- n_flow_avg[,c("predictor","avg")]$avg
 
 y_m_l <- exp( beta[1] + beta[2]*size + beta[3]*low + 
-              beta[4]*low + beta[5]*xSeq + beta[6] +
-              beta[7]*low + beta[8]*size + beta[9]*xSeq)
+              beta[4]*low + beta[5]*xSeq + beta[6] + 
+              beta[7]*size + beta[8]*xSeq)
 y_m_h <- exp( beta[1] + beta[2]*size + beta[3]*high + 
-              beta[4]*high + beta[5]*xSeq + beta[6] +
-              beta[7]*high + beta[8]*size + beta[9]*xSeq)
-
+              beta[4]*high + beta[5]*xSeq + beta[6] + 
+              beta[7]*size + beta[8]*xSeq)
 y_f_l <- exp( beta[1] + beta[2]*size + beta[3]*low + 
-                beta[5]*xSeq)
+              beta[5]*xSeq)
 y_f_h <- exp( beta[1] + beta[2]*size + beta[3]*high + 
-                beta[5]*xSeq)
+              beta[5]*xSeq)
 
 lines(xSeq,y_m_l,lty=2,lwd=2,col="red")
 lines(xSeq,y_m_h,lty=1,lwd=2,col="red")
-
 lines(xSeq,y_f_l,lty=2,lwd=2,col="blue")
 lines(xSeq,y_f_h,lty=1,lwd=2,col="blue")
+
+legend(0,7.5,c("high density","low density","male","female"),
+       lty=c(1,2,1,1),lwd=2,col=c("black","black","red","blue"),bty="n")
+
+dev.off()
