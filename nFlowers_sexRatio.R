@@ -7,15 +7,6 @@ source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
 # read in data
 d <- read.csv("Data/vr.csv")
 
-#Remove resuscitated individuals (dead in spring 2014, alive in 2015)
-#NOTE: possibly these are NOT DEAD in 2014, because they all have
-#few leaves: resprouted from base?
-d <- d[-which(d$plot == 18 & d$focalI =="m2"),]
-d <- d[-which(d$plot == 38 & d$focalI =="f1"),]
-d <- d[-which(d$plot == 46 & d$focalI =="f1"),]
-d <- d[-which(d$plot == 83 & d$focalI =="f5"),]
-d <- d[-which(d$plot == 36 & d$focalI =="m3"),]
-
 # logtransform leaf numbers
 d$log_l_t0 <- log(d$l_t0)
 d$log_l_t1 <- log(d$l_t1)
@@ -65,7 +56,6 @@ nfMod[[15]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + sr + TotDensity + sr:sex + TotD
 n_flow_select <- AICtab(nfMod,weights=T)
 n_flow_avg    <- model_avg(n_flow_select, nfMod)
 write.csv(n_flow_avg, "Results/VitalRates_3/n_flowers_best.csv", row.names = F)
-
 
 # GRAPHS ---------------------------------------------------------------------------------------------------------------
 

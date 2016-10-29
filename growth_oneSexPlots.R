@@ -3,6 +3,8 @@ setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experimen
 library(bbmle) #For AIC weights, because I'm lazy!
 library(glmmADMB) #Fit models with a Negative Binomial
 library(dplyr) ; library(testthat)
+source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
+
 
 # Read and format data ======================================================================
 d <- read.csv("Data/vr.csv")
@@ -60,127 +62,47 @@ tillers_15        <- select(tillers_15,plot,sex,tot_till_t1,TotDensity)
 # finally, the tiller data set for 2015
 tillers        <- merge(tillers_14,tillers_15)
 
+write.csv(tillers,"Data/one_sex_plots.csv",row.names=F)
  
-# Model selections ==============================================================================
+# Model selections ---------------------------------------------------------------------------------------------------
 
-# single sex models 2015 -----------------------------------------------------
 ssm15=list()
-
 # Effect of sex. Analyses use "tiller numbers"
 ssm15[[1]]=glmmadmb(tot_till_t1 ~ tot_till_t0, data=tillers,family="nbinom2")
 ssm15[[2]]=glmmadmb(tot_till_t1 ~ tot_till_t0 + sex, data=tillers,family="nbinom2")
 ssm15[[3]]=glmmadmb(tot_till_t1 ~ tot_till_t0 * sex, data=tillers,family="nbinom2")
-ssm15[[4]]=glmmadmb(tot_till_t1 ~ tot_till_t0 + sex + TotDensity, data=tillers,family="nbinom2")
-ssm15[[5]]=glmmadmb(tot_till_t1 ~ tot_till_t0 * sex + TotDensity, data=tillers,family="nbinom2")
-ssm15[[6]]=glmmadmb(tot_till_t1 ~ sex, data=tillers,family="nbinom2")
-ssm15[[7]]=glmmadmb(tot_till_t1 ~ sex + TotDensity, data=tillers,family="nbinom2")
-ssm15[[8]]=glmmadmb(tot_till_t1 ~ sex * TotDensity, data=tillers,family="nbinom2")
+ssm15[[4]]=glmmadmb(tot_till_t1 ~ sex, data=tillers,family="nbinom2")
 
-AICtab(ssm15,weights=T)
-
+# Model average
+one_sex_grow      <- AICtab(ssm15,weights=T)
+one_sex_grow_avg  <- model_avg(one_sex_grow, ssm15)
+write.csv(one_sex_grow_avg, "Results/VitalRates_3/one_sex_growth_best.csv", row.names = F)
 
 
-# single sex simplified models 2015 -----------------------------------------------------
-sssm15=list()
+#GRAPH ---------------------------------------------------------------------------------------------------
 
-# Effect of sex. Analyses use "tiller numbers"
-sssm15[[1]]=glmmadmb(tot_till_t1 ~ sex, data=tillers,family="nbinom2")
-sssm15[[2]]=glmmadmb(tot_till_t1 ~ sex + TotDensity, data=tillers,family="nbinom2")
-sssm15[[3]]=glmmadmb(tot_till_t1 ~ sex * TotDensity, data=tillers,family="nbinom2")
+tiff("Results/VitalRates_3/growth_OneSexPlots.tiff",
+     unit="in",width=3.15,height=3.15,res=600,compression="lzw")
 
-AICtab(sssm15,weights=T)
-
-
-
-#GRAPH ==================================================================================================
-
-# Best two single "sex" models in 2015 ----------------------------------------------------------------------------
-tiff("Results/VitalRates_Sept16/growth_OneSexPlots_2015.tiff",
-     unit="in",width=6.3,height=3.15,res=600,compression="lzw")
-
-# 2015
+# Color code sexes
 tillers$col=as.integer(tillers$sex)
 tillers$col=as.character(factor(tillers$col,labels=c("blue","red")))
 
-# Start plotting
-par(mfcol=c(1,3),mar=c(3,2.8,1,0.62),mgp=c(1.4,0.5,0))
+par(mar=c(2.8,2.5,0.1,0.1),mgp=c(1.4,0.5,0),oma=c(0,0,0,0.1))
 
-# best model
-plot(tillers$tot_till_t0,tillers$tot_till_t1, pch=16, 
-     ylab="Tot. number of tillers at time t",
-     xlab="Tot. number of tillers at time t-1")
-title(main = "Best model (48% weight)", line=0.2,cex=0.9)
-
-betas=coef(ssm15[[1]])
-xSeq <- seq(0,max(c(tillers$tot_till_t0,tillers$tot_till_t0)),by=0.1)
-y    <- exp( betas[1] + betas[2]*xSeq )
-lines(xSeq,y,lwd=3,lty=1)
-
-# 2nd best
 plot(tillers$tot_till_t0,tillers$tot_till_t1, pch=16, 
      ylab="Tot. number of tillers at time t",
      xlab="Tot. number of tillers at time t-1",col=tillers$col)
-title(main = "2nd best model (18% weight)", line=0.2,cex=0.9)
 legend(0,235,c("Male individuals","Female individuals"),
-       lty=1,lwd=3,col=c("red","blue"),bty="n")
+       lty=1,pch=16,lwd=3,col=c("red","blue"),bty="n")
 
-betas=coef(ssm15[[2]])
+xSeq <- seq(0,max(c(tillers$tot_till_t0,tillers$tot_till_t0)),by=0.1)
+beta=one_sex_grow_avg[,c("predictor","avg")]$avg
+y_m    <- exp( betas[1] + betas[2] * xSeq + betas[3] + betas[4]*xSeq)
 y_f    <- exp( betas[1] + betas[2] * xSeq )
-y_m    <- exp( betas[1] + betas[2] * xSeq + betas[3])
-lines(xSeq,y_f,lwd=3,lty=1,col="blue")
-lines(xSeq,y_m,lwd=3,lty=1,col="red")
 
-# 3rd best
-plot(tillers$tot_till_t0,tillers$tot_till_t1, pch=16, 
-     ylab="Tot. number of tillers at time t",
-     xlab="Tot. number of tillers at time t-1",col=tillers$col)
-title(main = "3rd best model (18% weight)", line=0.2,cex=0.9)
-
-betas     <- coef(ssm15[[4]])
-meanDens  <- mean(tillers$TotDensity)
-y_f       <- exp( betas[1] + betas[2] * xSeq + betas[4] * meanDens)
-y_m       <- exp( betas[1] + betas[2] * xSeq + betas[3] + betas[4] * meanDens)
 lines(xSeq,y_f,lwd=3,lty=1,col="blue")
 lines(xSeq,y_m,lwd=3,lty=1,col="red")
 
 dev.off()
 
-
-# Best two single "sex" models in 2015 ----------------------------------------------------------------------------
-tiff("Results/VitalRates_Sept16/growth_OneSexPlots_simple.tiff",
-     unit="in",width=6.3,height=3.15,res=600,compression="lzw")
-
-# Start plotting
-par(mfcol=c(1,2),mar=c(3,2.5,1,0.62),mgp=c(1.4,0.5,0))
-
-# best model
-plot(tillers$TotDensity,tillers$tot_till_t1, pch=16, 
-     ylab="Tot. number of tillers at time t",xlab="Total plot density",
-     col=tillers$col)
-title(main = "Best model (70% weight)", line=0.2,cex=0.9)
-
-betas=coef(sssm15[[2]])
-xSeq <- seq(0,max(tillers$TotDensity),by=1)
-y_f  <- exp( betas[1] + betas[3]*xSeq )
-y_m  <- exp( betas[1] + betas[2] + betas[3]*xSeq )
-lines(xSeq,y_f,lwd=3,lty=1,col="blue")
-lines(xSeq,y_m,lwd=3,lty=1,col="red")
-
-legend(-2.5,190,c("Male individuals","Female individuals"),
-       lty=1,lwd=3,col=c("red","blue"),bty="n")
-
-
-# 2nd best model
-plot(tillers$TotDensity,tillers$tot_till_t1, pch=16, 
-     ylab="Tot. number of tillers at time t",xlab="Total plot density",
-     col=tillers$col)
-title(main = "2nd best model (27% weight)", line=0.2,cex=0.9)
-
-betas=coef(sssm15[[3]])
-xSeq <- seq(0,max(tillers$TotDensity),by=1)
-y_f  <- exp( betas[1] + betas[3]*xSeq )
-y_m  <- exp( betas[1] + betas[2] + betas[3]*xSeq + betas[4]*xSeq)
-lines(xSeq,y_f,lwd=3,lty=1,col="blue")
-lines(xSeq,y_m,lwd=3,lty=1,col="red")
-
-dev.off()
