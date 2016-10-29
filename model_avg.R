@@ -17,12 +17,22 @@ model_avg = function(model_sel,model_list){ #,
   # Store values
   for(i in 1:k){
     
-    estimates     <- coef(model_list[[mod_rank[i]]])
+    if(class(model_list[[mod_rank[i]]])[1] == "lmerMod") {
+      estimates <- fixef(model_list[[mod_rank[i]]])
+    } else estimates <- coef(model_list[[mod_rank[i]]])
     
     # ANNOYING: Translate "TotDensity:sexm" into "sexm:TotDensity"
     if(any(names(estimates) == "TotDensity:sexm")){
       fixI      <- grep("TotDensity:sexm", names(estimates))
       names(estimates)[fixI] <- "sexm:TotDensity"
+    }
+    if(any(names(estimates) == "new_t1:sexm")){
+      fixI      <- grep("new_t1:sexm", names(estimates))
+      names(estimates)[fixI] <- "sexm:new_t1"
+    }
+    if(any(names(estimates) == "sr:sexm")){
+      fixI      <- grep("sr:sexm", names(estimates))
+      names(estimates)[fixI] <- "sexm:sr"
     }
     
     betaList[[i]] <- data.frame(predictor = names(estimates),
