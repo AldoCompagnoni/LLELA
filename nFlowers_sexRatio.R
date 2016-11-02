@@ -7,14 +7,8 @@ source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
 # read in data
 d <- read.csv("Data/vr.csv")
 
-# logtransform leaf numbers
-d$log_l_t0 <- log(d$l_t0)
-d$log_l_t1 <- log(d$l_t1)
 # make "plot" a factor to fit models 
 d$plot <- as.factor(d$plot) 
-
-# Transform densities to SEX RATIO
-d$sr <- d$F / d$TotDensity
 
 
 # Select YEAR ONE data ------------------------------------------------------------------------------------
@@ -25,8 +19,7 @@ tmp$new_t1[tmp$new_t1=="SKIPPED"] <- NA
 tmp$new_t1[tmp$new_t1=="cnf"]     <- NA
 tmp$new_t1[tmp$new_t1==""]        <- NA
 tmp$new_t1                        <- as.numeric(as.character(tmp$new_t1))
-f14                               <- na.omit(tmp[,c("plot","flow_t1","log_l_t1","log_l_t0","flowN_t1",
-                                                    "sex","sr","new_t1","TotDensity")])
+f14                               <- na.omit(tmp[,c("plot","flowN_t1","log_l_t0","sex","sr","TotDensity")])
 
 # Model selection ----------------------------------------------------------------------------------
 
@@ -56,6 +49,7 @@ nfMod[[15]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + sr + TotDensity + sr:sex + TotD
 n_flow_select <- AICtab(nfMod,weights=T)
 n_flow_avg    <- model_avg(n_flow_select, nfMod)
 write.csv(n_flow_avg, "Results/VitalRates_3/n_flowers_best.csv", row.names = F)
+
 
 # GRAPHS ---------------------------------------------------------------------------------------------------------------
 
