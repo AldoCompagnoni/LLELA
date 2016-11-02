@@ -1,6 +1,6 @@
-# model selection for fecundity (total seed per plant) 
+# model selection for fecundity (seeds per flower) 
 setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
-library(bbmle) #For AIC weights, because I'm lazy!
+library(bbmle) 
 library(MASS)
 library(dplyr)
 source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
@@ -20,9 +20,6 @@ fem_seeds$focalI    <- paste("f",fem_seeds$IndividualN,sep="")
 fem_seeds           <- fem_seeds[,c("Plot","focalI","SeedN")] 
 fem_seeds           <- fem_seeds[!is.na(fem_seeds$SeedN),]
 names(fem_seeds)[1] <- "plot"
-#fem_seeds           <- fem_seeds %>% 
-#                        group_by(plot,focalI) %>% 
-#                          summarise(seed_tot = sum(SeedN))
 
 # merge data sets 
 fecund_data      <- merge(d14,fem_seeds) 
@@ -30,19 +27,12 @@ fecund_data      <- merge(d14,fem_seeds)
 
 # ANALYSIS ---------------------------------------------------------------------
 
-#nsMod[[1]]=glm.nb(seed_tot ~ log_l_t0, data=fecund_data)
-#nsMod[[2]]=glm.nb(seed_tot ~ log_l_t0 + TotDensity,data=fecund_data)
-#nsMod[[3]]=glm.nb(seed_tot ~ log_l_t0 + sr,data=fecund_data)
-#nsMod[[4]]=glm.nb(seed_tot ~ log_l_t0 + sr + TotDensity,data=fecund_data)
-#nsMod[[5]]=glm.nb(seed_tot ~ log_l_t0 + sr * TotDensity,data=fecund_data)
-
 nsMod=list()
 nsMod[[1]]=glm.nb(SeedN ~ log_l_t0, data=fecund_data)
 nsMod[[2]]=glm.nb(SeedN ~ log_l_t0 + TotDensity,data=fecund_data)
 nsMod[[3]]=glm.nb(SeedN ~ log_l_t0 + sr,data=fecund_data)
 nsMod[[4]]=glm.nb(SeedN ~ log_l_t0 + sr + TotDensity,data=fecund_data)
 nsMod[[5]]=glm.nb(SeedN ~ log_l_t0 + sr * TotDensity,data=fecund_data)
-
 
 # Model average
 fec_select <- AICtab(nsMod,weights=T)
