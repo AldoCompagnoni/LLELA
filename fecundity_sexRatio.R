@@ -23,16 +23,25 @@ names(fem_seeds)[1] <- "plot"
 
 # merge data sets 
 fecund_data      <- merge(d14,fem_seeds) 
-
+fecund_data$plot <- as.factor(fecund_data$plot)
 
 # ANALYSIS ---------------------------------------------------------------------
 
 nsMod=list()
-nsMod[[1]]=glm.nb(SeedN ~ log_l_t0, data=fecund_data)
-nsMod[[2]]=glm.nb(SeedN ~ log_l_t0 + TotDensity,data=fecund_data)
-nsMod[[3]]=glm.nb(SeedN ~ log_l_t0 + sr,data=fecund_data)
-nsMod[[4]]=glm.nb(SeedN ~ log_l_t0 + sr + TotDensity,data=fecund_data)
-nsMod[[5]]=glm.nb(SeedN ~ log_l_t0 + sr * TotDensity,data=fecund_data)
+nsMod[[1]]= glmer.nb(SeedN ~ log_l_t0+ ( 1 | plot), data=fecund_data)
+nsMod[[2]]= glmer.nb(SeedN ~ log_l_t0 + TotDensity+ ( 1 | plot), data=fecund_data)
+nsMod[[3]]= glmer.nb(SeedN ~ log_l_t0 + sr+ ( 1 | plot), data=fecund_data)
+nsMod[[4]]= glmer.nb(SeedN ~ log_l_t0 + sr + TotDensity+ ( 1 | plot), data=fecund_data)
+nsMod[[5]]= glmer.nb(SeedN ~ log_l_t0 + sr * TotDensity+ ( 1 | plot), data=fecund_data)
+
+
+nsMod=list()
+nsMod[[1]]= glmmadmb(SeedN ~ log_l_t0+ ( 1 | plot), family="nbinom2", data=fecund_data)
+nsMod[[2]]= glmmadmb(SeedN ~ log_l_t0 + TotDensity+ ( 1 | plot), family="nbinom2", data=fecund_data)
+nsMod[[3]]= glmmadmb(SeedN ~ log_l_t0 + sr+ ( 1 | plot), family="nbinom2", data=fecund_data)
+nsMod[[4]]= glmmadmb(SeedN ~ log_l_t0 + sr + TotDensity+ ( 1 | plot), family="nbinom2", data=fecund_data)
+nsMod[[5]]= glmmadmb(SeedN ~ log_l_t0 + sr * TotDensity+ ( 1 | plot), family="nbinom2", data=fecund_data)
+
 
 # Model average
 fec_select <- AICtab(nsMod,weights=T)
