@@ -16,18 +16,18 @@ viabVr$sr   <- viabVr$F / viabVr$totN
 # This is the "standard" scoring: consider as viable any seed stained by tetrazolium
 # Number of flowers and their sex ratio as predictors
 tetr_flowN=list()
-tetr_flowN[[1]]  <- glm(cbind(yesMaybe,failMaybe) ~ sr_f,family="binomial", data=viabVr)
-tetr_flowN[[2]]  <- glm(cbind(yesMaybe,failMaybe) ~ totFlow,family="binomial", data=viabVr)
-tetr_flowN[[3]]  <- glm(cbind(yesMaybe,failMaybe) ~ sr_f + totFlow,family="binomial", data=viabVr)
-tetr_flowN[[4]]  <- glm(cbind(yesMaybe,failMaybe) ~ sr_f * totFlow,family="binomial", data=viabVr)
+tetr_flowN[[1]]  <- glmer(cbind(yesMaybe,failMaybe) ~ sr_f + (1 | plot),family="binomial", data=viabVr)
+tetr_flowN[[2]]  <- glmer(cbind(yesMaybe,failMaybe) ~ totFlow + (1 | plot),family="binomial", data=viabVr)
+tetr_flowN[[3]]  <- glmer(cbind(yesMaybe,failMaybe) ~ sr_f + totFlow + (1 | plot),family="binomial", data=viabVr)
+tetr_flowN[[4]]  <- glmer(cbind(yesMaybe,failMaybe) ~ sr_f * totFlow + (1 | plot),family="binomial", data=viabVr)
 tetr_flowN_select<- AICtab(tetr_flowN,weights=T)
 
 # Planting density and sex ratio as predictors
 tetr_dens=list()
-tetr_dens[[1]]    <- glm(cbind(yesMaybe,failMaybe) ~ sr,family="binomial", data=viabVr)
-tetr_dens[[2]]    <- glm(cbind(yesMaybe,failMaybe) ~ totN,family="binomial", data=viabVr)
-tetr_dens[[3]]    <- glm(cbind(yesMaybe,failMaybe) ~ sr + totN,family="binomial", data=viabVr)
-tetr_dens[[4]]    <- glm(cbind(yesMaybe,failMaybe) ~ sr * totN,family="binomial", data=viabVr)
+tetr_dens[[1]]    <- glmer(cbind(yesMaybe,failMaybe) ~ sr + (1 | plot),family="binomial", data=viabVr)
+tetr_dens[[2]]    <- glmer(cbind(yesMaybe,failMaybe) ~ totN + (1 | plot),family="binomial", data=viabVr)
+tetr_dens[[3]]    <- glmer(cbind(yesMaybe,failMaybe) ~ sr + totN + (1 | plot),family="binomial", data=viabVr)
+tetr_dens[[4]]    <- glmer(cbind(yesMaybe,failMaybe) ~ sr * totN + (1 | plot),family="binomial", data=viabVr)
 tetr_dens_select  <- AICtab(tetr_dens,weights=T)
 
 # Model 4 has ~100% support
@@ -41,18 +41,18 @@ write.csv(tetr_dens_avg, "Results/VitalRates_3/tetrazolium_dens_best.csv", row.n
 # 2. Viable Seed Number: germination assays (germTot / germFail)---------------------
 # Number of flowers and their sex ratio as predictors
 germ_flowN      <- list()
-germ_flowN[[1]] <- glm(cbind(germTot,germFail) ~ sr_f,family="binomial", data=viabVr)
-germ_flowN[[2]] <- glm(cbind(germTot,germFail) ~ totFlow,family="binomial", data=viabVr)
-germ_flowN[[3]] <- glm(cbind(germTot,germFail) ~ sr_f + totFlow,family="binomial", data=viabVr)
-germ_flowN[[4]] <- glm(cbind(germTot,germFail) ~ sr_f * totFlow,family="binomial", data=viabVr)
+germ_flowN[[1]] <- glmer(cbind(germTot,germFail) ~ sr_f + (1 | plot),family="binomial", data=viabVr)
+germ_flowN[[2]] <- glmer(cbind(germTot,germFail) ~ totFlow + (1 | plot),family="binomial", data=viabVr)
+germ_flowN[[3]] <- glmer(cbind(germTot,germFail) ~ sr_f + totFlow + (1 | plot),family="binomial", data=viabVr)
+germ_flowN[[4]] <- glmer(cbind(germTot,germFail) ~ sr_f * totFlow + (1 | plot),family="binomial", data=viabVr)
 germ_flowN_sel  <- AICtab(germ_flowN,weights=T) 
 
 # Planting density and sex ratio as predictors
 germ_dens       <- list()
-germ_dens[[1]]  <- glm(cbind(germTot,germFail) ~ sr,family="binomial", data=viabVr)
-germ_dens[[2]]  <- glm(cbind(germTot,germFail) ~ totN,family="binomial", data=viabVr)
-germ_dens[[3]]  <- glm(cbind(germTot,germFail) ~ sr + totN,family="binomial", data=viabVr)
-germ_dens[[4]]  <- glm(cbind(germTot,germFail) ~ sr * totN,family="binomial", data=viabVr)
+germ_dens[[1]]  <- glmer(cbind(germTot,germFail) ~ sr + (1 | plot),family="binomial", data=viabVr)
+germ_dens[[2]]  <- glmer(cbind(germTot,germFail) ~ totN + (1 | plot),family="binomial", data=viabVr)
+germ_dens[[3]]  <- glmer(cbind(germTot,germFail) ~ sr + totN + (1 | plot),family="binomial", data=viabVr)
+germ_dens[[4]]  <- glmer(cbind(germTot,germFail) ~ sr * totN + (1 | plot),family="binomial", data=viabVr)
 germ_dens_sel   <- AICtab(germ_dens,weights=T) 
 
 # Average best two models
