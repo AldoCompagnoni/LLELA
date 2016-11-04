@@ -17,7 +17,12 @@ model_avg = function(model_sel,model_list){ #,
   # Store values
   for(i in 1:k){
     
+    # for lmer models
     if(class(model_list[[mod_rank[i]]])[1] == "lmerMod") {
+      estimates <- fixef(model_list[[mod_rank[i]]])
+    } else estimates <- coef(model_list[[mod_rank[i]]])
+    # for glmer models
+    if(class(model_list[[mod_rank[i]]])[1] == "glmerMod") {
       estimates <- fixef(model_list[[mod_rank[i]]])
     } else estimates <- coef(model_list[[mod_rank[i]]])
     
