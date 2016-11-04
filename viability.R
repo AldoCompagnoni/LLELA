@@ -80,11 +80,11 @@ lower=quantile(viabVr$totN,prob=c(0.1))
 upper=quantile(viabVr$totN,prob=c(0.9))
 
 par(mfrow=c(1,2),mar=c(2.5,2.5,1.1,0.1),mgp=c(1.5,0.6,0),
-    oma=c(0,0,2.5,0),xpd=NA)
+    oma=c(0,0,2.5,0.3),xpd=NA)
 titlePlace=0.2
 
 # Tetrazolium data
-plot(viabVr$totN, viabVr$tetra_maybe_ratio, pch=1, ylim = c(0,1),
+plot(jitter(viabVr$totN, factor = 2), jitter(viabVr$tetra_maybe_ratio, factor = 2), pch=1, ylim = c(0,1),
      cex = viabVr$sr * 2, xlab="Planting density",ylab="Seed viability rate")
 title("Tetrazolium data", line = titlePlace)
 xSeq=seq(0,48,by = 1)
@@ -98,7 +98,7 @@ legend(0,1.35, c("100% female plot","10% female plot"),
        pch = 1, pt.cex = c(1,0.1)*1.5, bty="n")
 
 # Germination data
-plot(viabVr$totN,viabVr$germ_ratio,pch=1, ylim = c(0,1),
+plot(jitter(viabVr$totN, factor = 2),jitter(viabVr$germ_ratio, factor = 2),pch=1, ylim = c(0,1),
      cex = viabVr$sr * 2, xlab="Planting density",ylab="Seed germination rate")
 title("Germination data", line = titlePlace)
 xSeq=seq(0,48,by = 1)
