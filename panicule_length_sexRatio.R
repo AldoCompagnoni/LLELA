@@ -20,7 +20,7 @@ tmp=as.numeric(matrix(unlist(strsplit(as.character(malPanicules$Individual),"[A-
 malPanicules$focalI=paste("m",tmp,sep="")
 names(malPanicules)[1]="plot"
 # Add up length of panicules for each individual 
-malPanicules=aggregate(panicule_Length_cm ~ plot + focalI, sum, data=malPanicules)
+#malPanicules=aggregate(panicule_Length_cm ~ plot + focalI, sum, data=malPanicules)
 
 
 # MODEL SELECTION ######################################################################
@@ -40,6 +40,34 @@ plMod[[5]]=lmer(log(panicule_Length_cm) ~ log_l_t0 + sr * TotDensity + (1 | plot
 # Model average
 f_i_pl_mod_select <- AICtab(plMod,weights=T)
 f_i_pl_avg        <- model_avg(f_i_pl_mod_select, plMod)
+
+
+# MALE panicule lengths -------------------------------------------------------------------------------------
+d14=subset(d,year==2014)
+d14=subset(d14,surv_t1!=0)
+mal_i_pan_data <- merge(d14,malPanicules)
+mal_i_pan_data$pan_area <- mal_i_pan_data$panicule_Length_cm *  mal_i_pan_data$panicule_Width_cm * pi
+
+
+plMod=list()
+plMod[[1]]=lmer(panicule_Length_cm ~ log_l_t0 + (1 | plot), data=mal_i_pan_data)
+plMod[[2]]=lmer(panicule_Length_cm ~ log_l_t0 + TotDensity + (1 | plot),data=mal_i_pan_data)
+plMod[[3]]=lmer(panicule_Length_cm ~ log_l_t0 + sr+ (1 | plot),data=mal_i_pan_data)
+plMod[[4]]=lmer(panicule_Length_cm ~ log_l_t0 + sr + TotDensity + (1 | plot),data=mal_i_pan_data)
+plMod[[5]]=lmer(panicule_Length_cm ~ log_l_t0 + sr * TotDensity + (1 | plot),data=mal_i_pan_data)
+
+plMod=list()
+plMod[[1]]=lmer(pan_area ~ log_l_t0 + (1 | plot), data=mal_i_pan_data)
+plMod[[2]]=lmer(pan_area ~ log_l_t0 + TotDensity + (1 | plot),data=mal_i_pan_data)
+plMod[[3]]=lmer(pan_area ~ log_l_t0 + sr+ (1 | plot),data=mal_i_pan_data)
+plMod[[4]]=lmer(pan_area ~ log_l_t0 + sr + TotDensity + (1 | plot),data=mal_i_pan_data)
+plMod[[5]]=lmer(pan_area ~ log_l_t0 + sr * TotDensity + (1 | plot),data=mal_i_pan_data)
+
+# Model average
+m_i_pl_mod_select <- AICtab(plMod,weights=T)
+m_i_pl_avg        <- model_avg(m_i_pl_mod_select, plMod)
+
+
 
 
 # Individual CUMULATIVE female panicule lengths -------------------------------------------------------------------------------------

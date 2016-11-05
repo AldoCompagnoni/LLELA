@@ -10,16 +10,8 @@ source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
 d <- read.csv("Data/vr.csv")
 # Remove dead individuals (this is a growth model)
 d <- subset(d, surv_t1 != 0)
-# Remove a clear mistake: missing data in 2013 and 2014, but 19 leaves in 2015
-d <- d[-which(d$plot ==36 & d$focalI =="m3"),]
-
-# Logtransform leaf numbers
-d$log_l_t0 <- log(d$l_t0)
-d$log_l_t1 <- log(d$l_t1)
 # glmmadmb wants plot as a factor
 d$plot     <- as.factor(d$plot) 
-# Transform densities to SEX RATIO
-d$sr = d$F / d$TotDensity
 
 
 # Compare growth between female only and male only plots ==========================================
@@ -96,10 +88,10 @@ plot(tillers$tot_till_t0,tillers$tot_till_t1, pch=16,
 legend(0,235,c("Male individuals","Female individuals"),
        lty=1,pch=16,lwd=3,col=c("red","blue"),bty="n")
 
-xSeq <- seq(0,max(c(tillers$tot_till_t0,tillers$tot_till_t0)),by=0.1)
-beta=one_sex_grow_avg[,c("predictor","avg")]$avg
-y_m    <- exp( betas[1] + betas[2] * xSeq + betas[3] + betas[4]*xSeq)
-y_f    <- exp( betas[1] + betas[2] * xSeq )
+xSeq  <- seq(0,max(c(tillers$tot_till_t0,tillers$tot_till_t0)),by=0.1)
+betas <- one_sex_grow_avg[,c("predictor","avg")]$avg
+y_m   <- exp( betas[1] + betas[2] * xSeq + betas[3] + betas[4]*xSeq)
+y_f   <- exp( betas[1] + betas[2] * xSeq )
 
 lines(xSeq,y_f,lwd=3,lty=1,col="blue")
 lines(xSeq,y_m,lwd=3,lty=1,col="red")
