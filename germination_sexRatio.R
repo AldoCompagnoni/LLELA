@@ -1,14 +1,15 @@
-# Model selection for seed germination
+# Model selection for seed germination data
 setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
 library(lme4) ; library(bbmle) ; library(boot) ; library(testthat)
 source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
+
 
 # Read in data and format------------------------------------------------------------
 viabVr <- read.csv("Data/Spring 2014/viability/tetra_germ_plot_data.csv", 
                    stringsAsFactors = F)
 
-# Viability model selection ---------------------------------------------------------
 
+# Viability model selection ---------------------------------------------------------
 l_viab_germ=list()
 l_viab_germ[[1]]=glm(cbind(germTot,germFail) ~ sr_f,family="binomial", data=viabVr)
 l_viab_germ[[2]]=glm(cbind(germTot,germFail) ~ totFlow,family="binomial", data=viabVr)
