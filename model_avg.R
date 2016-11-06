@@ -38,6 +38,10 @@ model_avg = function(model_sel,model_list){ #,
       fixI      <- grep("sr:sexm", names(estimates))
       names(estimates)[fixI] <- "sexm:sr"
     }
+    if(any(names(estimates) == "c_t0:sexm")){
+      fixI      <- grep("c_t0:sexm", names(estimates))
+      names(estimates)[fixI] <- "sexm:c_t0"
+    }
     
     betaList[[i]] <- data.frame(predictor = names(estimates),
                                  parameter = estimates)
