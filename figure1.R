@@ -1,6 +1,6 @@
 # Code to produce figure1 (panels a,b,c)
 setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
-library(bbmle) #For AIC weights, because I'm lazy!
+library(bbmle) 
 library(MASS)
 library(dplyr)
 library(boot)
@@ -8,13 +8,16 @@ library(boot)
 #Read in data--------------------------------------------------------------------
 d           <- read.csv("Data/vr.csv")
 fem_seeds   <- read.csv("Data/Spring 2014/SeedCount/Poa Arachnifera_seedCount.csv")
+m_spiklet   <- read.csv("Data/Spring 2014/maleCounts/malePaniculesSpring2014.csv")
 viabVr      <- read.csv("Data/Spring 2014/viability/tetra_germ_plot_data.csv",
                         stringsAsFactors = F)
 
 # best models
 n_flow_beta <- read.csv("Results/VitalRates_3/n_flowers_best.csv")
 fec_beta    <- read.csv("Results/VitalRates_3/fecuntity_best.csv")
+m_spik_beta <- read.csv("Results/VitalRates_3/male_spikelets.csv")
 tetr_beta   <- read.csv("Results/VitalRates_3/germination_best.csv")
+
 
 # FORMAT DATA -------------------------------------------------------------------
 
@@ -33,12 +36,15 @@ fem_seeds           <- fem_seeds[!is.na(fem_seeds$SeedN),]
 names(fem_seeds)[1] <- "plot"
 fecund_data         <- merge(d14,fem_seeds) 
 
+# male allocation (spikelets) data ---------------------------------------------------------------------- 
+m_alloc             <- merge(d14, m_spiklet)
+
 
 # FIGURE 1 -----------------------------------------------------------------------------
 
-tiff("Results/VitalRates_3/figure1.tiff",unit="in",width=6.3,height=2.1,res=600,compression="lzw")
+tiff("Results/VitalRates_3/figure1.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
 
-par(mfrow=c(1,3),mar=c(2.5,2.5,0.1,0.5),mgp=c(1.4,0.35,0),cex.lab=1.1,cex.axis=0.8,
+par(mfrow=c(2,2),mar=c(2.5,2.5,0.1,0.1),mgp=c(1.4,0.35,0),cex.lab=1.1,cex.axis=0.8,
     cex.main=0.9, oma=c(0,0,0.2,0))
 
 # Flowering ------------------------------------------------------------------------------
@@ -76,11 +82,11 @@ y_f <- exp( beta[1] + beta[2]*size + beta[3]*xSeq + beta[5]*0.5)
 lines(xSeq,y_m,lty=1,lwd=2,col="blue")
 lines(xSeq,y_f,lty=1,lwd=2,col="red")
 
-legend(1,2.15,c("male","female"), lty=1, lwd=2, 
+legend(1,2.1,c("male","female"), lty=1, lwd=2, 
        col=c("red","blue"), bty="n", pch = 16 )
 
-text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.145,
-     par("usr")[4]*0.96,"(a)", cex = 1.2, xpd = T)
+text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.11,
+     par("usr")[4]*0.97,"(a)", cex = 1.2, xpd = T)
 
 
 # fecundity ----------------------------------------------------------------------------
@@ -98,13 +104,30 @@ y_high <- exp(beta[1] + beta[2]*mSize + beta[3]*1 +
 lines(xSeq, y_low, lwd = 2, lty = 2)
 lines(xSeq, y_high, lwd = 2)
 
-legend(15,1075,c("95% female plot","50% female plot", "  5% female plot"),
+legend(20,1060,c("95% female plot","50% female plot", "  5% female plot"),
        pch = 1, pt.cex = c(0.95,0.5,0.05)*1.5, bty="n")
 
-legend(11,810,c("100% female plot","  20% female plot"),lty = c(1,2), lwd = 2, bty="n")
+legend(15,830,c("100% female plot","  20% female plot"),lty = c(1,2), lwd = 2, bty="n")
 
-text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.145,
-     par("usr")[4]*0.96,"(b)", cex = 1.2, xpd = T)
+text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.11,
+     par("usr")[4]*0.97,"(b)", cex = 1.2, xpd = T)
+
+
+# male allocation ----------------------------------------------------------------------
+plot(m_alloc$TotDensity,m_alloc$CountSpikelets,pch=1, 
+     cex = m_alloc$sr * 1.5,
+     ylab="Spikelets per male flower",xlab="Planting density")
+size <- mean(m_alloc$log_l_t0)
+beta <- m_spik_beta$avg
+xSeq <- seq(1,48,by =1)
+y_l  <- exp(beta[1] + beta[2]*size + beta[3]*xSeq + beta[4]*0.1 + beta[5]*xSeq*0.1)
+y_h  <- exp(beta[1] + beta[2]*size + beta[3]*xSeq + beta[4]*0.9 + beta[5]*xSeq*0.9)
+
+lines(xSeq,y_l,lwd=2,lty=2)
+lines(xSeq,y_h,lwd=2,lty=1)
+
+text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.11,
+     par("usr")[4]*0.97,"(c)", cex = 1.2, xpd = T)
 
 
 # viability ----------------------------------------------------------------------------
@@ -122,7 +145,8 @@ yMeanLow=inv.logit(beta[1] + beta[2]*0.2 + beta[3]*xSeq + beta[4]*xSeq*0.2)
 yMeanHigh=inv.logit(beta[1] + beta[2]*1 + beta[3]*xSeq + beta[4]*xSeq*1)
 lines(xSeq,yMeanLow,lwd=2,lty=2)
 lines(xSeq,yMeanHigh,lwd=2,lty=1)
-text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.145,
-     par("usr")[4]*0.96,"(c)", cex = 1.2, xpd = T)
+
+text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.11,
+     par("usr")[4]*0.97,"(d)", cex = 1.2, xpd = T)
 
 dev.off()
