@@ -10,12 +10,6 @@ source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
 d             <- read.csv("Data/vr.csv")
 malPanicules  <- read.csv("Data/Spring 2014/maleCounts/malePaniculesSpring2014.csv")
 
-# "focalI" column
-tmp <- as.numeric(do.call( rbind, 
-                    strsplit(as.character(malPanicules$Individual),"[A-Z]") )[,2])
-malPanicules$focalI     <- paste("m",tmp,sep="")      
-names(malPanicules)[1]  <- "plot"
-
 
 # MALE panicule lengths --------------------------------------------------------------
 d14                     <- subset(d, year==2014)
