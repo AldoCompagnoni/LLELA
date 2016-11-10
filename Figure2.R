@@ -15,17 +15,17 @@ fec_beta    <- read.csv("Results/VitalRates_3/fecuntity_best.csv")
 germ_beta   <- read.csv("Results/VitalRates_3/germination_best.csv")
 
 
-# FORMAT DATA -------------------------------------------------------------------------
+# FORMAT DATA ---------------------------------------------------------------------
 
-# plot level data, including number of flowers per individual -------------------------
+# plot level data, including number of flowers per individual ---------------------
 d14         <- subset(d, year == 2014)
 d14         <- subset(d14, surv_t1 != 0)
 f14         <- na.omit(d14[,c("plot","log_l_t0","flowN_t1","sex","sr","TotDensity")])
 
 
-# MODEL PREDICTIONS --------------------------------------------------------------------
+# MODEL PREDICTIONS ---------------------------------------------------------------
 
-# flowers per individual (flowering model, Figure 1a) ----------------------------------
+# flowers per individual (flowering model, Figure 1a) -----------------------------
 predict_flower <- expand.grid("(Intercept)" = 1, 
                               log_l_t0 = mean(f14$log_l_t0),
                               TotDensity = seq(1,48,1),
@@ -60,7 +60,7 @@ n_plot_flowers$totFlowers <- n_plot_flowers$n_flowers_f + n_plot_flowers$n_flowe
 n_plot_flowers$sr_flowers <- n_plot_flowers$n_flowers_f / n_plot_flowers$totFlowers
 
 
-# seeds per flower (fecundity model, Figure 1b) ---------------------------------------------
+# seeds per flower (fecundity model, Figure 1b) -----------------------------------
 predict_fec <- expand.grid("(Intercept)" = 1, 
                            log_l_t0 = mean( f14$log_l_t0 ),
                            sr = seq(0,1,0.1),
@@ -69,7 +69,7 @@ predict_fec$TotDensityXsr         <- predict_fec$TotDensity * predict_fec$sr
 predict_fec$pred_percapita_seeds  <- exp( as.matrix(predict_fec) %*% fec_beta$avg )
 
 
-# seed viability (viability model, Figure 1c) -----------------------------------------------
+# seed viability (viability model, Figure 1c) -------------------------------------
 predict_viab              <- n_plot_flowers
 predict_viab$intersect    <- 1
 predict_viab$srXtotFlow   <- predict_viab$totFlowers * predict_viab$sr_flowers
@@ -77,7 +77,7 @@ pred_viab_mat             <- select(predict_viab,intersect,sr_flowers,totFlowers
 predict_viab$pred_viab    <- inv.logit( as.matrix(pred_viab_mat) %*% germ_beta$avg)
 
 
-# Final data frame --------------------------------------------------------------------------
+# Final data frame ----------------------------------------------------------------
 fert                 <- merge(select(predict_viab,sr,TotDensity,n_flowers_f,pred_viab),
                               select(predict_fec,sr,TotDensity,pred_percapita_seeds))
 # n of flowers X seeds per capita X viability per seed
@@ -86,7 +86,7 @@ fert                 <- fert[order(fert$TotDensity,fert$sr),]
 fert$pc_fert         <-  fert$fertility / fert$n_flowers_f # per capita fertility
 fert$pc_fert[is.nan(fert$pc_fert)] = NA
 
-# FIGURE 2 -----------------------------------------------------------------------------------
+# FIGURE 2 ------------------------------------------------------------------------
 
 # Prepare data
 x<-unique(fert$sr)
