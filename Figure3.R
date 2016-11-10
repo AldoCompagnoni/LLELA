@@ -6,132 +6,136 @@ library(dplyr)
 library(boot)
 
 #Read in data--------------------------------------------------------------------
-# raw data
-d                 <- read.csv("Data/vr.csv")
-tillers           <- read.csv("Data/one_sex_plots.csv", stringsAsFactors = F)
 
-# best models
-grow_avg          <- read.csv("Results/VitalRates_3/growth_best.csv")
-one_sex_grow_avg  <- read.csv("Results/VitalRates_3/one_sex_growth_best.csv")
-
-
-# FORMAT DATA -------------------------------------------------------------------
-
+# load and format data ------------------------------------------------------------------
+d=read.csv("Data/vr.csv")
 # remove dead individuals (this is a GROWTH model!)
 d=subset(d, surv_t1 != 0)
-
-# only use year two
-tmp15=subset(d, year==2015)
+# Year one
+d14 <- subset(d, year==2014)
+# Year two
+tmp15=subset(d,year==2015)
 tmp15$new_t1[tmp15$new_t1=="SKIPPED"]=NA
 tmp15$new_t1[tmp15$new_t1=="cnf"]=NA
 tmp15$new_t1[tmp15$new_t1==""]=NA
 tmp15$new_t1=as.numeric(as.character(tmp15$new_t1))
-d15=na.omit(tmp15[,c("l_t1","log_l_t0","plot","sex","new_t1","sr")])
+d15=na.omit(tmp15[,c("l_t1","log_l_t0","plot","sex","new_t1","sr","TotDensity")])
+
+# Best models
+gr14_avg   <- read.csv("Results/VitalRates_3/growth_14N_best.csv")
+grow_avgN  <- read.csv("Results/VitalRates_3/growthN_best.csv")
 
 
 # FIGURE 3 ----------------------------------------------------------------------
 
+
+# Sex ratio as dot color ------------------------------------------------------------
+
+# service functions
+range01 <- function(x)(x-min(x))/diff(range(x))
+cRamp <- function(x){
+  cols <- colorRamp(topo.colors(7))(range01(x))
+  apply(cols, 1, function(xt)rgb(xt[1], xt[2], xt[3], maxColorValue=255))
+}  
+
+# Graph
 tiff("Results/VitalRates_3/Figure3.tiff",unit="in",width=6.3,height=3.5,res=600,compression="lzw")
 
-par(mfrow=c(1,2),mar=c(2.5,2.5,1.3,0.5),mgp=c(1.4,0.35,0),cex.lab=1.1,cex.axis=0.8,
-    cex.main=0.9)
+par(mfrow=c(1,2),mar=c(2.5,2.5,1.3,0.5),mgp=c(1.4,0.35,0),cex.lab=1,cex.axis=0.8,
+    cex.main=0.9,xpd=NA)
 
-# Panel a -  Color code sexes --------------------------------------------------------------
-tillers$col=as.integer(as.factor(tillers$sex))
-tillers$col=as.character(factor(tillers$col,labels=c("blue","red")))
+# 2014
+plot(d14$TotDensity, d14$l_t1, pch=21, ylab="Number of leaves in 2014",
+     xlab="Planting density",bg=cRamp(d14$sr), ylim = c(0,99))
+beta <- gr14_avg[,c("predictor","avg")]$avg
+xSeq <- seq(0,48,by=1)
+sr   <- 0.5
+size <- mean(d14$log_l_t0)
+y_m <- exp( beta[1] + beta[2]*size + beta[3] + beta[4]*xSeq + 
+              beta[5]*xSeq + beta[6]*sr + beta[7]*size)
+y_f <- exp( beta[1] + beta[2]*size + beta[4]*xSeq + beta[6]*sr )
+lines(xSeq,y_f,lwd=1.5,lty=1,col="blue")
+lines(xSeq,y_m,lwd=1.5,lty=1,col="red")
+text(-2,107.5,"a) Target individuals, year 2014",pos=4)
 
-plot(tillers$tot_till_t0,tillers$tot_till_t1, pch=16, 
-     ylab="Tillers per plot (spring 2015)",
-     xlab="Tillers per plot (spring 2014)",col=tillers$col)
-legend(0,235,c("Male individuals","Female individuals"),
-       lty=1,pch=16,lwd=3,col=c("red","blue"),bty="n")
+legend(29,105,c("Males","Females"), cex = 0.8,
+       lty=1,lwd=1.5,col=c("red","blue"),bty="n")
 
-xSeq  <- seq(0,max(c(tillers$tot_till_t0,tillers$tot_till_t0)),by=0.1)
-betas <- one_sex_grow_avg[,c("predictor","avg")]$avg
-y_m   <- exp( betas[1] + betas[2] * xSeq + betas[3] + betas[4]*xSeq)
-y_f   <- exp( betas[1] + betas[2] * xSeq )
-
-lines(xSeq,y_f,lwd=3,lty=1,col="blue")
-lines(xSeq,y_m,lwd=3,lty=1,col="red")
-
-text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.03,
-     par("usr")[4]*1.05,"a) One sex plots", cex = 1.2, xpd = T, pos = 4)
-
-# Panel b - Set up colors for plots -------------------------------------------------------
-d15$col=as.integer(d15$sex)
-d15$col=as.character(factor(d15$col,labels=c("blue","red")))
-d15$symb=as.integer(as.character(factor(d15$col,labels=c("17","16"))))
-
-plot(d15$sr,d15$l_t1, pch=16, ylab="Number of leaves per individual",
-     xlab="Proportion of female individuals",col=d15$col, ylim = c(0,82))
-beta = grow_avg[,c("predictor","avg")]$avg
-xSeq <- seq(0,1,by=0.1)
+# 2015
+plot(d15$TotDensity,d15$l_t1, pch=21, ylab="Number of leaves in 2015",
+     xlab="Planting density",bg=cRamp(d15$sr), ylim = c(0,99))
+beta <- grow_avgN[,c("predictor","avg")]$avg
+xSeq <- seq(0,48,by=1)
 size <- mean(d15$log_l_t0)
-dens <- 1
-y_m <- exp( beta[1] + beta[2]*size + beta[3]*dens + beta[4] + 
-              beta[5]*xSeq + beta[6]*size + beta[7]*dens + beta[8]*xSeq)
-y_f <- exp( beta[1] + beta[2]*size + beta[3]*dens + beta[5]*xSeq )
-lines(xSeq,y_f,lwd=3,lty=1,col="blue")
-lines(xSeq,y_m,lwd=3,lty=1,col="red")
-dens <- 48
-y_m <- exp( beta[1] + beta[2]*size + beta[3]*dens + beta[4] + 
-              beta[5]*xSeq + beta[6]*size + beta[7]*dens + beta[8]*xSeq)
-y_f <- exp( beta[1] + beta[2]*size + beta[3]*dens + beta[5]*xSeq )
-lines(xSeq,y_f,lwd=3,lty=1,col="blue")
-lines(xSeq,y_m,lwd=3,lty=1,col="red")
+y_m <- exp( beta[1] + beta[2]*size + beta[3] + beta[4]*0.5 + 
+              beta[5]*xSeq + beta[6]*size + beta[7]*0.5 + beta[8]*xSeq )
+y_f <- exp( beta[1] + beta[2]*size + beta[4]*0.5 + beta[5]*xSeq )
+lines(xSeq,y_f,lwd=1.5,lty=1,col="blue")
+lines(xSeq,y_m,lwd=1.5,lty=1,col="red")
+text(-2,107.5,"b) Target individuals, year 2015", pos=4)
 
-text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.03,
-     par("usr")[4]*1.05,"b) Intersexual competition", cex = 1.2, xpd = T, pos = 4)
+colfunc = colorRampPalette(cRamp(unique(arrange(d15,sr)$sr)))
+legend_image <- as.raster(matrix(colfunc(21), ncol=1))
+text(x=23, y = seq(78,98,l=3), labels = seq(0,1,l=3))
+rasterImage(legend_image, 15, 78, 20, 98)
+text(25, 98, "Percent of", pos = 4)
+text(25, 88, "males in", pos = 4)
+text(25, 78, "plot", pos = 4)
 
 dev.off()
 
 
+# Set up colors for plots
+# 2015
+d15$col=as.integer(d15$sex)
+d15$col=as.character(factor(d15$col,labels=c("blue","red")))
+# 2014
+d14$col=as.integer(d14$sex)
+d14$col=as.character(factor(d14$col,labels=c("blue","red")))
 
+
+# Sex ratio as dot size ------------------------------------------------------------
 tiff("Results/VitalRates_3/Figure3_a.tiff",unit="in",width=6.3,height=3.5,res=600,compression="lzw")
 
-par(mfrow=c(1,2),mar=c(2.5,2.5,1.3,0.5),mgp=c(1.4,0.35,0),cex.lab=1.1,cex.axis=0.8,
-    cex.main=0.9)
+par(mfrow=c(1,2),mar=c(2.5,2.5,1.3,0.5),mgp=c(1.4,0.35,0),cex.lab=1,cex.axis=0.8,
+    cex.main=0.9,xpd=NA)
 
-# Panel a -  Color code sexes --------------------------------------------------------------
-tillers$col=as.integer(as.factor(tillers$sex))
-tillers$col=as.character(factor(tillers$col,labels=c("blue","red")))
+# 2014
+plot(d14$TotDensity, d14$l_t1, pch=1, ylab="Number of leaves in 2014",
+     xlab="Planting density",col=d14$col, ylim = c(0,99),
+     cex = (d14$sr+0.1) * 1.5)
+beta <- gr14_avg[,c("predictor","avg")]$avg
+xSeq <- seq(0,48,by=1)
+sr   <- 0.5
+size <- mean(d14$log_l_t0)
+y_m <- exp( beta[1] + beta[2]*size + beta[3] + beta[4]*xSeq + 
+              beta[5]*xSeq + beta[6]*sr + beta[7]*size)
+y_f <- exp( beta[1] + beta[2]*size + beta[4]*xSeq + beta[6]*sr )
+lines(xSeq,y_f,lwd=1.5,lty=1,col="blue")
+lines(xSeq,y_m,lwd=1.5,lty=1,col="red")
+text(-2,107.5,"a) Target individuals, year 2014",pos=4)
 
-boxplot(tot_till_t1 ~ sex, data = tillers, col = c("blue","red"),
-        names = c("Females","Males"),
-        ylab = "Total number of tillers (2015)")
-
-#legend(0.5,235,c("Male individuals","Female individuals"),fill=c("red","blue"),bty="n")
-
-text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.03,
-     par("usr")[4]*1.05,"a) One sex plots", cex = 1.2, xpd = T, pos = 4)
-
-# Panel b - Set up colors for plots -------------------------------------------------------
-d15$col=as.integer(d15$sex)
-d15$col=as.character(factor(d15$col,labels=c("blue","red")))
-d15$symb=as.integer(as.character(factor(d15$col,labels=c("17","16"))))
-
-plot(d15$sr,d15$l_t1, pch=16, ylab="Number of leaves per individual",
-     xlab="Proportion of female individuals",col=d15$col, ylim = c(0,82))
-beta = grow_avg[,c("predictor","avg")]$avg
-xSeq <- seq(0,1,by=0.1)
+# 2015
+plot(d15$TotDensity,d15$l_t1, pch=1, ylab="Number of leaves in 2015",
+     xlab="Planting density",col=d15$col, ylim = c(0,99),
+     cex = (d15$sr+0.1) * 1.5)
+beta <- grow_avgN[,c("predictor","avg")]$avg
+xSeq <- seq(0,48,by=1)
 size <- mean(d15$log_l_t0)
-dens <- 1
-y_m <- exp( beta[1] + beta[2]*size + beta[3]*dens + beta[4] + 
-              beta[5]*xSeq + beta[6]*size + beta[7]*dens + beta[8]*xSeq)
-y_f <- exp( beta[1] + beta[2]*size + beta[3]*dens + beta[5]*xSeq )
-lines(xSeq,y_f,lwd=3,lty=1,col="blue")
-lines(xSeq,y_m,lwd=3,lty=1,col="red")
-dens <- 48
-y_m <- exp( beta[1] + beta[2]*size + beta[3]*dens + beta[4] + 
-              beta[5]*xSeq + beta[6]*size + beta[7]*dens + beta[8]*xSeq)
-y_f <- exp( beta[1] + beta[2]*size + beta[3]*dens + beta[5]*xSeq )
-lines(xSeq,y_f,lwd=3,lty=1,col="blue")
-lines(xSeq,y_m,lwd=3,lty=1,col="red")
+y_m <- exp( beta[1] + beta[2]*size + beta[3] + beta[4]*0.5 + 
+              beta[5]*xSeq + beta[6]*size + beta[7]*0.5 + beta[8]*xSeq )
+y_f <- exp( beta[1] + beta[2]*size + beta[4]*0.5 + beta[5]*xSeq )
+lines(xSeq,y_f,lwd=1.5,lty=1,col="blue")
+lines(xSeq,y_m,lwd=1.5,lty=1,col="red")
+text(-2,107.5,"b) Target individuals, year 2015", pos=4)
 
-legend(0,88.5,c("Male individuals","Female individuals"),
-       lty=1,pch=16,lwd=3,col=c("red","blue"),bty="n")
+legend(0,105,c("Males","Females"), cex = 0.8,
+       lty=1,lwd=1.5,col=c("red","blue"),bty="n")
 
-text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.03,
-     par("usr")[4]*1.05,"b) Intersexual competition", cex = 1.2, xpd = T, pos = 4)
+legend(25,105,c("95% female plot","50% female plot", "  5% female plot"),
+       pch = 1, pt.cex = (c(0.95,0.5,0.05)+0.1)*1.5, bty="n", cex = 0.8,)
 
 dev.off()
+
+
+
