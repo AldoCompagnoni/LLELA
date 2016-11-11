@@ -45,8 +45,9 @@ par(mfrow=c(1,2),mar=c(2.5,2.5,1.3,0.5),mgp=c(1.4,0.35,0),cex.lab=1,cex.axis=0.8
     cex.main=0.9,xpd=NA)
 
 # 2014
-plot(d14$TotDensity, d14$l_t1, pch=21, ylab="Number of leaves in 2014",
-     xlab="Planting density",bg=cRamp(d14$sr), ylim = c(0,99))
+plot(d14$TotDensity, d14$l_t1, pch=21, ylab="Number of leaves in 2014", 
+     xlab="Planting density",bg=cRamp(d14$sr), ylim = c(0,99), 
+     lwd = 1)
 beta <- gr14_avg[,c("predictor","avg")]$avg
 xSeq <- seq(0,48,by=1)
 sr   <- 0.5
@@ -63,7 +64,8 @@ legend(29,105,c("Males","Females"), cex = 0.8,
 
 # 2015
 plot(d15$TotDensity,d15$l_t1, pch=21, ylab="Number of leaves in 2015",
-     xlab="Planting density",bg=cRamp(d15$sr), ylim = c(0,99))
+     xlab="Planting density",bg=cRamp(d15$sr), ylim = c(0,99),
+     lwd = 1)
 beta <- grow_avgN[,c("predictor","avg")]$avg
 xSeq <- seq(0,48,by=1)
 size <- mean(d15$log_l_t0)
@@ -83,59 +85,4 @@ text(25, 88, "males in", pos = 4)
 text(25, 78, "plot", pos = 4)
 
 dev.off()
-
-
-# Set up colors for plots
-# 2015
-d15$col=as.integer(d15$sex)
-d15$col=as.character(factor(d15$col,labels=c("blue","red")))
-# 2014
-d14$col=as.integer(d14$sex)
-d14$col=as.character(factor(d14$col,labels=c("blue","red")))
-
-
-# Sex ratio as dot size ------------------------------------------------------------
-tiff("Results/VitalRates_3/Figure3_a.tiff",unit="in",width=6.3,height=3.5,res=600,compression="lzw")
-
-par(mfrow=c(1,2),mar=c(2.5,2.5,1.3,0.5),mgp=c(1.4,0.35,0),cex.lab=1,cex.axis=0.8,
-    cex.main=0.9,xpd=NA)
-
-# 2014
-plot(d14$TotDensity, d14$l_t1, pch=1, ylab="Number of leaves in 2014",
-     xlab="Planting density",col=d14$col, ylim = c(0,99),
-     cex = (d14$sr+0.1) * 1.5)
-beta <- gr14_avg[,c("predictor","avg")]$avg
-xSeq <- seq(0,48,by=1)
-sr   <- 0.5
-size <- mean(d14$log_l_t0)
-y_m <- exp( beta[1] + beta[2]*size + beta[3] + beta[4]*xSeq + 
-              beta[5]*xSeq + beta[6]*sr + beta[7]*size)
-y_f <- exp( beta[1] + beta[2]*size + beta[4]*xSeq + beta[6]*sr )
-lines(xSeq,y_f,lwd=1.5,lty=1,col="blue")
-lines(xSeq,y_m,lwd=1.5,lty=1,col="red")
-text(-2,107.5,"a) Target individuals, year 2014",pos=4)
-
-# 2015
-plot(d15$TotDensity,d15$l_t1, pch=1, ylab="Number of leaves in 2015",
-     xlab="Planting density",col=d15$col, ylim = c(0,99),
-     cex = (d15$sr+0.1) * 1.5)
-beta <- grow_avgN[,c("predictor","avg")]$avg
-xSeq <- seq(0,48,by=1)
-size <- mean(d15$log_l_t0)
-y_m <- exp( beta[1] + beta[2]*size + beta[3] + beta[4]*0.5 + 
-              beta[5]*xSeq + beta[6]*size + beta[7]*0.5 + beta[8]*xSeq )
-y_f <- exp( beta[1] + beta[2]*size + beta[4]*0.5 + beta[5]*xSeq )
-lines(xSeq,y_f,lwd=1.5,lty=1,col="blue")
-lines(xSeq,y_m,lwd=1.5,lty=1,col="red")
-text(-2,107.5,"b) Target individuals, year 2015", pos=4)
-
-legend(0,105,c("Males","Females"), cex = 0.8,
-       lty=1,lwd=1.5,col=c("red","blue"),bty="n")
-
-legend(25,105,c("95% female plot","50% female plot", "  5% female plot"),
-       pch = 1, pt.cex = (c(0.95,0.5,0.05)+0.1)*1.5, bty="n", cex = 0.8,)
-
-dev.off()
-
-
 
