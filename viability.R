@@ -2,6 +2,7 @@
 # Data: tetrazolium scoring and germination data 
 setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
 library(lme4) ; library(bbmle) ; library(boot) ; library(testthat)
+library(dplyr) ; library(glmmADMB)
 source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
 
 # Read in data and format -----------------------------------------------------------
@@ -17,22 +18,22 @@ viabVr$plot <- as.factor(viabVr$plot)
 # This is the "standard" scoring: consider as viable any seed stained by tetrazolium
 
 # Omit NAs for glmmadmb
-tetr_dat  <- na.omit(select(viabVr,yesMaybe,failMaybe,sr_f,totFlow,sr,totN,plot))
+tetr_dat  <- na.omit(dplyr::select(viabVr,Yes,fail,sr_f,totFlow,sr,totN,plot))
 
 # Number of flowers and their sex ratio as predictors
 tetr_flowN=list()
-tetr_flowN[[1]]  <- glmmadmb(cbind(yesMaybe,failMaybe) ~ sr_f + (1 | plot),family="binomial", data=tetr_dat)
-tetr_flowN[[2]]  <- glmmadmb(cbind(yesMaybe,failMaybe) ~ totFlow + (1 | plot),family="binomial", data=tetr_dat)
-tetr_flowN[[3]]  <- glmmadmb(cbind(yesMaybe,failMaybe) ~ sr_f + totFlow + (1 | plot),family="binomial", data=tetr_dat)
-tetr_flowN[[4]]  <- glmmadmb(cbind(yesMaybe,failMaybe) ~ sr_f * totFlow + (1 | plot),family="binomial", data=tetr_dat)
+tetr_flowN[[1]]  <- glmmadmb(cbind(Yes,fail) ~ sr_f + (1 | plot),family="binomial", data=tetr_dat)
+tetr_flowN[[2]]  <- glmmadmb(cbind(Yes,fail) ~ totFlow + (1 | plot),family="binomial", data=tetr_dat)
+tetr_flowN[[3]]  <- glmmadmb(cbind(Yes,fail) ~ sr_f + totFlow + (1 | plot),family="binomial", data=tetr_dat)
+tetr_flowN[[4]]  <- glmmadmb(cbind(Yes,fail) ~ sr_f * totFlow + (1 | plot),family="binomial", data=tetr_dat)
 tetr_flowN_select<- AICtab(tetr_flowN,weights=T)
 
 # Planting density and sex ratio as predictors
 tetr_dens=list()
-tetr_dens[[1]]    <- glmmadmb(cbind(yesMaybe,failMaybe) ~ sr + (1 | plot),family="binomial", data=tetr_dat)
-tetr_dens[[2]]    <- glmmadmb(cbind(yesMaybe,failMaybe) ~ totN + (1 | plot),family="binomial", data=tetr_dat)
-tetr_dens[[3]]    <- glmmadmb(cbind(yesMaybe,failMaybe) ~ sr + totN + (1 | plot),family="binomial", data=tetr_dat)
-tetr_dens[[4]]    <- glmmadmb(cbind(yesMaybe,failMaybe) ~ sr * totN + (1 | plot),family="binomial", data=tetr_dat)
+tetr_dens[[1]]    <- glmmadmb(cbind(Yes,fail) ~ sr + (1 | plot),family="binomial", data=tetr_dat)
+tetr_dens[[2]]    <- glmmadmb(cbind(Yes,fail) ~ totN + (1 | plot),family="binomial", data=tetr_dat)
+tetr_dens[[3]]    <- glmmadmb(cbind(Yes,fail) ~ sr + totN + (1 | plot),family="binomial", data=tetr_dat)
+tetr_dens[[4]]    <- glmmadmb(cbind(Yes,fail) ~ sr * totN + (1 | plot),family="binomial", data=tetr_dat)
 tetr_dens_select  <- AICtab(tetr_dens,weights=T)
 
 # Model 4 has ~100% support
@@ -47,7 +48,7 @@ write.csv(tetr_dens_avg, "Results/VitalRates_3/tetrazolium_dens_best.csv", row.n
 # Number of flowers and their sex ratio as predictors
 
 # Omit NAs for glmmadmb
-germ_dat  <- na.omit(select(viabVr,germTot,germFail,sr_f,totFlow,sr,totN,plot))
+germ_dat  <- na.omit(dplyr::select(viabVr,germTot,germFail,sr_f,totFlow,sr,totN,plot))
 
 germ_flowN      <- list()
 germ_flowN[[1]] <- glmmadmb(cbind(germTot,germFail) ~ sr_f + (1 | plot),family="binomial", data=germ_dat)
@@ -72,20 +73,56 @@ write.csv(germ_flowN_avg, "Results/VitalRates_3/germination_best.csv", row.names
 write.csv(germ_dens_avg, "Results/VitalRates_3/germination_dens_best.csv", row.names = F)
 
 
+# Germination + tetrazolium ----------------------------------------------------
+# Format tetrazolium data
+tetr_dat <- dplyr::select(viabVr,Yes,fail,sr_f,totFlow,sr,totN,plot)
+tetr_dat <- tetr_dat %>% mutate(yes = Yes, no = fail, type = 1) %>%
+              dplyr::select(sr, totN, plot, yes, no, type)
+# Format germination data
+germ_dat <- dplyr::select(viabVr,germTot,germFail,sr_f,totFlow,sr,totN,plot)
+germ_dat <- germ_dat %>% mutate(yes = germTot, no = germFail, type = 2) %>%
+              dplyr::select(sr, totN, plot, yes, no, type)
+# Combine tetrazolium and germination data
+all_data <- na.omit( rbind(tetr_dat, germ_dat) )
+all_data <- mutate( all_data, type = as.factor(type) , germ_ratio = yes/(yes + no) )
+
+## Fit models
+all_dens       <- list()
+all_dens[[1]]  <- glmmadmb(cbind(yes, no) ~ sr + type + (1 | plot),family="binomial", data=all_data)
+all_dens[[2]]  <- glmmadmb(cbind(yes, no) ~ totN + type + (1 | plot),family="binomial", data=all_data)
+all_dens[[3]]  <- glmmadmb(cbind(yes, no) ~ sr + totN + type + (1 | plot),family="binomial", data=all_data)
+all_dens[[4]]  <- glmmadmb(cbind(yes, no) ~ sr * totN + type + (1 | plot),family="binomial", data=all_data)
+all_dens_sel   <- AICtab(all_dens, weights=T) 
+
+# Average best two models
+all_avg  <- model_avg(all_dens_sel, all_dens)
+write.csv(all_avg, "Results/VitalRates_3/all_viability_best.csv", row.names = F)
+
+
 # Graphs ---------------------------------------------------------------------
-tiff("Results/VitalRates_3/viability.tiff",unit="in",
-     width=6.3,height=4,res=600,compression="lzw")
+
+# service functions
+range01 <- function(x)(x-min(x))/diff(range(x))
+cRamp <- function(x){
+  cols <- colorRamp(topo.colors(7))(range01(x))
+  apply(cols, 1, function(xt)rgb(xt[1], xt[2], xt[3], maxColorValue=255))
+}  
+
+# graph
+tiff("Results/VitalRates_3/viability.tiff",unit="in",width=6.3,height=6.3,
+     res=600,compression="lzw")
 
 lower=quantile(viabVr$totN,prob=c(0.1))
 upper=quantile(viabVr$totN,prob=c(0.9))
 
-par(mfrow=c(1,2),mar=c(2.5,2.5,1.1,0.1),mgp=c(1.5,0.6,0),
-    oma=c(0,0,2.5,0.3),xpd=NA)
+par(mfrow=c(2,2),mar=c(2.5,2.5,1.1,0.1),mgp=c(1.5,0.6,0),
+    oma=c(0,0,0,0),xpd=NA)
 titlePlace=0.2
 
 # Tetrazolium data
-plot(jitter(viabVr$totN, factor = 2), jitter(viabVr$tetra_maybe_ratio, factor = 2), pch=1, ylim = c(0,1),
-     cex = viabVr$sr * 2, xlab="Planting density",ylab="Seed viability rate")
+plot(jitter(viabVr$totN, factor = 2), jitter(viabVr$tetra_ratio, factor = 2), 
+     pch=21, ylim = c(0,1), bg = cRamp(viabVr$sr), cex = 1.5, 
+     xlab="Planting density",ylab="Seed viability rate")
 title("Tetrazolium data", line = titlePlace)
 xSeq=seq(0,48,by = 1)
 beta=tetr_dens_avg$avg
@@ -94,12 +131,10 @@ yMeanHigh=inv.logit(beta[1] + beta[2]*1 + beta[3]*xSeq + beta[4]*xSeq*1)
 lines(xSeq,yMeanLow,lwd=2,lty=2)
 lines(xSeq,yMeanHigh,lwd=2,lty=1)
 
-legend(0,1.35, c("100% female plot","10% female plot"),
-       pch = 1, pt.cex = c(1,0.1)*1.5, bty="n")
-
 # Germination data
-plot(jitter(viabVr$totN, factor = 2),jitter(viabVr$germ_ratio, factor = 2),pch=1, ylim = c(0,1),
-     cex = viabVr$sr * 2, xlab="Planting density",ylab="Seed germination rate")
+plot(jitter(viabVr$totN, factor = 2),jitter(viabVr$germ_ratio, factor = 2),
+     pch=21, ylim = c(0,1), bg = cRamp(viabVr$sr), cex = 1.5, 
+     xlab="Planting density",ylab="Seed germination rate")
 title("Germination data", line = titlePlace)
 xSeq=seq(0,48,by = 1)
 beta=germ_dens_avg$avg
@@ -108,7 +143,32 @@ yMeanHigh=inv.logit(beta[1] + beta[2]*1 + beta[3]*xSeq + beta[4]*xSeq*1)
 lines(xSeq,yMeanLow,lwd=2,lty=2)
 lines(xSeq,yMeanHigh,lwd=2,lty=1)
 
-legend(0,1.35, c("100% female plots","10% female plots"),
+# All data
+plot(jitter(all_data$totN, factor = 2),jitter(all_data$germ_ratio, factor = 2),
+     pch=21, ylim = c(0,1), bg = cRamp(all_data$sr), cex = 1.5, 
+     xlab="Planting density",ylab="Seed viability/germination rate")
+title("All data", line = titlePlace)
+xSeq=seq(0,48,by = 1)
+beta=all_avg$avg
+yMeanLow=inv.logit(beta[1] + beta[2]*0.1 + beta[3]*xSeq*0.1 + beta[4]*xSeq)
+yMeanHigh=inv.logit(beta[1] + beta[2]*1 + beta[3]*xSeq*1 + beta[4]*xSeq)
+lines(xSeq,yMeanLow,lwd=2,lty=2)
+lines(xSeq,yMeanHigh,lwd=2,lty=1)
+
+# plot for legends
+plot(jitter(all_data$totN, factor = 2),jitter(all_data$germ_ratio, factor = 2),
+     type ="n", xaxt = "n", yaxt = "n", ylab="", xlab="", bty = 'n')
+
+colfunc       <- colorRampPalette(cRamp(unique(arrange(viabVr,sr)$sr)))
+legend_image  <- as.raster(matrix(colfunc(19), ncol=1))
+text(x=8.5, y = seq(0.7,0.9,l=3), labels = seq(0,1,l=3))
+rasterImage(legend_image, 0, 0.7, 5, 0.9)
+text(10, 0.9, "Percent of", pos = 4)
+text(10, 0.8, "males in", pos = 4)
+text(10, 0.7, "plot", pos = 4)
+
+legend(-2,0.65, c("100% female plots","10% female plots"),
        lty = c(1,2), lwd = 2, bty="n")
 
 dev.off()
+
