@@ -11,8 +11,7 @@ d           <- read.csv("Data/vr.csv")
 # best models
 n_flow_beta <- read.csv("Results/VitalRates_3/n_flowers_best.csv")
 fec_beta    <- read.csv("Results/VitalRates_3/fecuntity_best.csv")
-germ_beta   <- read.csv("Results/VitalRates_3/germination_dens_best.csv") #"dens" = planting density
-
+germ_beta   <- read.csv("Results/VitalRates_3/germination_best.csv") 
 
 # FORMAT DATA ---------------------------------------------------------------------
 
@@ -56,18 +55,18 @@ predict_fec$per_f_seeds   <- as.vector(exp( as.matrix(predict_fec) %*% fec_beta$
 
 
 # Seed viability (viability model, Figure 1c) -------------------------------------
-predict_viab              <- select(predict_fec,Intercept,sr,TotDensity,TotDensityXsr)
+predict_viab              <- dplyr::select(predict_fec,Intercept,sr,TotDensity,TotDensityXsr)
 predict_viab$pred_viab    <- inv.logit( as.matrix(predict_viab) %*% germ_beta$avg)
 
 
 # Seeds per plot ----------------------------------------------------------------
-seed_x_plot               <- merge(select(females,    sr, TotDensity, n_f_flowers),
-                                   select(predict_fec,sr, TotDensity, per_f_seeds))
+seed_x_plot               <- merge(dplyr::select(females,    sr, TotDensity, n_f_flowers),
+                                   dplyr::select(predict_fec,sr, TotDensity, per_f_seeds))
 seed_x_plot$n_seeds       <-  seed_x_plot$n_f_flowers * seed_x_plot$per_f_seeds
 
 # Final data frame ----------------------------------------------------------------
-fert                 <- merge(select(seed_x_plot, sr,TotDensity,n_seeds),
-                              select(predict_viab,sr,TotDensity,pred_viab))
+fert                 <- merge(dplyr::select(seed_x_plot, sr,TotDensity,n_seeds),
+                              dplyr::select(predict_viab,sr,TotDensity,pred_viab))
 fert$viable_seeds    <- fert$pred_viab * fert$n_seeds
 fert                 <- fert[order(fert$TotDensity,fert$sr),]
 
@@ -81,7 +80,7 @@ z<-matrix(fert$viable_seeds, nrow=length(unique(fert$sr)),
           ncol=length(unique(females$TotDensity)))
 
 
-tiff("Results/VitalRates_3/figure2_a.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
+tiff("Results/VitalRates_3/figure2.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
 
 persp(x,y,z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
       xlab = "Proportion of female individuals", 
@@ -92,7 +91,7 @@ persp(x,y,z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
 dev.off()
 
 # Alternatives to persp() function
-tiff("Results/VitalRates_3/figure2_a_contour.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
+tiff("Results/VitalRates_3/figure2_contour.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
 
 par(mar=c(4,4,1,0.5),mgp=c(2,0.7,0))
 filled.contour(x,y,z, color.palette=heat.colors, cex.lab = 1.4,
@@ -101,10 +100,4 @@ filled.contour(x,y,z, color.palette=heat.colors, cex.lab = 1.4,
                main = "Viable seeds")
 
 dev.off()
-
-
-contour(x,y,z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals", 
-      ylab = "Density",ticktype = "detailed",
-      main = "Viable seeds")
 
