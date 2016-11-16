@@ -6,29 +6,25 @@ library(dplyr)
 source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
 
 
-# load and format data ------------------------------------------------------------------
-d=read.csv("Data/vr.csv")
+# Read data ------------------------------------------------------------------
+d       <- read.csv("Data/vr.csv")
+
 # remove dead individuals (this is a GROWTH model!)
-d=subset(d, surv_t1 != 0)
+d       <- subset(d, surv_t1 != 0)
 # logtransform leaf numbers
-d$plot=as.factor(d$plot) # glmmadmb wants plot as a factor
+d       <- mutate(d, plot = as.factor(plot) ) # glmmadmb wants plot as a factor
 
 # Year one
-d14 <- subset(d, year==2014)
-
+d14     <- subset(d, year == 2014)
 # Year two
-tmp15=subset(d,year==2015)
-tmp15$new_t1[tmp15$new_t1=="SKIPPED"]=NA
-tmp15$new_t1[tmp15$new_t1=="cnf"]=NA
-tmp15$new_t1[tmp15$new_t1==""]=NA
-tmp15$new_t1=as.numeric(as.character(tmp15$new_t1))
-d15=na.omit(tmp15[,c("l_t1","log_l_t0","plot","focalI","sex","new_t1","sr","TotDensity")])
+tmp15   <- subset(d, year == 2015)
+# Missing new tillers data 
+tmp15   <- mutate(tmp15, new_t1 = replace(new_t1, new_t1=="SKIPPED", NA)) 
+tmp15   <- mutate(tmp15, new_t1 = replace(new_t1, new_t1=="cnf", NA))
+tmp15   <- mutate(tmp15, new_t1 = replace(new_t1, new_t1=="", NA))
+tmp15   <- mutate(tmp15, new_t1 = as.numeric(as.character(new_t1)))
+d15     <- na.omit(dplyr::select(tmp15,l_t1,log_l_t0,plot,focalI,sex,new_t1,sr,TotDensity))
 
-#Merge
-tmp     <- select(d14, plot, new_t1)
-tmp     <- mutate(tmp,new_t1 = as.character(as.numeric(new_t1)))   
-tmp     <- mutate(tmp, new_t0 = new_t1, new_t1 = NULL)
-d14_15  <- merge(tmp, d15)
 
 
 # 2014 --------------------------------------------------------------------------------

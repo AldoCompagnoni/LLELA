@@ -1,11 +1,11 @@
-# Code to produce figure1 (panels a,b,c)
+# Code to produce figure1 (panels a-d)
 setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
 library(bbmle) 
 library(MASS)
 library(dplyr)
 library(boot)
 
-#Read in data--------------------------------------------------------------------
+#Read data--------------------------------------------------------------------
 d           <- read.csv("Data/vr.csv")
 fem_seeds   <- read.csv("Data/Spring 2014/SeedCount/Poa Arachnifera_seedCount.csv")
 m_spiklet   <- read.csv("Data/Spring 2014/maleCounts/malePaniculesSpring2014.csv")
@@ -21,31 +21,31 @@ tetr_beta   <- read.csv("Results/VitalRates_3/germination_best.csv")
 
 # FORMAT DATA -------------------------------------------------------------------
 
-# Only data from 2014
-d14           <- subset(d, year == 2014)
+# Number of flowers in 2014
+d14         <- subset(d, year == 2014)
 d14         <- subset(d14, surv_t1 != 0)
-d14[which(d14$log_l_t1==-Inf),]   <- NA
-d14$new_t1  <- as.numeric(as.character(d14$new_t1))
-f14         <- na.omit(d14[,c("plot","flow_t1","log_l_t1","log_l_t0","flowN_t1",
-                              "sex","sr","new_t1","TotDensity")])
+d14         <- d14 %>% mutate(new_t1 = as.numeric( as.character(new_t1)) )
+f14         <- na.omit(select(d14,plot,flow_t1,log_l_t0,flowN_t1,
+                              sex,sr,new_t1,TotDensity))
 
-# fecundity data ---------------------------------------------------------------------- 
-fem_seeds$focalI    <- paste("f",fem_seeds$IndividualN,sep="")
-fem_seeds           <- fem_seeds[,c("Plot","focalI","SeedN")] 
-fem_seeds           <- fem_seeds[!is.na(fem_seeds$SeedN),]
-names(fem_seeds)[1] <- "plot"
-fecund_data         <- merge(d14,fem_seeds) 
 
-# male allocation (spikelets) data ---------------------------------------------------------------------- 
-m_alloc             <- merge(d14, m_spiklet)
+# fecundity data  
+fem_seeds   <- mutate(fem_seeds, focalI = paste("f",IndividualN,sep=""))
+fem_seeds   <- select(fem_seeds,Plot,focalI,SeedN)
+fem_seeds   <- filter(fem_seeds, !is.na(SeedN) )
+fem_seeds   <- rename(fem_seeds, plot = Plot)
+fecund_data <- merge(d14,fem_seeds) 
 
-# viability: remove three plots with more than 60 flowers 
-viabVr              <- subset(viabVr, totFlow < 60)
+# male allocation (spikelets) data  
+m_alloc     <- merge(d14, m_spiklet)
+
+# remove three plots with more than 60 flowers 
+viabVr      <- subset(viabVr, totFlow < 60)
+
 
 # FIGURE 1 -----------------------------------------------------------------------------
 
-# Sex ratio as dot color ----------------------------------------------------------
-
+# Sex ratio as dot color ------
 # service functions
 range01 <- function(x)(x-min(x))/diff(range(x))
 cRamp <- function(x){
@@ -128,7 +128,6 @@ rasterImage(legend_image, 17, 850, 22, 1000)
 text(25, 1000, "Percent of", pos = 4)
 text(25, 925, "males in", pos = 4)
 text(25, 850, "plot", pos = 4)
-
 
 
 # male allocation ----------------------------------------------------------------------

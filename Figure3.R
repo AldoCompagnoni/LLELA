@@ -1,35 +1,27 @@
 # Code to produce figure1 (panels a,b,c)
 setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
-library(bbmle) 
-library(MASS)
 library(dplyr)
-library(boot)
 
-#Read in data--------------------------------------------------------------------
+#Read data--------------------------------------------------------------------
+d       <- read.csv("Data/vr.csv")
 
-# load and format data ------------------------------------------------------------------
-d=read.csv("Data/vr.csv")
+# Format data ------------------------------------------------------------------
+
 # remove dead individuals (this is a GROWTH model!)
-d=subset(d, surv_t1 != 0)
-# Year one
-d14 <- subset(d, year==2014)
-# Year two
-tmp15=subset(d,year==2015)
-tmp15$new_t1[tmp15$new_t1=="SKIPPED"]=NA
-tmp15$new_t1[tmp15$new_t1=="cnf"]=NA
-tmp15$new_t1[tmp15$new_t1==""]=NA
-tmp15$new_t1=as.numeric(as.character(tmp15$new_t1))
-d15=na.omit(tmp15[,c("l_t1","log_l_t0","plot","sex","new_t1","sr","TotDensity")])
+d       <- filter(d, surv_t1 != 0)
+# separate years
+d14     <- filter(d, year == 2014)
+d15     <- filter(d, year == 2015)
 
 # Best models
 gr14_avg   <- read.csv("Results/VitalRates_3/growth_14N_best.csv")
 grow_avgN  <- read.csv("Results/VitalRates_3/growthN_best.csv")
 
 
+
 # FIGURE 3 ----------------------------------------------------------------------
 
-
-# Sex ratio as dot color ------------------------------------------------------------
+# Sex ratio as dot color ---------------
 
 # service functions
 range01 <- function(x)(x-min(x))/diff(range(x))
@@ -38,6 +30,16 @@ cRamp <- function(x){
   apply(cols, 1, function(xt)rgb(xt[1], xt[2], xt[3], maxColorValue=255))
 }  
 
+# Set up symbols for the sexes ---------
+sex_symbol <- function(x){
+  out <- x %>% mutate(symb = as.integer( as.character( 
+                                factor( as.integer(sex),labels=c("21","24")))) )
+  return(out)
+}
+d14 <- sex_symbol(d14)
+d15 <- sex_symbol(d15)
+
+
 # Graph
 tiff("Results/VitalRates_3/Figure3.tiff",unit="in",width=6.3,height=3.5,res=600,compression="lzw")
 
@@ -45,7 +47,7 @@ par(mfrow=c(1,2),mar=c(2.5,2.5,1.3,0.5),mgp=c(1.4,0.35,0),cex.lab=1,cex.axis=0.8
     cex.main=0.9,xpd=NA)
 
 # 2014
-plot(d14$TotDensity, d14$l_t1, pch=21, ylab="Number of leaves in 2014", 
+plot(jitter(d14$TotDensity), d14$l_t1, pch = d14$symb, ylab="Number of leaves in 2014", 
      xlab="Planting density",bg=cRamp(d14$sr), ylim = c(0,99), 
      lwd = 1)
 beta <- gr14_avg[,c("predictor","avg")]$avg
@@ -59,11 +61,11 @@ lines(xSeq,y_f,lwd=1.5,lty=1,col="blue")
 lines(xSeq,y_m,lwd=1.5,lty=1,col="red")
 text(-2,107.5,"a) Target individuals, year 2014",pos=4)
 
-legend(29,105,c("Males","Females"), cex = 0.8,
+legend(29,105,c("Males","Females"), cex = 0.8, pch = c(24,21),
        lty=1,lwd=1.5,col=c("red","blue"),bty="n")
 
 # 2015
-plot(d15$TotDensity,d15$l_t1, pch=21, ylab="Number of leaves in 2015",
+plot(jitter(d15$TotDensity),d15$l_t1, pch = d15$symb, ylab="Number of leaves in 2015",
      xlab="Planting density",bg=cRamp(d15$sr), ylim = c(0,99),
      lwd = 1)
 beta <- grow_avgN[,c("predictor","avg")]$avg
