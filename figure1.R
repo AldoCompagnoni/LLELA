@@ -1,7 +1,6 @@
 # Code to produce figure1 (panels a-d)
 setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
 library(bbmle) 
-library(MASS)
 library(dplyr)
 library(boot)
 
@@ -25,13 +24,13 @@ tetr_beta   <- read.csv("Results/VitalRates_3/germination_best.csv")
 d14         <- subset(d, year == 2014)
 d14         <- subset(d14, surv_t1 != 0)
 d14         <- d14 %>% mutate(new_t1 = as.numeric( as.character(new_t1)) )
-f14         <- na.omit(select(d14,plot,flow_t1,log_l_t0,flowN_t1,
-                              sex,sr,new_t1,TotDensity))
+f14         <- na.omit(dplyr::select(d14,plot,flow_t1,log_l_t0,flowN_t1,
+                                     sex,sr,new_t1,TotDensity))
 
 
 # fecundity data  
 fem_seeds   <- mutate(fem_seeds, focalI = paste("f",IndividualN,sep=""))
-fem_seeds   <- select(fem_seeds,Plot,focalI,SeedN)
+fem_seeds   <- dplyr::select(fem_seeds,Plot,focalI,SeedN)
 fem_seeds   <- filter(fem_seeds, !is.na(SeedN) )
 fem_seeds   <- rename(fem_seeds, plot = Plot)
 fecund_data <- merge(d14,fem_seeds) 
@@ -147,9 +146,7 @@ text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.11,
      par("usr")[4]*0.97,"(c)", cex = 1.2, xpd = T)
 
 
-# viability ----------------------------------------------------------------------------
-lower=quantile(viabVr$totFlow,prob=c(0.1))
-upper=quantile(viabVr$totFlow,prob=c(0.9))
+# viability (germination) data ---------------------------------------------------------
 
 # Viability (germination) data
 plot(jitter(viabVr$totFlow,factor = 2),jitter(viabVr$germ_ratio,factor = 2),pch=21,ylim=c(0,1.01), 
