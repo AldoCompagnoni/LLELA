@@ -23,27 +23,27 @@ f14                               <- na.omit(tmp[,c("plot","flowN_t1","log_l_t0"
 
 # Model selection ----------------------------------------------------------------------------------
 
-nfMod=list()
-#Target fitness
+# Planting density
+nfMod=list() # lMod stands for "leaf model" (density is quantified by N. of leaves)
 nfMod[[1]]=glmmadmb(flowN_t1 ~ log_l_t0 + (1 | plot),data=f14,family="poisson")
 nfMod[[2]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex + (1 | plot),data=f14,family="poisson")
 nfMod[[3]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + (1 | plot),data=f14,family="poisson")
-#Target fitness + effect = tot density 
+# Target fitness: effect + tot density 
 nfMod[[4]]=glmmadmb(flowN_t1 ~ log_l_t0 + TotDensity + (1 | plot),data=f14,family="poisson")
 nfMod[[5]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex + TotDensity + (1 | plot),data=f14,family="poisson")
 nfMod[[6]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + TotDensity + (1 | plot),data=f14,family="poisson")
-#Target fitness + effect = tot density + response=sex 
-nfMod[[7]]=glmmadmb(flowN_t1 ~ log_l_t0 + TotDensity + TotDensity:sex + (1 | plot),data=f14,family="poisson")
-nfMod[[8]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex*TotDensity + (1 | plot),data=f14,family="poisson")
-nfMod[[9]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + TotDensity + TotDensity:sex + (1 | plot),data=f14,family="poisson")
-#Target fitness + effect = sex 
+# Target fitness: effect + sex ratio
+nfMod[[7]]=glmmadmb(flowN_t1 ~ log_l_t0 + sr + (1 | plot),data=f14,family="poisson")
+nfMod[[8]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex + sr + (1 | plot),data=f14,family="poisson")
+nfMod[[9]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + sr + (1 | plot),data=f14,family="poisson")
+# Target fitness: tot density + sex ratio
 nfMod[[10]]=glmmadmb(flowN_t1 ~ log_l_t0 + sr + TotDensity + (1 | plot),data=f14,family="poisson")
 nfMod[[11]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex + sr + TotDensity + (1 | plot),data=f14,family="poisson")
 nfMod[[12]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + sr + TotDensity + (1 | plot),data=f14,family="poisson")
-#Target fitness + effect = sex + response=sex 
-nfMod[[13]]=glmmadmb(flowN_t1 ~ log_l_t0 + sr + TotDensity + sr:sex + TotDensity:sex +(1 | plot),data=f14,family="poisson")
-nfMod[[14]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex + sr + TotDensity + sr:sex + TotDensity:sex + (1 | plot),data=f14,family="poisson")
-nfMod[[15]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + sr + TotDensity + sr:sex + TotDensity:sex  + (1 | plot),data=f14,family="poisson")
+# Target fitness: tot density X sex ratio
+nfMod[[13]]=glmmadmb(flowN_t1 ~ log_l_t0 + sr * TotDensity + (1 | plot),data=f14,family="poisson")
+nfMod[[14]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex + sr * TotDensity + (1 | plot),data=f14,family="poisson")
+nfMod[[15]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + sr * TotDensity + (1 | plot),data=f14,family="poisson")
 
 # Model average
 n_flow_select <- AICtab(nfMod,weights=T)
