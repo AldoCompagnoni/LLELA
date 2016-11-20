@@ -1,10 +1,13 @@
-setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
+setwd("C:/Users/ac79/Documents/CODE/LLELA/analysis")
 
-#Fit vital rates models
+#Vital rates model selection
+source("nFlowers_mod_sel.R")
+source("fecundity_mod_sel.R")
+source("fecundity_mod_sel.R")
+source("panicules_male_mod_sel.R")
+source("growth_mod_sel.R")
 
-#Three appraches to growth models
-source("Analysis/growth_oneSexPlots.R") ; rm(list=ls())
-source("Analysis/growth_sexRatio.R") ; rm(list=ls())
-source("Analysis/growth_newTillers.R") ; rm(list=ls())
-
-#Survival models
+# Produce figures
+source("figure1.R")
+source("Figure2.R")
+source("Figure3.R")
