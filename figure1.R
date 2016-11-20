@@ -15,7 +15,7 @@ viabVr      <- read.csv("Data/Spring 2014/viability/tetra_germ_plot_data.csv",
 n_flow_beta <- read.csv("Results/VitalRates_3/n_flowers_best.csv")
 fec_beta    <- read.csv("Results/VitalRates_3/fecuntity_best.csv")
 m_spik_beta <- read.csv("Results/VitalRates_3/male_spikelets.csv")
-tetr_beta   <- read.csv("Results/VitalRates_3/germination_best.csv")
+germ_beta   <- read.csv("Results/VitalRates_3/germination_best.csv")
 
 
 # FORMAT DATA -------------------------------------------------------------------
@@ -148,11 +148,11 @@ text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.11,
 plot(jitter(viabVr$totFlow,factor = 2),jitter(viabVr$germ_ratio,factor = 2),pch=21,ylim=c(0,1.01), 
      bg = cRamp(viabVr$sr_f), cex = 1.5,
      xlab="Number of flowers",ylab="Seed viability rate")
-
 xSeq=seq(min(viabVr$totFlow),max(viabVr$totFlow),length.out=100)
-beta=tetr_beta$avg
-yMeanLow=inv.logit(beta[1] + beta[2]*0.2 + beta[3]*xSeq + beta[4]*xSeq*0.2)
-yMeanHigh=inv.logit(beta[1] + beta[2]*1 + beta[3]*xSeq + beta[4]*xSeq*1)
+beta=germ_beta$avg
+size=mean(viabVr$log_l_t0)
+yMeanLow=inv.logit(beta[1] + beta[2]*size + beta[3]*0.2 + beta[4]*xSeq*0.2 + beta[5]*xSeq)
+yMeanHigh=inv.logit(beta[1] + beta[2]*size + beta[3]*1 + beta[4]*xSeq*1 + beta[5]*xSeq)
 
 lines(xSeq,yMeanLow,lwd=2,lty=2)
 lines(xSeq,yMeanHigh,lwd=2,lty=1)
