@@ -14,8 +14,8 @@ d14     <- filter(d, year == 2014)
 d15     <- filter(d, year == 2015)
 
 # Best models
-gr14_avg   <- read.csv("Results/VitalRates_3/growth_14N_best.csv")
-grow_avgN  <- read.csv("Results/VitalRates_3/growthN_best.csv")
+gr14_avg  <- read.csv("Results/VitalRates_3/growth_14N_best.csv")
+gr15_avg  <- read.csv("Results/VitalRates_3/growthN_best.csv")
 
 
 
@@ -55,8 +55,8 @@ xSeq <- seq(0,48,by=1)
 sr   <- 0.5
 size <- mean(d14$log_l_t0)
 y_m <- exp( beta[1] + beta[2]*size + beta[3] + beta[4]*xSeq + 
-              beta[5]*xSeq + beta[6]*sr + beta[7]*size)
-y_f <- exp( beta[1] + beta[2]*size + beta[4]*xSeq + beta[6]*sr )
+              beta[5]*sr + beta[6]*size + beta[7]*xSeq*sr )
+y_f <- exp( beta[1] + beta[2]*size + beta[4]*xSeq + beta[5]*sr + beta[7]*xSeq*sr)
 lines(xSeq,y_f,lwd=1.5,lty=1,col="blue")
 lines(xSeq,y_m,lwd=1.5,lty=1,col="red")
 text(-2,107.5,"a) Target individuals, year 2014",pos=4)
@@ -68,7 +68,7 @@ legend(29,105,c("Males","Females"), cex = 0.8, pch = c(24,21),
 plot(jitter(d15$TotDensity),d15$l_t1, pch = d15$symb, ylab="Number of leaves in 2015",
      xlab="Planting density",bg=cRamp(d15$sr), ylim = c(0,99),
      lwd = 1)
-beta <- grow_avgN[,c("predictor","avg")]$avg
+beta <- gr15_avg[,c("predictor","avg")]$avg
 xSeq <- seq(0,48,by=1)
 size <- mean(d15$log_l_t0)
 y_m <- exp( beta[1] + beta[2]*size + beta[3] + beta[4]*0.5 + 

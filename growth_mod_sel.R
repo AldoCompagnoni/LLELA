@@ -84,7 +84,7 @@ m15[[15]]=glmmadmb(l_t1 ~ log_l_t0 * sex + sr * TotDensity + (1 | plot),data=d15
 # Model average
 gr15_mod_sel <- AICtab(m15, weights = T)
 gr15_avg     <- model_avg(gr15_mod_sel, m15)
-write.csv(grow_avg, "Results/VitalRates_3/growth_best.csv", row.names = F)
+write.csv(gr15_avg, "Results/VitalRates_3/growth_best.csv", row.names = F)
 
 # GRAPH ------------------------------------------------------------------------------------------------
 

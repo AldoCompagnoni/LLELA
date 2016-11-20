@@ -1,52 +1,48 @@
 ##Sex predictor of flowering probability: SEX RATIO (female individuals/total individuals)
 setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
 library(bbmle) #For AIC weights, because I'm lazy!
-library(lme4) ; library(glmmADMB)
+library(glmmADMB)
+library(dplyr)
 source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
 
-# read in data
-d <- read.csv("Data/vr.csv")
 
-# make "plot" a factor to fit models 
-d$plot <- as.factor(d$plot) 
+# read in data -------------------------------------------------------------------------------
+d       <- read.csv("Data/vr.csv")
 
+# format data -------------------------------------------------------------------------------
+# make "plot" a factor to fit glmmadmb models 
+d       <- mutate(d, plot = as.factor(plot) )
+# Data from 2014; only live individuals  
+tmp     <- subset(d, year==2014 & surv_t1 != 0)
+f14     <- na.omit(dplyr::select(tmp,flowN_t1,log_l_t0,plot,sex,sr,TotDensity))
 
-# Select YEAR ONE data ------------------------------------------------------------------------------------
-tmp                               <- subset(d,year==2014)
-tmp[which(tmp$log_l_t1==-Inf),]   <- NA
-#prepare the 'new_t1' column
-tmp$new_t1[tmp$new_t1=="SKIPPED"] <- NA
-tmp$new_t1[tmp$new_t1=="cnf"]     <- NA
-tmp$new_t1[tmp$new_t1==""]        <- NA
-tmp$new_t1                        <- as.numeric(as.character(tmp$new_t1))
-f14                               <- na.omit(tmp[,c("plot","flowN_t1","log_l_t0","sex","sr","TotDensity")])
 
 # Model selection ----------------------------------------------------------------------------------
 
 # Planting density
 nfMod=list() # lMod stands for "leaf model" (density is quantified by N. of leaves)
-nfMod[[1]]=glmmadmb(flowN_t1 ~ log_l_t0 + (1 | plot),data=f14,family="poisson")
-nfMod[[2]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex + (1 | plot),data=f14,family="poisson")
-nfMod[[3]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + (1 | plot),data=f14,family="poisson")
+nfMod[[1]]=glmmadmb(flowN_t1 ~ log_l_t0 + (1 | plot),data=f14,family="nbinom2")
+nfMod[[2]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex + (1 | plot),data=f14,family="nbinom2")
+nfMod[[3]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + (1 | plot),data=f14,family="nbinom2")
 # Target fitness: effect + tot density 
-nfMod[[4]]=glmmadmb(flowN_t1 ~ log_l_t0 + TotDensity + (1 | plot),data=f14,family="poisson")
-nfMod[[5]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex + TotDensity + (1 | plot),data=f14,family="poisson")
-nfMod[[6]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + TotDensity + (1 | plot),data=f14,family="poisson")
+nfMod[[4]]=glmmadmb(flowN_t1 ~ log_l_t0 + TotDensity + (1 | plot),data=f14,family="nbinom2")
+nfMod[[5]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex + TotDensity + (1 | plot),data=f14,family="nbinom2")
+nfMod[[6]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + TotDensity + (1 | plot),data=f14,family="nbinom2")
 # Target fitness: effect + sex ratio
-nfMod[[7]]=glmmadmb(flowN_t1 ~ log_l_t0 + sr + (1 | plot),data=f14,family="poisson")
-nfMod[[8]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex + sr + (1 | plot),data=f14,family="poisson")
-nfMod[[9]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + sr + (1 | plot),data=f14,family="poisson")
+nfMod[[7]]=glmmadmb(flowN_t1 ~ log_l_t0 + sr + (1 | plot),data=f14,family="nbinom2")
+nfMod[[8]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex + sr + (1 | plot),data=f14,family="nbinom2")
+nfMod[[9]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + sr + (1 | plot),data=f14,family="nbinom2")
 # Target fitness: tot density + sex ratio
-nfMod[[10]]=glmmadmb(flowN_t1 ~ log_l_t0 + sr + TotDensity + (1 | plot),data=f14,family="poisson")
-nfMod[[11]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex + sr + TotDensity + (1 | plot),data=f14,family="poisson")
-nfMod[[12]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + sr + TotDensity + (1 | plot),data=f14,family="poisson")
+nfMod[[10]]=glmmadmb(flowN_t1 ~ log_l_t0 + sr + TotDensity + (1 | plot),data=f14,family="nbinom2")
+nfMod[[11]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex + sr + TotDensity + (1 | plot),data=f14,family="nbinom2")
+nfMod[[12]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + sr + TotDensity + (1 | plot),data=f14,family="nbinom2")
 # Target fitness: tot density X sex ratio
-nfMod[[13]]=glmmadmb(flowN_t1 ~ log_l_t0 + sr * TotDensity + (1 | plot),data=f14,family="poisson")
-nfMod[[14]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex + sr * TotDensity + (1 | plot),data=f14,family="poisson")
-nfMod[[15]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + sr * TotDensity + (1 | plot),data=f14,family="poisson")
+nfMod[[13]]=glmmadmb(flowN_t1 ~ log_l_t0 + sr * TotDensity + (1 | plot),data=f14,family="nbinom2")
+nfMod[[14]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex + sr * TotDensity + (1 | plot),data=f14,family="nbinom2")
+nfMod[[15]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + sr * TotDensity + (1 | plot),data=f14,family="nbinom2")
 
 # Model average
-n_flow_select <- AICtab(nfMod,weights=T)
+n_flow_select <- AICtab(nfMod, weights=T)
 n_flow_avg    <- model_avg(n_flow_select, nfMod)
 write.csv(n_flow_avg, "Results/VitalRates_3/n_flowers_best.csv", row.names = F)
 

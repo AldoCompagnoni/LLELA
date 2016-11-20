@@ -27,7 +27,6 @@ d14         <- d14 %>% mutate(new_t1 = as.numeric( as.character(new_t1)) )
 f14         <- na.omit(dplyr::select(d14,plot,flow_t1,log_l_t0,flowN_t1,
                                      sex,sr,new_t1,TotDensity))
 
-
 # fecundity data  
 fem_seeds   <- mutate(fem_seeds, focalI = paste("f",IndividualN,sep=""))
 fem_seeds   <- dplyr::select(fem_seeds,Plot,focalI,SeedN)
@@ -66,9 +65,9 @@ fem14   <- subset(f14,sex=="f")
 
 # means
 meanF   <- fem14 %>% group_by(TotDensity) %>% 
-  summarise( meanF = mean(flowN_t1), sdF = sd(flowN_t1) )
+            summarise( meanF = mean(flowN_t1), sdF = sd(flowN_t1) )
 meanM   <- mal14 %>% group_by(TotDensity) %>% 
-  summarise( meanM = mean(flowN_t1), sdM = sd(flowN_t1) )
+            summarise( meanM = mean(flowN_t1), sdM = sd(flowN_t1) )
 
 # plots
 plot(meanF$TotDensity , meanF$meanF, pch = 16, col = "blue", ylim = c(0.3,2),
@@ -85,13 +84,12 @@ size  <- mean(f14$log_l_t0)
 xSeq  <- seq(0,48, by = 1)
 beta  <- n_flow_beta[,c("predictor","avg")]$avg
 
-y_m <- exp( beta[1] + beta[2]*size + beta[3]*xSeq + 
-              beta[4]*xSeq + beta[5]*0.5 + beta[6] + 
-              beta[7]*size + beta[8]*0.5)
-y_f <- exp( beta[1] + beta[2]*size + beta[3]*xSeq + beta[5]*0.5)
+y_m <- exp( beta[1] + beta[2]*size + beta[3]*xSeq + beta[4]*0.5 + 
+              beta[5]*0.5*xSeq + beta[6] + beta[7]*size)
+y_f <- exp( beta[1] + beta[2]*size + beta[3]*xSeq + beta[4]*0.5 + beta[5]*0.5*xSeq)
 
 lines(xSeq,y_m,lty=1,lwd=2,col="blue")
-lines(xSeq,y_f,lty=1,lwd=2,col="red")
+lines(xSeq,y_f,lty=2,lwd=2,col="red")
 
 legend(1,2.1,c("male","female"), lty=1, lwd=2, 
        col=c("red","blue"), bty="n", pch = 16 )
@@ -147,8 +145,6 @@ text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.11,
 
 
 # viability (germination) data ---------------------------------------------------------
-
-# Viability (germination) data
 plot(jitter(viabVr$totFlow,factor = 2),jitter(viabVr$germ_ratio,factor = 2),pch=21,ylim=c(0,1.01), 
      bg = cRamp(viabVr$sr_f), cex = 1.5,
      xlab="Number of flowers",ylab="Seed viability rate")
