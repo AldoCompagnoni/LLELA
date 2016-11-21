@@ -56,33 +56,6 @@ germ_flowN_avg  <- model_avg(germ_flowN_sel, germ_flowN)
 write.csv(germ_flowN_avg, "Results/VitalRates_3/germination_best.csv", row.names = F)
 
 
-# Germination + tetrazolium ----------------------------------------------------
-# Format tetrazolium data
-tetr_dat <- dplyr::select(viabVr,Yes,fail,sr_f,totFlow,sr,totN,plot,log_l_t0)
-tetr_dat <- tetr_dat %>% mutate(yes = Yes, no = fail, type = 1) %>%
-              dplyr::select(sr_f, totFlow, plot, yes, no, type, log_l_t0)
-# Format germination data
-germ_dat <- dplyr::select(viabVr,germTot,germFail,sr_f,totFlow,sr,totN,plot,log_l_t0)
-germ_dat <- germ_dat %>% mutate(yes = germTot, no = germFail, type = 2) %>%
-              dplyr::select(sr_f, totFlow, plot, yes, no, type, log_l_t0)
-# Combine tetrazolium and germination data
-all_data <- na.omit( rbind(tetr_dat, germ_dat) )
-all_data <- mutate( all_data, type = as.factor(type) , germ_ratio = yes/(yes + no) )
-
-## Fit models
-all_dens       <- list()
-all_dens[[1]]  <- glmmadmb(cbind(yes, no) ~ type + log_l_t0 + (1 | plot),family="binomial", data=all_data)
-all_dens[[2]]  <- glmmadmb(cbind(yes, no) ~ sr_f + type + log_l_t0 + (1 | plot),family="binomial", data=all_data)
-all_dens[[3]]  <- glmmadmb(cbind(yes, no) ~ totFlow + type + log_l_t0 + (1 | plot),family="binomial", data=all_data)
-all_dens[[4]]  <- glmmadmb(cbind(yes, no) ~ sr_f + totFlow + type + log_l_t0 + (1 | plot),family="binomial", data=all_data)
-all_dens[[5]]  <- glmmadmb(cbind(yes, no) ~ sr_f * totFlow + type + log_l_t0 + (1 | plot),family="binomial", data=all_data)
-
-# Average best two models
-all_dens_sel   <- AICtab(all_dens, weights=T) 
-all_avg  <- model_avg(all_dens_sel, all_dens)
-write.csv(all_avg, "Results/VitalRates_3/all_viability_best.csv", row.names = F)
-
-
 # Graphs ---------------------------------------------------------------------
 
 # service functions
@@ -93,13 +66,13 @@ cRamp <- function(x){
 }  
 
 # graph
-tiff("Results/VitalRates_3/viability.tiff",unit="in",width=6.3,height=6.3,
+tiff("Results/VitalRates_3/viability.tiff",unit="in",width=6.3,height=3.15,
      res=600,compression="lzw")
 
 lower=quantile(viabVr$totN,prob=c(0.1))
 upper=quantile(viabVr$totN,prob=c(0.9))
 
-par(mfrow=c(2,2),mar=c(2.5,2.5,1.1,0.1),mgp=c(1.5,0.6,0),
+par(mfrow=c(1,2),mar=c(2.5,2.5,1.1,0.1),mgp=c(1.5,0.6,0),
     oma=c(0,0,0,0),xpd=NA)
 titlePlace=0.2
 
@@ -128,33 +101,6 @@ yMeanLow=inv.logit(beta[1] + beta[2]*size + beta[3]*0.1 + beta[4]*xSeq*0.1 + bet
 yMeanHigh=inv.logit(beta[1] + beta[2]*size + beta[3]*1 + beta[4]*xSeq*1 + beta[5]*xSeq)
 lines(xSeq,yMeanLow,lwd=2,lty=2)
 lines(xSeq,yMeanHigh,lwd=2,lty=1)
-
-# All data
-plot(jitter(all_data$totFlow, factor = 2),jitter(all_data$germ_ratio, factor = 2),
-     pch=21, ylim = c(0,1), bg = cRamp(all_data$sr), cex = 1.5, 
-     xlab="Planting density",ylab="Seed viability/germination rate")
-title("All data", line = titlePlace)
-xSeq=seq(0,54,by = 1)
-beta=all_avg$avg
-yMeanLow=inv.logit(beta[1] + beta[2]*size + beta[3]*0.1 + beta[4]*xSeq*0.1 + beta[5]*xSeq + beta[6]*0.5)
-yMeanHigh=inv.logit(beta[1] + beta[2]*size + beta[3]*1 + beta[4]*xSeq*1 + beta[5]*xSeq + beta[6]*0.5)
-lines(xSeq,yMeanLow,lwd=2,lty=2)
-lines(xSeq,yMeanHigh,lwd=2,lty=1)
-
-# plot for legends
-plot(jitter(all_data$totFlow, factor = 2),jitter(all_data$germ_ratio, factor = 2),
-     type ="n", xaxt = "n", yaxt = "n", ylab="", xlab="", bty = 'n')
-
-colfunc       <- colorRampPalette(cRamp(unique(arrange(viabVr,sr)$sr)))
-legend_image  <- as.raster(matrix(colfunc(19), ncol=1))
-text(x=8.5, y = seq(0.7,0.9,l=3), labels = seq(0,1,l=3))
-rasterImage(legend_image, 0, 0.7, 5, 0.9)
-text(10, 0.9, "Percent of", pos = 4)
-text(10, 0.8, "males in", pos = 4)
-text(10, 0.7, "plot", pos = 4)
-
-legend(-2,0.65, c("100% female plots","10% female plots"),
-       lty = c(1,2), lwd = 2, bty="n")
 
 dev.off()
 
