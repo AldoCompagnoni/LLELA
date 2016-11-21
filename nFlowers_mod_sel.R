@@ -49,7 +49,7 @@ write.csv(n_flow_avg, "Results/VitalRates_3/n_flowers_best.csv", row.names = F)
 
 # GRAPHS ---------------------------------------------------------------------------------------------------------------
 
-tiff("Results/VitalRates_3/flowering.tiff",unit="in",width=3.5,height=3.5,res=600,compression="lzw")
+#tiff("Results/VitalRates_3/flowering.tiff",unit="in",width=3.5,height=3.5,res=600,compression="lzw")
 
 par(mfrow=c(1,1),mar=c(3,3,0.1,0.1),mgp=c(1.4,0.35,0),cex.lab=0.8,cex.axis=0.8,
     cex.main=0.9)
@@ -89,4 +89,4 @@ lines(xSeq,y_f_h,lty=1,lwd=2,col="blue")
 legend(0,7.5,c("high density","low density","male","female"),
        lty=c(1,2,1,1),lwd=2,col=c("black","black","red","blue"),bty="n")
 
-dev.off()
+#dev.off()

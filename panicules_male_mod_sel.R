@@ -38,7 +38,7 @@ write.csv(m_alloc_avg, "Results/VitalRates_3/male_spikelets.csv", row.names = F)
 
 # Graph ---------------------------------------------------------------------------
 
-tiff("Results/VitalRates_3/male_repr_alloc.tiff",unit="in",width=3.5,height=3.5,res=600,compression="lzw")
+#tiff("Results/VitalRates_3/male_repr_alloc.tiff",unit="in",width=3.5,height=3.5,res=600,compression="lzw")
 
 #Start plotting
 par(mfcol=c(1,1),mar=c(2.8,3,1,0.1),mgp=c(1.4,0.5,0))
@@ -56,4 +56,4 @@ y_h  <- exp(beta[1] + beta[2]*size + beta[3]*xSeq + beta[4]*0.9 + beta[5]*xSeq*0
 lines(xSeq,y_l,lwd=2,lty=2)
 lines(xSeq,y_h,lwd=2,lty=1)
 
-dev.off()
+#dev.off()

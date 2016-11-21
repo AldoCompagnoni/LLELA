@@ -103,7 +103,7 @@ d14$col=as.character(factor(d14$col,labels=c("blue","red")))
 
 # 2015 ---------------------------------------------------------------------------------------
 
-tiff("Results/VitalRates_3/growth_raw.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
+#tiff("Results/VitalRates_3/growth_raw.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
 
 par(mfrow=c(2,1),mar=c(3,2.5,1,0.1),mgp=c(1.4,0.5,0),oma=c(0,0,0,0))
 
@@ -134,4 +134,4 @@ lines(xSeq,y_f,lwd=1.5,lty=1,col="blue")
 lines(xSeq,y_m,lwd=1.5,lty=1,col="red")
 title("2014")
 
-dev.off()
+#dev.off()

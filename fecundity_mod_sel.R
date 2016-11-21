@@ -43,7 +43,7 @@ write.csv(fec_avg, "Results/VitalRates_3/fecuntity_best.csv", row.names = F)
 
 # GRAPH -------------------------------------------------------------------------
 
-tiff("Results/VitalRates_3/fecundity.tiff",unit="in",width=3.5,height=3.5,res=600,compression="lzw")
+#tiff("Results/VitalRates_3/fecundity.tiff",unit="in",width=3.5,height=3.5,res=600,compression="lzw")
 
 #Start plotting
 par(mfcol=c(1,1),mar=c(2.8,3,0.5,0.2),mgp=c(1.4,0.5,0))
@@ -64,5 +64,5 @@ lines(xSeq, y_high, lwd = 2)
 legend(-0.05,890,c("low density","high density"),
        lwd=2,lty=c(2,1),bty = "n", cex = 1.5)
 
-dev.off()
+#dev.off()
 

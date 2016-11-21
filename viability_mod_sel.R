@@ -27,10 +27,11 @@ tetr_dat  <- na.omit(dplyr::select(viabVr,Yes,fail,sr_f,totFlow,sr,totN,plot,log
 
 # Number of flowers and their sex ratio as predictors
 tetr_flowN=list()
-tetr_flowN[[1]]  <- glmmadmb(cbind(Yes,fail) ~ sr_f + log_l_t0 + (1 | plot),family="binomial", data=tetr_dat)
-tetr_flowN[[2]]  <- glmmadmb(cbind(Yes,fail) ~ totFlow + log_l_t0 + (1 | plot),family="binomial", data=tetr_dat)
-tetr_flowN[[3]]  <- glmmadmb(cbind(Yes,fail) ~ sr_f + totFlow + log_l_t0 + (1 | plot),family="binomial", data=tetr_dat)
-tetr_flowN[[4]]  <- glmmadmb(cbind(Yes,fail) ~ sr_f * totFlow + log_l_t0 + (1 | plot),family="binomial", data=tetr_dat)
+tetr_flowN[[1]]  <- glmmadmb(cbind(Yes,fail) ~ log_l_t0 + (1 | plot),family="binomial", data=tetr_dat)
+tetr_flowN[[2]]  <- glmmadmb(cbind(Yes,fail) ~ sr_f + log_l_t0 + (1 | plot),family="binomial", data=tetr_dat)
+tetr_flowN[[3]]  <- glmmadmb(cbind(Yes,fail) ~ totFlow + log_l_t0 + (1 | plot),family="binomial", data=tetr_dat)
+tetr_flowN[[4]]  <- glmmadmb(cbind(Yes,fail) ~ sr_f + totFlow + log_l_t0 + (1 | plot),family="binomial", data=tetr_dat)
+tetr_flowN[[5]]  <- glmmadmb(cbind(Yes,fail) ~ sr_f * totFlow + log_l_t0 + (1 | plot),family="binomial", data=tetr_dat)
 
 # Model averagin models
 tetr_flowN_select<- AICtab(tetr_flowN,weights=T)
@@ -66,8 +67,8 @@ cRamp <- function(x){
 }  
 
 # graph
-tiff("Results/VitalRates_3/viability.tiff",unit="in",width=6.3,height=3.15,
-     res=600,compression="lzw")
+#tiff("Results/VitalRates_3/viability.tiff",unit="in",width=6.3,height=3.15,
+#     res=600,compression="lzw")
 
 lower=quantile(viabVr$totN,prob=c(0.1))
 upper=quantile(viabVr$totN,prob=c(0.9))
@@ -102,5 +103,5 @@ yMeanHigh=inv.logit(beta[1] + beta[2]*size + beta[3]*1 + beta[4]*xSeq*1 + beta[5
 lines(xSeq,yMeanLow,lwd=2,lty=2)
 lines(xSeq,yMeanHigh,lwd=2,lty=1)
 
-dev.off()
+#dev.off()
 
