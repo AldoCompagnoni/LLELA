@@ -1,9 +1,13 @@
 # Model selection for seed VIABILITY
 # Data: tetrazolium scoring and germination data 
-setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
-library(lme4) ; library(bbmle) ; library(boot) ; library(testthat)
+#setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
+setwd("C:/Users/Aldo/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
+library(bbmle) ; library(boot) ; library(testthat)
 library(dplyr) ; library(glmmADMB)
-source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
+#source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
+source("C:/Users/Aldo/Documents/CODE/LLELA/model_avg.R")
+source("C:/Users/Aldo/Documents/CODE/LLELA/model_sel_results.R")
+
 
 # Read in data and format -----------------------------------------------------------
 d           <- read.csv("Data/vr.csv")
@@ -15,7 +19,6 @@ viabVr$totN <- viabVr$F + viabVr$M
 viabVr$sr   <- viabVr$F / viabVr$totN
 viabVr$plot <- as.factor(viabVr$plot)
 viabVr      <- subset(viabVr, totFlow < 60) #exclude extreme values
-
 
 
 # Viability model selection ---------------------------------------------------------
@@ -34,9 +37,13 @@ tetr_flowN[[4]]  <- glmmadmb(cbind(Yes,fail) ~ sr_f + totFlow + log_l_t0 + (1 | 
 tetr_flowN[[5]]  <- glmmadmb(cbind(Yes,fail) ~ sr_f * totFlow + log_l_t0 + (1 | plot),family="binomial", data=tetr_dat)
 
 # Model averagin models
-tetr_flowN_select<- AICtab(tetr_flowN,weights=T)
-tetr_flowN_avg  <- model_avg(tetr_flowN_select, tetr_flowN)
+tetr_flowN_select <- AICtab(tetr_flowN, weights=T)
+tetr_flowN_avg    <- model_avg(tetr_flowN_select, tetr_flowN)
 write.csv(tetr_flowN_avg, "Results/VitalRates_3/tetrazolium_best.csv", row.names = F)
+
+# model selection result table
+sel_tetra         <- sel_results(tetr_flowN_select, 5)
+write.csv(sel_tetra, "Results/VitalRates_3/tetrazolium_mod_sel.csv", row.names = F)
 
 
 # 2. Viable Seed Number: germination assays (germTot / germFail)---------------------
@@ -55,6 +62,10 @@ germ_flowN[[5]] <- glmmadmb(cbind(germTot,germFail) ~ sr_f * totFlow + log_l_t0 
 germ_flowN_sel  <- AICtab(germ_flowN,weights=T) 
 germ_flowN_avg  <- model_avg(germ_flowN_sel, germ_flowN)
 write.csv(germ_flowN_avg, "Results/VitalRates_3/germination_best.csv", row.names = F)
+
+# model selection result table
+sel_germ         <- sel_results(germ_flowN_sel, 5)
+write.csv(sel_germ, "Results/VitalRates_3/germination_mod_sel.csv", row.names = F)
 
 
 # Graphs ---------------------------------------------------------------------

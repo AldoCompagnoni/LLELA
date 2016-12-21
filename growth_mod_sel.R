@@ -1,10 +1,12 @@
 # Sex competition predictor: SEX RATIO (female individuals/total individuals)
-setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
+#setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
+setwd("C:/Users/Aldo/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
 library(bbmle)    
 library(glmmADMB) #Fit models with a Negative Binomial
 library(dplyr)
-source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
-
+#source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
+source("C:/Users/Aldo/Documents/CODE/LLELA/model_avg.R")
+source("C:/Users/Aldo/Documents/CODE/LLELA/model_sel_results.R")
 
 # Read data ------------------------------------------------------------------
 d       <- read.csv("Data/vr.csv")
@@ -56,6 +58,10 @@ gr14_mod_sel  <- AICtab(m14, weights = T)
 gr14_avg      <- model_avg(gr14_mod_sel, m14)
 write.csv(gr14_avg, "Results/VitalRates_3/growth_14N_best.csv", row.names = F)
 
+# model selection result table
+sel_res14     <- sel_results(gr14_mod_sel, 15)
+write.csv(sel_res14, "Results/VitalRates_3/growth14N_mod_sel.csv", row.names = F)
+
 
 # 2015 --------------------------------------------------------------------------------
 
@@ -85,6 +91,11 @@ m15[[15]]=glmmadmb(l_t1 ~ log_l_t0 * sex + sr * TotDensity + (1 | plot),data=d15
 gr15_mod_sel <- AICtab(m15, weights = T)
 gr15_avg     <- model_avg(gr15_mod_sel, m15)
 write.csv(gr15_avg, "Results/VitalRates_3/growth_best.csv", row.names = F)
+
+# model selection result table
+sel_res15     <- sel_results(gr15_mod_sel, 15)
+write.csv(sel_res15, "Results/VitalRates_3/growth15N_mod_sel.csv", row.names = F)
+
 
 # GRAPH ------------------------------------------------------------------------------------------------
 
