@@ -43,7 +43,7 @@ fec_avg    <- model_avg(fec_select, nsMod)
 write.csv(fec_avg, "Results/VitalRates_3/fecuntity_best.csv", row.names = F)
 
 # model selection result table
-sel_fecund <- sel_results(fec_select, 5)
+sel_fecund <- sel_results(fec_select, 5, "seeds")
 write.csv(sel_fecund, "Results/VitalRates_3/fecundity_mod_sel.csv", row.names = F)
 
 

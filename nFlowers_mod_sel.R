@@ -49,7 +49,7 @@ n_flow_avg    <- model_avg(n_flow_select, nfMod)
 write.csv(n_flow_avg, "Results/VitalRates_3/n_flowers_best.csv", row.names = F)
 
 # model selection result table
-sel_n_flow    <- sel_results(n_flow_select, 15)
+sel_n_flow    <- sel_results(n_flow_select, 15, "panicles")
 write.csv(sel_n_flow, "Results/VitalRates_3/n_flowers_mod_sel.csv", row.names = F)
 
 

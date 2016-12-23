@@ -59,7 +59,7 @@ gr14_avg      <- model_avg(gr14_mod_sel, m14)
 write.csv(gr14_avg, "Results/VitalRates_3/growth_14N_best.csv", row.names = F)
 
 # model selection result table
-sel_res14     <- sel_results(gr14_mod_sel, 15)
+sel_res14     <- sel_results(gr14_mod_sel, 15, "sizet")
 write.csv(sel_res14, "Results/VitalRates_3/growth14N_mod_sel.csv", row.names = F)
 
 
@@ -93,7 +93,7 @@ gr15_avg     <- model_avg(gr15_mod_sel, m15)
 write.csv(gr15_avg, "Results/VitalRates_3/growth_best.csv", row.names = F)
 
 # model selection result table
-sel_res15     <- sel_results(gr15_mod_sel, 15)
+sel_res15     <- sel_results(gr15_mod_sel, 15, "sizet")
 write.csv(sel_res15, "Results/VitalRates_3/growth15N_mod_sel.csv", row.names = F)
 
 

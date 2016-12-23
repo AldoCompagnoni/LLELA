@@ -1,8 +1,14 @@
 # model selection result table
-sel_results <- function(x, candidate_num){
+sel_results <- function(x, candidate_num, response){
 
-  if(candidate_num == 5)  { mod_str <- read.csv("Results/VitalRates_3/5_model_structures.csv") }
-  if(candidate_num == 15) { mod_str <- read.csv("Results/VitalRates_3/15_model_structures.csv") }  
+  if(candidate_num == 5)  { 
+    mod_str <- read.csv("Results/VitalRates_3/5_model_structures.csv")
+    mod_str <- mutate(mod_str, Equation = gsub("Response",response,Equation) )
+  }
+  if(candidate_num == 15) { 
+    mod_str <- read.csv("Results/VitalRates_3/15_model_structures.csv")
+    mod_str <- mutate(mod_str, Equation = gsub("Response",response,Equation) )
+  }  
 
   # model ranks plus mode weights  
   mod_rank  <- do.call(rbind,strsplit(attributes(x)$row.names , "model"))

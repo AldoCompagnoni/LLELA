@@ -1,5 +1,5 @@
 #setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
-setwd("C:/Users/Aldo/Downloads/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
+setwd("C:/Users/Aldo/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
 library(bbmle)
 library(lme4)
 library(dplyr)
@@ -38,7 +38,7 @@ m_alloc_avg       <- model_avg(m_alloc_select, plMod)
 write.csv(m_alloc_avg, "Results/VitalRates_3/male_spikelets.csv", row.names = F)
 
 # model selection result table
-sel_male_panic    <- sel_results(m_alloc_select, 5)
+sel_male_panic    <- sel_results(m_alloc_select, 5, "spikelets")
 write.csv(sel_male_panic, "Results/VitalRates_3/male_spikelets_mod_sel.csv", row.names = F)
 
 

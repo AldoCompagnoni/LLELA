@@ -42,7 +42,7 @@ tetr_flowN_avg    <- model_avg(tetr_flowN_select, tetr_flowN)
 write.csv(tetr_flowN_avg, "Results/VitalRates_3/tetrazolium_best.csv", row.names = F)
 
 # model selection result table
-sel_tetra         <- sel_results(tetr_flowN_select, 5)
+sel_tetra         <- sel_results(tetr_flowN_select, 5, "viable seeds probability")
 write.csv(sel_tetra, "Results/VitalRates_3/tetrazolium_mod_sel.csv", row.names = F)
 
 
@@ -64,7 +64,7 @@ germ_flowN_avg  <- model_avg(germ_flowN_sel, germ_flowN)
 write.csv(germ_flowN_avg, "Results/VitalRates_3/germination_best.csv", row.names = F)
 
 # model selection result table
-sel_germ         <- sel_results(germ_flowN_sel, 5)
+sel_germ         <- sel_results(germ_flowN_sel, 5, "viable seeds probability")
 write.csv(sel_germ, "Results/VitalRates_3/germination_mod_sel.csv", row.names = F)
 
 
