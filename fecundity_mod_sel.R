@@ -6,6 +6,7 @@ library(MASS)
 library(dplyr)
 #source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
 source("C:/Users/Aldo/Documents/CODE/LLELA/model_avg.R")
+source("C:/Users/Aldo/Documents/CODE/LLELA/model_avg_format.R")
 source("C:/Users/Aldo/Documents/CODE/LLELA/model_sel_results.R")
 
 #read in data--------------------------------------------------------------
@@ -41,6 +42,10 @@ nsMod[[5]]= glmmadmb(SeedN ~ log_l_t0 + sr * TotDensity + ( 1 | plot), family="n
 fec_select <- AICtab(nsMod,weights=T)
 fec_avg    <- model_avg(fec_select, nsMod)
 write.csv(fec_avg, "Results/VitalRates_3/fecuntity_best.csv", row.names = F)
+
+# Model average summary table
+fec_avg_sum   <- model_avg_format(fec_avg)
+write.csv(fec_avg_sum, "Results/VitalRates_3/fecuntity_sum.csv", row.names = F)
 
 # model selection result table
 sel_fecund <- sel_results(fec_select, 5, "seeds")

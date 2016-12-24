@@ -6,7 +6,9 @@ library(dplyr)
 library(glmmADMB)
 #source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
 source("C:/Users/Aldo/Documents/CODE/LLELA/model_avg.R")
+source("C:/Users/Aldo/Documents/CODE/LLELA/model_avg_format.R")
 source("C:/Users/Aldo/Documents/CODE/LLELA/model_sel_results.R")
+
 
 # load and format data --------------------------------------------------------------
 d             <- read.csv("Data/vr.csv")
@@ -36,6 +38,10 @@ plMod[[5]]=glmmadmb(CountSpikelets ~ log_l_t0 + sr * TotDensity + (1 | plot), fa
 m_alloc_select    <- AICtab(plMod,weights=T)
 m_alloc_avg       <- model_avg(m_alloc_select, plMod)
 write.csv(m_alloc_avg, "Results/VitalRates_3/male_spikelets.csv", row.names = F)
+
+# Model average summary table
+m_alloc_avg_sum   <- model_avg_format(m_alloc_avg)
+write.csv(m_alloc_avg_sum, "Results/VitalRates_3/male_spikelets_sum.csv", row.names = F)
 
 # model selection result table
 sel_male_panic    <- sel_results(m_alloc_select, 5, "spikelets")

@@ -6,7 +6,9 @@ library(glmmADMB) #Fit models with a Negative Binomial
 library(dplyr)
 #source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
 source("C:/Users/Aldo/Documents/CODE/LLELA/model_avg.R")
+source("C:/Users/Aldo/Documents/CODE/LLELA/model_avg_format.R")
 source("C:/Users/Aldo/Documents/CODE/LLELA/model_sel_results.R")
+
 
 # Read data ------------------------------------------------------------------
 d       <- read.csv("Data/vr.csv")
@@ -26,7 +28,6 @@ tmp15   <- mutate(tmp15, new_t1 = replace(new_t1, new_t1=="cnf", NA))
 tmp15   <- mutate(tmp15, new_t1 = replace(new_t1, new_t1=="", NA))
 tmp15   <- mutate(tmp15, new_t1 = as.numeric(as.character(new_t1)))
 d15     <- na.omit(dplyr::select(tmp15,l_t1,log_l_t0,plot,focalI,sex,new_t1,sr,TotDensity))
-
 
 
 # 2014 --------------------------------------------------------------------------------
@@ -53,10 +54,14 @@ m14[[13]]=glmmadmb(l_t1 ~ log_l_t0 + sr * TotDensity + (1 | plot),data=d14,famil
 m14[[14]]=glmmadmb(l_t1 ~ log_l_t0 + sex + sr * TotDensity + (1 | plot),data=d14,family="nbinom2")
 m14[[15]]=glmmadmb(l_t1 ~ log_l_t0 * sex + sr * TotDensity + (1 | plot),data=d14,family="nbinom2")
 
-
+# Model average
 gr14_mod_sel  <- AICtab(m14, weights = T)
 gr14_avg      <- model_avg(gr14_mod_sel, m14)
 write.csv(gr14_avg, "Results/VitalRates_3/growth_14N_best.csv", row.names = F)
+
+# Model average summary table
+gr14_avg_sum <- model_avg_format(gr14_avg)
+write.csv(gr14_avg_sum, "Results/VitalRates_3/growth_14N_sum.csv", row.names = F)
 
 # model selection result table
 sel_res14     <- sel_results(gr14_mod_sel, 15, "sizet")
@@ -91,6 +96,10 @@ m15[[15]]=glmmadmb(l_t1 ~ log_l_t0 * sex + sr * TotDensity + (1 | plot),data=d15
 gr15_mod_sel <- AICtab(m15, weights = T)
 gr15_avg     <- model_avg(gr15_mod_sel, m15)
 write.csv(gr15_avg, "Results/VitalRates_3/growth_best.csv", row.names = F)
+
+# Model average summary table
+gr15_avg_sum <- model_avg_format(gr15_avg)
+write.csv(gr15_avg_sum, "Results/VitalRates_3/growth_15N_sum.csv", row.names = F)
 
 # model selection result table
 sel_res15     <- sel_results(gr15_mod_sel, 15, "sizet")

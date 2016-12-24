@@ -6,6 +6,7 @@ library(bbmle) ; library(boot) ; library(testthat)
 library(dplyr) ; library(glmmADMB)
 #source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
 source("C:/Users/Aldo/Documents/CODE/LLELA/model_avg.R")
+source("C:/Users/Aldo/Documents/CODE/LLELA/model_avg_format.R")
 source("C:/Users/Aldo/Documents/CODE/LLELA/model_sel_results.R")
 
 
@@ -41,6 +42,10 @@ tetr_flowN_select <- AICtab(tetr_flowN, weights=T)
 tetr_flowN_avg    <- model_avg(tetr_flowN_select, tetr_flowN)
 write.csv(tetr_flowN_avg, "Results/VitalRates_3/tetrazolium_best.csv", row.names = F)
 
+# Model average summary table
+tetr_flowN_avg_sum<- model_avg_format(tetr_flowN_avg)
+write.csv(tetr_flowN_avg_sum, "Results/VitalRates_3/tetrazolium_sum.csv", row.names = F)
+
 # model selection result table
 sel_tetra         <- sel_results(tetr_flowN_select, 5, "viable seeds probability")
 write.csv(sel_tetra, "Results/VitalRates_3/tetrazolium_mod_sel.csv", row.names = F)
@@ -62,6 +67,10 @@ germ_flowN[[5]] <- glmmadmb(cbind(germTot,germFail) ~ sr_f * totFlow + log_l_t0 
 germ_flowN_sel  <- AICtab(germ_flowN,weights=T) 
 germ_flowN_avg  <- model_avg(germ_flowN_sel, germ_flowN)
 write.csv(germ_flowN_avg, "Results/VitalRates_3/germination_best.csv", row.names = F)
+
+# Model average summary table
+germ_flowN_avg_sum <- model_avg_format(germ_flowN_avg)
+write.csv(tetr_flowN_avg_sum, "Results/VitalRates_3/germination_sum.csv", row.names = F)
 
 # model selection result table
 sel_germ         <- sel_results(germ_flowN_sel, 5, "viable seeds probability")
