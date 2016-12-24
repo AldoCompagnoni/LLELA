@@ -111,8 +111,8 @@ tiff("Results/VitalRates_3/figure2_contour.tiff",unit="in",width=6.3,height=6.3,
 par(mar=c(4,4,1,0.5),mgp=c(2,0.7,0))
 filled.contour(x,y,z, color.palette=heat.colors, cex.lab = 1.4,
                xlab = "Proportion of female individuals", 
-               ylab = "Density", 
-               main = "Viable seeds")
+               ylab = "Planting density", 
+               main = "Number of viable seeds")
 
 dev.off()
 
