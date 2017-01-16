@@ -37,11 +37,11 @@ AICtab(isMod, weights=T)
 
 
 nsMod=list()
-nsMod[[1]]= glmmadmb(SeedN ~ log_l_t0 + ( 1 | plot), family="nbinom2", data=fecund_data)
-nsMod[[2]]= glmmadmb(SeedN ~ log_l_t0 + TotDensity + ( 1 | plot), family="nbinom2", data=fecund_data)
-nsMod[[3]]= glmmadmb(SeedN ~ log_l_t0 + sr + ( 1 | plot), family="nbinom2", data=fecund_data)
-nsMod[[4]]= glmmadmb(SeedN ~ log_l_t0 + sr + TotDensity + ( 1 | plot), family="nbinom2", data=fecund_data)
-nsMod[[5]]= glmmadmb(SeedN ~ log_l_t0 + sr * TotDensity + ( 1 | plot), family="nbinom2", data=fecund_data)
+nsMod[[1]]= glmmadmb(SeedN ~ ( 1 | plot), family="nbinom2", data=fecund_data)
+nsMod[[2]]= glmmadmb(SeedN ~ TotDensity + ( 1 | plot), family="nbinom2", data=fecund_data)
+nsMod[[3]]= glmmadmb(SeedN ~ sr + ( 1 | plot), family="nbinom2", data=fecund_data)
+nsMod[[4]]= glmmadmb(SeedN ~ sr + TotDensity + ( 1 | plot), family="nbinom2", data=fecund_data)
+nsMod[[5]]= glmmadmb(SeedN ~ sr * TotDensity + ( 1 | plot), family="nbinom2", data=fecund_data)
 
 # Model average
 fec_select <- AICtab(nsMod,weights=T)
@@ -56,18 +56,17 @@ write.csv(fec_avg, "Results/VitalRates_3/fecuntity_best.csv", row.names = F)
 #Start plotting
 par(mfcol=c(1,1),mar=c(2.8,3,0.5,0.2),mgp=c(1.4,0.5,0))
 
-plot(fecund_data$sr, fecund_data$SeedN, pch = 16,
+plot(fecund_data$TotDensity, fecund_data$SeedN, pch = 16,
      xlab = "Sex Ratio", ylab = "Panicule seed number")
-xSeq   <- seq(0,1,by = 0.1)
-mSize  <- mean(fecund_data$log_l_t0)
+xSeq   <- seq(0,48,by = 1)
+#mSize  <- mean(fecund_data$log_l_t0)
 beta   <- fec_avg$avg
 
-y_low  <- exp(beta[1] + beta[2]*mSize + beta[3]*xSeq + 
-              beta[4]*5 + beta[5]*xSeq*5)
-y_high <- exp(beta[1] + beta[2]*mSize + beta[3]*xSeq + 
-                beta[4]*42 + beta[5]*xSeq*42)
+y_hig  <- exp(beta[1] + beta[2]*1 + beta[3]*xSeq + beta[4]*xSeq*1)
+y_low  <- exp(beta[1] + beta[2]*0.2 + beta[3]*xSeq + beta[4]*xSeq*0.2)
+
 lines(xSeq, y_low, lwd = 2, lty = 2)
-lines(xSeq, y_high, lwd = 2)
+lines(xSeq, y_hig, lwd = 2)
 
 legend(-0.05,890,c("low density","high density"),
        lwd=2,lty=c(2,1),bty = "n", cex = 1.5)

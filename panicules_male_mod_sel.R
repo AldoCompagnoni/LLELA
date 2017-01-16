@@ -34,11 +34,11 @@ AICtab(isMod, weights=T)
 
 # mode selection 
 plMod=list()
-plMod[[1]]=glmmadmb(CountSpikelets ~ log_l_t0 + (1 | plot), family = "nbinom2", data=spike_data)
-plMod[[2]]=glmmadmb(CountSpikelets ~ log_l_t0 + TotDensity + (1 | plot), family = "nbinom2", data=spike_data)
-plMod[[3]]=glmmadmb(CountSpikelets ~ log_l_t0 + sr + (1 | plot), family = "nbinom2", data=spike_data)
-plMod[[4]]=glmmadmb(CountSpikelets ~ log_l_t0 + sr + TotDensity + (1 | plot), family = "nbinom2", data=spike_data)
-plMod[[5]]=glmmadmb(CountSpikelets ~ log_l_t0 + sr * TotDensity + (1 | plot), family = "nbinom2", data=spike_data)
+plMod[[1]]=glmmadmb(CountSpikelets ~ (1 | plot), family = "nbinom2", data=spike_data)
+plMod[[2]]=glmmadmb(CountSpikelets ~ TotDensity + (1 | plot), family = "nbinom2", data=spike_data)
+plMod[[3]]=glmmadmb(CountSpikelets ~ sr + (1 | plot), family = "nbinom2", data=spike_data)
+plMod[[4]]=glmmadmb(CountSpikelets ~ sr + TotDensity + (1 | plot), family = "nbinom2", data=spike_data)
+plMod[[5]]=glmmadmb(CountSpikelets ~ sr * TotDensity + (1 | plot), family = "nbinom2", data=spike_data)
 
 # Model average
 m_alloc_select    <- AICtab(plMod,weights=T)
@@ -57,11 +57,11 @@ par(mfcol=c(1,1),mar=c(2.8,3,1,0.1),mgp=c(1.4,0.5,0))
 plot(spike_data$TotDensity,spike_data$CountSpikelets,pch=1, 
      cex = spike_data$sr * 1.5,
      ylab="Spikelet number",xlab="Planting density")
-size <- mean(spike_data$log_l_t0)
+#size <- mean(spike_data$log_l_t0)
 beta <- m_alloc_avg$avg
 xSeq <- seq(1,48,by =1)
-y_l  <- exp(beta[1] + beta[2]*size + beta[3]*xSeq + beta[4]*0.1 + beta[5]*xSeq*0.1)
-y_h  <- exp(beta[1] + beta[2]*size + beta[3]*xSeq + beta[4]*0.9 + beta[5]*xSeq*0.9)
+y_l  <- exp(beta[1] + beta[2]*xSeq + beta[3]*0.1 + beta[4]*xSeq*0.1)
+y_h  <- exp(beta[1] + beta[2]*xSeq + beta[3]*0.9 + beta[4]*xSeq*0.9)
 
 lines(xSeq,y_l,lwd=2,lty=2)
 lines(xSeq,y_h,lwd=2,lty=1)
