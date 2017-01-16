@@ -23,6 +23,16 @@ m_alloc$plot            <- as.factor(m_alloc$plot)
 spike_data              <- na.omit(dplyr::select(m_alloc, CountSpikelets, 
                                                  log_l_t0, sr, TotDensity, plot))
 
+# should I use individual size or not? 
+isMod = list()
+isMod[[1]]=glmmadmb(CountSpikelets ~ (1 | plot), family = "nbinom2", data=spike_data)
+isMod[[2]]=glmmadmb(CountSpikelets ~ log_l_t0 + (1 | plot), family = "nbinom2", data=spike_data)
+
+# answer: no
+AICtab(isMod, weights=T)
+
+
+# mode selection 
 plMod=list()
 plMod[[1]]=glmmadmb(CountSpikelets ~ log_l_t0 + (1 | plot), family = "nbinom2", data=spike_data)
 plMod[[2]]=glmmadmb(CountSpikelets ~ log_l_t0 + TotDensity + (1 | plot), family = "nbinom2", data=spike_data)
