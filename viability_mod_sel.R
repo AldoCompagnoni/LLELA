@@ -17,44 +17,57 @@ viabVr$plot <- as.factor(viabVr$plot)
 viabVr      <- subset(viabVr, totFlow < 60) #exclude extreme values
 
 
-
 # Viability model selection ---------------------------------------------------------
-
-# 1. viable Seed Number: tetrazolium assays  (Yes / fail) ---------------------------
 
 # Omit NAs for glmmadmb
 tetr_dat  <- na.omit(dplyr::select(viabVr,Yes,fail,sr_f,totFlow,sr,totN,plot,log_l_t0))
-
-# Number of flowers and their sex ratio as predictors
-tetr_flowN=list()
-tetr_flowN[[1]]  <- glmmadmb(cbind(Yes,fail) ~ log_l_t0 + (1 | plot),family="binomial", data=tetr_dat)
-tetr_flowN[[2]]  <- glmmadmb(cbind(Yes,fail) ~ sr_f + log_l_t0 + (1 | plot),family="binomial", data=tetr_dat)
-tetr_flowN[[3]]  <- glmmadmb(cbind(Yes,fail) ~ totFlow + log_l_t0 + (1 | plot),family="binomial", data=tetr_dat)
-tetr_flowN[[4]]  <- glmmadmb(cbind(Yes,fail) ~ sr_f + totFlow + log_l_t0 + (1 | plot),family="binomial", data=tetr_dat)
-tetr_flowN[[5]]  <- glmmadmb(cbind(Yes,fail) ~ sr_f * totFlow + log_l_t0 + (1 | plot),family="binomial", data=tetr_dat)
-
-# Model averagin models
-tetr_flowN_select<- AICtab(tetr_flowN,weights=T)
-tetr_flowN_avg  <- model_avg(tetr_flowN_select, tetr_flowN)
-write.csv(tetr_flowN_avg, "Results/VitalRates_3/tetrazolium_best.csv", row.names = F)
-
-
-# 2. Viable Seed Number: germination assays (germTot / germFail)---------------------
-
-# Omit NAs for glmmadmb
 germ_dat  <- na.omit(dplyr::select(viabVr,germTot,germFail,sr_f,totFlow,sr,totN,plot,log_l_t0))
 
+
+# should I use individual size or not? ----------------------------------------------
+# germination
+gSize <- list()
+gSize[[1]]=glmmadmb(cbind(germTot,germFail) ~ (1 | plot), family = "binomial", data=germ_dat)
+gSize[[2]]=glmmadmb(cbind(germTot,germFail) ~ log_l_t0 + (1 | plot), family = "binomial", data=germ_dat)
+# answer: no. (slightly, but no!)
+AICtab(gSize, weights=T)
+
+# tetrazolium
+tSize <- list()
+tSize[[1]]=glmmadmb(cbind(Yes,fail) ~ (1 | plot), family = "binomial", data=tetr_dat)
+tSize[[2]]=glmmadmb(cbind(Yes,fail) ~ log_l_t0 + (1 | plot), family = "binomial", data=tetr_dat)
+# answer: no. (slightly, but no!)
+AICtab(tSize, weights=T)
+
+
+# 1. Viable Seed Number: germination assays (germTot / germFail)---------------------
 germ_flowN      <- list()
-germ_flowN[[1]] <- glmmadmb(cbind(germTot,germFail) ~ log_l_t0 + (1 | plot),family="binomial", data=germ_dat)
-germ_flowN[[2]] <- glmmadmb(cbind(germTot,germFail) ~ sr_f + log_l_t0 + (1 | plot),family="binomial", data=germ_dat)
-germ_flowN[[3]] <- glmmadmb(cbind(germTot,germFail) ~ totFlow + log_l_t0 + (1 | plot),family="binomial", data=germ_dat)
-germ_flowN[[4]] <- glmmadmb(cbind(germTot,germFail) ~ sr_f + totFlow + log_l_t0 + (1 | plot),family="binomial", data=germ_dat)
-germ_flowN[[5]] <- glmmadmb(cbind(germTot,germFail) ~ sr_f * totFlow + log_l_t0 + (1 | plot),family="binomial", data=germ_dat)
+germ_flowN[[1]] <- glmmadmb(cbind(germTot,germFail) ~ (1 | plot),family="binomial", data=germ_dat)
+germ_flowN[[2]] <- glmmadmb(cbind(germTot,germFail) ~ sr_f + (1 | plot),family="binomial", data=germ_dat)
+germ_flowN[[3]] <- glmmadmb(cbind(germTot,germFail) ~ totFlow + (1 | plot),family="binomial", data=germ_dat)
+germ_flowN[[4]] <- glmmadmb(cbind(germTot,germFail) ~ sr_f + totFlow + (1 | plot),family="binomial", data=germ_dat)
+germ_flowN[[5]] <- glmmadmb(cbind(germTot,germFail) ~ sr_f * totFlow + (1 | plot),family="binomial", data=germ_dat)
 
 # Model averagin models
 germ_flowN_sel  <- AICtab(germ_flowN,weights=T) 
 germ_flowN_avg  <- model_avg(germ_flowN_sel, germ_flowN)
 write.csv(germ_flowN_avg, "Results/VitalRates_3/germination_best.csv", row.names = F)
+
+
+# 2. viable Seed Number: tetrazolium assays  (Yes / fail) ---------------------------
+
+# Number of flowers and their sex ratio as predictors
+tetr_flowN=list()
+tetr_flowN[[1]]  <- glmmadmb(cbind(Yes,fail) ~ (1 | plot),family="binomial", data=tetr_dat)
+tetr_flowN[[2]]  <- glmmadmb(cbind(Yes,fail) ~ sr_f + (1 | plot),family="binomial", data=tetr_dat)
+tetr_flowN[[3]]  <- glmmadmb(cbind(Yes,fail) ~ totFlow + (1 | plot),family="binomial", data=tetr_dat)
+tetr_flowN[[4]]  <- glmmadmb(cbind(Yes,fail) ~ sr_f + totFlow + (1 | plot),family="binomial", data=tetr_dat)
+tetr_flowN[[5]]  <- glmmadmb(cbind(Yes,fail) ~ sr_f * totFlow + (1 | plot),family="binomial", data=tetr_dat)
+
+# Model averagin models
+tetr_flowN_select <- AICtab(tetr_flowN,weights=T)
+tetr_flowN_avg    <- model_avg(tetr_flowN_select, tetr_flowN)
+write.csv(tetr_flowN_avg, "Results/VitalRates_3/tetrazolium_best.csv", row.names = F)
 
 
 # Graphs ---------------------------------------------------------------------
@@ -83,10 +96,10 @@ plot(jitter(viabVr$totFlow, factor = 2), jitter(viabVr$tetra_ratio, factor = 2),
      xlab="Planting density",ylab="Seed viability rate")
 title("Tetrazolium data", line = titlePlace)
 xSeq=seq(0,54,by = 1)
-size=mean(viabVr$log_l_t0)
+#size=mean(viabVr$log_l_t0)
 beta=tetr_flowN_avg$avg
-yMeanLow=inv.logit(beta[1] + beta[2]*size + beta[3]*0.1 + beta[4]*xSeq*0.1 + beta[5]*xSeq)
-yMeanHigh=inv.logit(beta[1] + beta[2]*size + beta[3]*1 + beta[4]*xSeq*1 + beta[5]*xSeq)
+yMeanLow=inv.logit(beta[1] + beta[2]*0.2 + beta[3]*xSeq*0.2 + beta[4]*xSeq)
+yMeanHigh=inv.logit(beta[1] + beta[2]*1 + beta[3]*xSeq*1 + beta[4]*xSeq)
 lines(xSeq,yMeanLow,lwd=2,lty=2)
 lines(xSeq,yMeanHigh,lwd=2,lty=1)
 
@@ -96,10 +109,10 @@ plot(jitter(viabVr$totFlow, factor = 2),jitter(viabVr$germ_ratio, factor = 2),
      xlab="Planting density",ylab="Seed germination rate")
 title("Germination data", line = titlePlace)
 xSeq=seq(0,54,by = 1)
-size=median(viabVr$log_l_t0)
+#size=median(viabVr$log_l_t0)
 beta=germ_flowN_avg$avg
-yMeanLow=inv.logit(beta[1] + beta[2]*size + beta[3]*0.1 + beta[4]*xSeq*0.1 + beta[5]*xSeq)
-yMeanHigh=inv.logit(beta[1] + beta[2]*size + beta[3]*1 + beta[4]*xSeq*1 + beta[5]*xSeq)
+yMeanLow=inv.logit(beta[1] + beta[2]*0.2 + beta[3]*xSeq*0.2 + beta[4]*xSeq)
+yMeanHigh=inv.logit(beta[1] + beta[2]*1 + beta[3]*xSeq*1 + beta[4]*xSeq)
 lines(xSeq,yMeanLow,lwd=2,lty=2)
 lines(xSeq,yMeanHigh,lwd=2,lty=1)
 
