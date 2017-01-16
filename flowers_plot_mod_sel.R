@@ -17,39 +17,25 @@ pans_m    <- subset(pans, M != 0) # plots containing males
 
 # females -----------------------------------------------------------------------------
 fMod        <- list()
-# poisson models
-fMod[[1]]   <- glm(F_flow_t1 ~ 1,      data=pans_f,family="poisson")
-fMod[[2]]   <- glm(F_flow_t1 ~ sr,     data=pans_f,family="poisson")
-fMod[[3]]   <- glm(F_flow_t1 ~ N,      data=pans_f,family="poisson")
-fMod[[4]]   <- glm(F_flow_t1 ~ N + sr, data=pans_f,family="poisson")
-fMod[[5]]   <- glm(F_flow_t1 ~ N * sr, data=pans_f,family="poisson")
-# negative binomial models
-fMod[[6]]   <- glm.nb(F_flow_t1 ~ 1,     data=pans_f)
-fMod[[7]]   <- glm.nb(F_flow_t1 ~ sr,    data=pans_f)
-fMod[[8]]   <- glm.nb(F_flow_t1 ~ N,     data=pans_f)
-fMod[[9]]   <- glm.nb(F_flow_t1 ~ N + sr,data=pans_f)
-fMod[[10]]  <- glm.nb(F_flow_t1 ~ N * sr,data=pans_f)
+fMod[[1]]   <- glm.nb(F_flow_t1 ~ 1,     data=pans_f)
+fMod[[2]]   <- glm.nb(F_flow_t1 ~ sr,    data=pans_f)
+fMod[[3]]   <- glm.nb(F_flow_t1 ~ N,     data=pans_f)
+fMod[[4]]   <- glm.nb(F_flow_t1 ~ N + sr,data=pans_f)
+fMod[[5]]   <- glm.nb(F_flow_t1 ~ N * sr,data=pans_f)
 
 # Model average
 f_pan_sel   <- AICtab(fMod,weights=T)
 f_pan_avg   <- model_avg(f_pan_sel, fMod)
-write.csv(flow_avg, "Results/VitalRates_3/f_flowers_plot_best.csv", row.names = F)
+write.csv(f_pan_avg, "Results/VitalRates_3/f_flowers_plot_best.csv", row.names = F)
 
 
 # males -------------------------------------------------------------------------------
 mMod        <- list()
-# poisson models
-mMod[[1]]   <- glm(M_flow_t1 ~ 1,      data=pans_m,family="poisson")
-mMod[[2]]   <- glm(M_flow_t1 ~ sr,     data=pans_m,family="poisson")
-mMod[[3]]   <- glm(M_flow_t1 ~ N,      data=pans_m,family="poisson")
-mMod[[4]]   <- glm(M_flow_t1 ~ N + sr, data=pans_m,family="poisson")
-mMod[[5]]   <- glm(M_flow_t1 ~ N * sr, data=pans_m,family="poisson")
-# negative binomial models
-mMod[[6]]   <- glm.nb(M_flow_t1 ~ 1,     data=pans_m)
-mMod[[7]]   <- glm.nb(M_flow_t1 ~ sr,    data=pans_m)
-mMod[[8]]   <- glm.nb(M_flow_t1 ~ N,     data=pans_m)
-mMod[[9]]   <- glm.nb(M_flow_t1 ~ N + sr,data=pans_m)
-mMod[[10]]  <- glm.nb(M_flow_t1 ~ N * sr,data=pans_m)
+mMod[[1]]   <- glm.nb(M_flow_t1 ~ 1,     data=pans_m)
+mMod[[2]]   <- glm.nb(M_flow_t1 ~ sr,    data=pans_m)
+mMod[[3]]   <- glm.nb(M_flow_t1 ~ N,     data=pans_m)
+mMod[[4]]   <- glm.nb(M_flow_t1 ~ N + sr,data=pans_m)
+mMod[[5]]   <- glm.nb(M_flow_t1 ~  N * sr,data=pans_m)
 
 # Model average
 m_pan_sel   <- AICtab(mMod,weights=T)
