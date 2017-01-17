@@ -37,9 +37,8 @@ design      <- mutate(design, "N:sr" = sr * N)
 expect_equal( all(names(design) == f_pan_avg$predictor), TRUE )
 expect_equal( all(names(design) == m_pan_avg$predictor), TRUE )
 pred_pan    <- mutate(design, 
-                      n_f_flow = as.vector(exp( as.matrix(design) %*% f_pan_avg$avg )),
-                      n_m_flow = as.vector(exp( as.matrix(design) %*% m_pan_avg$avg )))
-
+                      n_f_flow = as.vector( as.matrix(design) %*% f_pan_avg$avg ),
+                      n_m_flow = as.vector( as.matrix(design) %*% m_pan_avg$avg ))
 
 # Seeds per flower (fecundity model, Figure 1b) -----------------------------------
 expect_equal( all(names(design) == fec_beta$predictor), TRUE )

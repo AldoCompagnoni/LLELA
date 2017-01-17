@@ -72,10 +72,10 @@ plot(jitter(pans_m$M_flow_t1) ~ pans_m$N,pch=17,xlab="",ylab="",col="red",
 xSeq  <- seq(1,48,1)
 betaF <- f_pan_avg$avg
 betaM <- m_pan_avg$avg
-yF_h  <- exp(betaF[1] + betaF[2]*xSeq + betaF[4]*xSeq*1 + betaF[3]*1)
-yF_l  <- exp(betaF[1] + betaF[2]*xSeq + betaF[4]*xSeq*0.2 + betaF[3]*0.2)
-yM_h  <- exp(betaM[1] + betaM[2]*xSeq + betaM[4]*xSeq*1 + betaM[3]*1)
-yM_l  <- exp(betaM[1] + betaM[2]*xSeq + betaM[4]*xSeq*0.2 + betaM[3]*0.2)
+yF_h  <- (betaF[1] + betaF[2]*xSeq + betaF[4]*xSeq*1 + betaF[3]*1)
+yF_l  <- (betaF[1] + betaF[2]*xSeq + betaF[4]*xSeq*0.2 + betaF[3]*0.2)
+yM_h  <- (betaM[1] + betaM[2]*xSeq + betaM[4]*xSeq*1 + betaM[3]*1)
+yM_l  <- (betaM[1] + betaM[2]*xSeq + betaM[4]*xSeq*0.2 + betaM[3]*0.2)
 
 lines(xSeq, yF_h, col = "blue", lwd = 2, lty = 1)
 lines(xSeq, yF_l, col = "blue", lwd = 2, lty = 2)
