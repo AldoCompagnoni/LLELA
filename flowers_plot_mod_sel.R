@@ -17,11 +17,11 @@ pans_m    <- subset(pans, M != 0) # plots containing males
 
 # females -----------------------------------------------------------------------------
 fMod        <- list()
-fMod[[1]]   <- glm.nb(F_flow_t1 ~ 1,     data=pans_f)
-fMod[[2]]   <- glm.nb(F_flow_t1 ~ sr,    data=pans_f)
-fMod[[3]]   <- glm.nb(F_flow_t1 ~ N,     data=pans_f)
-fMod[[4]]   <- glm.nb(F_flow_t1 ~ N + sr,data=pans_f)
-fMod[[5]]   <- glm.nb(F_flow_t1 ~ N * sr,data=pans_f)
+fMod[[1]]   <- glm(F_flow_t1 ~ 1,     data=pans, family="poisson")
+fMod[[2]]   <- glm(F_flow_t1 ~ sr,    data=pans, family="poisson")
+fMod[[3]]   <- glm(F_flow_t1 ~ N,     data=pans, family="poisson")
+fMod[[4]]   <- glm(F_flow_t1 ~ N + sr,data=pans, family="poisson")
+fMod[[5]]   <- glm(F_flow_t1 ~ N * sr,data=pans, family="poisson")
 
 # Model average
 f_pan_sel   <- AICtab(fMod,weights=T)
@@ -31,11 +31,11 @@ write.csv(f_pan_avg, "Results/VitalRates_3/f_flowers_plot_best.csv", row.names =
 
 # males -------------------------------------------------------------------------------
 mMod        <- list()
-mMod[[1]]   <- glm.nb(M_flow_t1 ~ 1,     data=pans_m)
-mMod[[2]]   <- glm.nb(M_flow_t1 ~ sr,    data=pans_m)
-mMod[[3]]   <- glm.nb(M_flow_t1 ~ N,     data=pans_m)
-mMod[[4]]   <- glm.nb(M_flow_t1 ~ N + sr,data=pans_m)
-mMod[[5]]   <- glm.nb(M_flow_t1 ~  N * sr,data=pans_m)
+mMod[[1]]   <- glm(M_flow_t1 ~ 1,     data=pans, family="poisson")
+mMod[[2]]   <- glm(M_flow_t1 ~ sr,    data=pans, family="poisson")
+mMod[[3]]   <- glm(M_flow_t1 ~ N,     data=pans, family="poisson")
+mMod[[4]]   <- glm(M_flow_t1 ~ N + sr,data=pans, family="poisson")
+mMod[[5]]   <- glm(M_flow_t1 ~  N * sr,data=pans, family="poisson")
 
 # Model average
 m_pan_sel   <- AICtab(mMod,weights=T)
@@ -53,14 +53,14 @@ plot(jitter(pans_m$M_flow_t1) ~ pans_m$N,pch=17,xlab="",ylab="",col="red",
      xaxt="n", ylim = c(-0.5,90))
 
 # lines
-xSeq  <- seq(1,48,1)
+xSeq  <- seq(0,48,1)
 betaF <- f_pan_avg$avg
 betaM <- m_pan_avg$avg
 
-yF_h  <- exp(betaF[1] + betaF[2]*xSeq + betaF[3]*xSeq*0.9 + betaF[4]*0.9)
-yF_l  <- exp(betaF[1] + betaF[2]*xSeq + betaF[3]*xSeq*0.2 + betaF[4]*0.2)
-yM_h  <- exp(betaM[1] + betaM[2]*xSeq + betaM[3]*xSeq*0.9 + betaM[4]*0.9)
-yM_l  <- exp(betaM[1] + betaM[2]*xSeq + betaM[3]*xSeq*0.2 + betaM[4]*0.2)
+yF_h  <- exp(betaF[1] + betaF[2]*xSeq + betaF[4]*xSeq*1 + betaF[3]*1)
+yF_l  <- exp(betaF[1] + betaF[2]*xSeq + betaF[4]*xSeq*0.2 + betaF[3]*0.2)
+yM_h  <- exp(betaM[1] + betaM[2]*xSeq + betaM[4]*xSeq*1 + betaM[3]*1)
+yM_l  <- exp(betaM[1] + betaM[2]*xSeq + betaM[4]*xSeq*0.2 + betaM[3]*0.2)
 
 lines(xSeq, yF_h, col = "blue", lwd = 2, lty = 1)
 lines(xSeq, yF_l, col = "blue", lwd = 2, lty = 2)
