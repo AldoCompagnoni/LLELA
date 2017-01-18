@@ -58,3 +58,32 @@ model_avg = function(model_sel,model_list){ #,
   return(beta_avg)
   
 }
+
+# function formats the growth data 
+format_growth <- function(x){
+  
+  # remove dead individuals (this is a GROWTH model!)
+  d       <- subset(x, surv_t1 != 0)
+  # create log ratio: log(sizet1/sizet0)
+  d       <- mutate(d, log_ratio = l_t1 / l_t0)
+  # glmmadmb wants plot as a factor
+  d       <- mutate(d, plot = as.factor(plot) ) 
+  
+  # Year one ---------------------------------------------------------------------
+  d14     <- subset(d, year == 2014)
+  
+  # Year two ---------------------------------------------------------------------
+  tmp15   <- subset(d, year == 2015)
+  # Missing new tillers data 
+  tmp15   <- mutate(tmp15, new_t1 = replace(new_t1, new_t1=="SKIPPED", NA)) 
+  tmp15   <- mutate(tmp15, new_t1 = replace(new_t1, new_t1=="cnf", NA))
+  tmp15   <- mutate(tmp15, new_t1 = replace(new_t1, new_t1=="", NA))
+  tmp15   <- mutate(tmp15, new_t1 = as.numeric(as.character(new_t1)))
+  d15     <- na.omit(dplyr::select(tmp15,l_t1,log_l_t0,log_l_t1,log_ratio,plot,focalI,sex,new_t1,sr,TotDensity))
+  
+  # output list
+  out     <- list(d14,d15)
+  out     <- setNames(out, c("2014","2015"))
+  return( out )
+  
+}
