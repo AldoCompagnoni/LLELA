@@ -71,6 +71,9 @@ format_growth <- function(x){
   
   # Year one ---------------------------------------------------------------------
   d14     <- subset(d, year == 2014)
+  d14     <- mutate(d14,  new_t1 = as.numeric(as.character(new_t1)),
+                          TotDensity2 = TotDensity^2,
+                          new_t1_pc   = new_t1/TotDensity)
   
   # Year two ---------------------------------------------------------------------
   tmp15   <- subset(d, year == 2015)
@@ -78,8 +81,11 @@ format_growth <- function(x){
   tmp15   <- mutate(tmp15, new_t1 = replace(new_t1, new_t1=="SKIPPED", NA)) 
   tmp15   <- mutate(tmp15, new_t1 = replace(new_t1, new_t1=="cnf", NA))
   tmp15   <- mutate(tmp15, new_t1 = replace(new_t1, new_t1=="", NA))
-  tmp15   <- mutate(tmp15, new_t1 = as.numeric(as.character(new_t1)))
-  d15     <- na.omit(dplyr::select(tmp15,l_t1,log_l_t0,log_l_t1,log_ratio,plot,focalI,sex,new_t1,sr,TotDensity))
+  tmp15   <- mutate(tmp15,  new_t1 = as.numeric(as.character(new_t1)),
+                            TotDensity2 = TotDensity^2,
+                            new_t1_pc   = new_t1/TotDensity)
+  d15     <- na.omit(dplyr::select(tmp15,l_t1,log_l_t0,log_l_t1,log_ratio,plot,focalI,sex,new_t1,
+                                   sr,TotDensity,TotDensity2,new_t1_pc,year))
   
   # output list
   out     <- list(d14,d15)
