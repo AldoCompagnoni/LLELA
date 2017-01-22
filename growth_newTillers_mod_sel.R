@@ -3,19 +3,18 @@ setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experimen
 library(bbmle) 
 library(glmmADMB) # Fit models with a Negative Binomial
 library(dplyr)
-source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
+source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
 
 
 # load and format data -----------------------------------------------------
-x   <- read.csv("Data/vr.csv")
-d   <- format_growth(x)
-d14 <- subset(d, year == 2014)
-d15 <- subset(d, year == 2015)
-d15 <- subset(d15, plot != 149) # Remove outlier
+x       <- read.csv("Data/vr.csv")
+d       <- format_growth(x)
+d14     <- subset(d, year == 2014)
+d15     <- subset(d, year == 2015)
+d15     <- subset(d15, plot != 149) # Remove outlier
 
 # One sex plots 
 one_sex <- one_sex_format(d)
-
 
 # Model selection ##############################################################
 d15     <- unique(select(d15, new_t1, new_t1_pc, plot, sr, TotDensity, TotDensity2, year))
@@ -254,23 +253,6 @@ text(0.55,180,"Data from one-sex plots only",pos=4)
 
 dev.off()
 
-
-
-
-
-# Both years
-plot(d_all$TotDensity, d_all$new_t1)
-beta  <-  till_years_t_avg$[,c("predictor","avg")]$avg
-xSeq  <-  seq(0,48,by=1)
-yL    <-  beta[1] + beta[2]*0.1 + beta[3]*xSeq*0.1 + 
-          beta[4]*xSeq + (beta[5]*0.5) + beta[6]*xSeq^2 + beta[6]*xSeq^2*0.1
-yH    <-  beta[1] + beta[2]*xSeq + beta[3]*xSeq^2 + 
-          beta[4]*0.5 + beta[5]*0.9 + beta[6]*xSeq*0.9 + beta[6]*xSeq^2*0.9
-lines(xSeq,yL,col="red",lwd=2, lty = 2)
-lines(xSeq,yH,col="blue",lwd=2)
-legend(10, 19, c("10% female plots", "90% female plots"),
-       lty = c(1,2), lwd=2, col=c("red","blue"), bty = "n")
-title("2014")
 
 
 

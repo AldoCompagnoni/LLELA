@@ -87,7 +87,7 @@ one_sex_format <- function(form_gr_dat){
   
   # use object CREATED BY format_growth()
   tmp     <- form_gr_dat 
-  tmp     <- na.omit(select(tmp,l_t1,log_l_t0,plot,sex,new_t1,F,M,TotDensity,sr,year))
+  tmp     <- select(tmp,new_t1,plot,sex,year,TotDensity)
   tmp     <- mutate(tmp1, oneSex = replace(oneSex, F==0 | M==0, 1) )
                     
   # file with one sex-only plots
