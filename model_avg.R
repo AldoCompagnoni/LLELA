@@ -70,7 +70,7 @@ format_growth <- function(x){
   d       <- mutate(d, plot = as.factor(plot) ) 
   
   # format the new_t1 column
-  d       <- mutate(d, new_t1 = replace(new_t1, new_t1 == "SKIPPED", NA)) 
+  d       <- mutate(d, new_t1 = replace(new_t1, new_t1 == "SKIPPED", NA))
   d       <- mutate(d, new_t1 = replace(new_t1, new_t1 == "cnf", NA))
   d       <- mutate(d, new_t1 = replace(new_t1, new_t1 == "", NA))
   d       <- mutate(d, new_t1 = as.numeric(as.character(new_t1)))
@@ -80,29 +80,6 @@ format_growth <- function(x){
   
   return(d)
 
-  # Year one ---------------------------------------------------------------------
-  #d14     <- subset(d, year == 2014)
-  #d14     <- mutate(d14,  new_t1 = as.numeric(as.character(new_t1)),
-  #                          TotDensity2 = TotDensity^2,
-  #                         new_t1_pc   = new_t1/TotDensity)
-  
-  # Year two ---------------------------------------------------------------------
-  #tmp15   <- subset(d, year == 2015)
-  # Missing new tillers data 
-  #tmp15   <- mutate(tmp15, new_t1 = replace(new_t1, new_t1=="SKIPPED", NA)) 
-  #tmp15   <- mutate(tmp15, new_t1 = replace(new_t1, new_t1=="cnf", NA))
-  #tmp15   <- mutate(tmp15, new_t1 = replace(new_t1, new_t1=="", NA))
-  #tmp15   <- mutate(tmp15, new_t1 = as.numeric(as.character(new_t1)),
-  #                         TotDensity2 = TotDensity^2,
-  #                          new_t1_pc   = new_t1/TotDensity)
-  # d15     <- dplyr::select(tmp15,l_t1,log_l_t0,log_l_t1,log_ratio,plot,focalI,sex,new_t1,
-  #                                   sr,TotDensity,TotDensity2,new_t1_pc,year)
-  
-  # output list
-  #out     <- list(d14,d15)
-  #out     <- setNames(out, c("2014","2015"))
-  #return( out )
-  
 }
 
 # format data for one-sex plots only
@@ -111,16 +88,15 @@ one_sex_format <- function(form_gr_dat){
   # use object CREATED BY format_growth()
   tmp     <- form_gr_dat 
   tmp     <- na.omit(select(tmp,l_t1,log_l_t0,plot,sex,new_t1,F,M,TotDensity,sr,year))
-  tmp     <- mutate(tmp, oneSex = 0)
-  tmp$oneSex[tmp$F==0 | tmp$M==0]  <- 1 # Flag treatments with only one sex 
-  
+  tmp     <- mutate(tmp1, oneSex = replace(oneSex, F==0 | M==0, 1) )
+                    
   # file with one sex-only plots
   one_sex <- subset(tmp, oneSex == 1)
-  # flag what is male, and what is female?
-  one_sex$plot_sex      <- "m"
-  one_sex$plot_sex[one_sex$M==0]       <- "f"
-  one_sex$plot_sex      <- factor(one_sex$plot_sex, levels = c("f", "m") )
-  
+  # flag what is male, and what is female
+  one_sex <- mutate(one_sex, plot_sex = "m")
+  one_sex <- mutate(one_sex, plot_sex = replace(plot_sex, M == 0,"f") )
+  one_sex <- mutate(one_sex, plot_sex = factor(plot_sex, levels = c("f", "m")) ) 
+                    
   return(one_sex)
   
 }
