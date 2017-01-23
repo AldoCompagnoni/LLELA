@@ -54,7 +54,7 @@ cRamp <- function(x){
 }  
 
 # Graph
-tiff("Results/VitalRates_3/figure1_pois.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
+tiff("Results/VitalRates_3/figure1_nb.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
 
 par(mfrow=c(2,2),mar=c(3,2.5,0.1,0.1),mgp=c(1.4,0.35,0),cex.lab=1.1,cex.axis=0.8,
     cex.main=0.9, oma=c(0,0,0.2,0))

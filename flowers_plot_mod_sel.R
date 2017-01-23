@@ -17,11 +17,11 @@ pans_m    <- subset(pans, M != 0) # plots containing males
 
 # females -----------------------------------------------------------------------------
 fMod        <- list()
-fMod[[1]]   <- glm(F_flow_t1 ~ 1,     data=pans, family = "poisson")
-fMod[[2]]   <- glm(F_flow_t1 ~ sr,    data=pans, family = "poisson")
-fMod[[3]]   <- glm(F_flow_t1 ~ N,     data=pans, family = "poisson")
-fMod[[4]]   <- glm(F_flow_t1 ~ N + sr,data=pans, family = "poisson")
-fMod[[5]]   <- glm(F_flow_t1 ~ N * sr,data=pans, family = "poisson")
+fMod[[1]]   <- glm.nb(F_flow_t1 ~ 1,     data=pans)
+fMod[[2]]   <- glm.nb(F_flow_t1 ~ sr,    data=pans)
+fMod[[3]]   <- glm.nb(F_flow_t1 ~ N,     data=pans)
+fMod[[4]]   <- glm.nb(F_flow_t1 ~ N + sr,data=pans)
+fMod[[5]]   <- glm.nb(F_flow_t1 ~ N * sr,data=pans)
 
 # Model average
 f_pan_sel   <- AICtab(fMod,weights=T)
@@ -31,11 +31,11 @@ write.csv(f_pan_avg, "Results/VitalRates_3/f_flowers_plot_best.csv", row.names =
 
 # males -------------------------------------------------------------------------------
 mMod        <- list()
-mMod[[1]]   <- glm(M_flow_t1 ~ 1,     data=pans, family = "poisson")
-mMod[[2]]   <- glm(M_flow_t1 ~ sr,    data=pans, family = "poisson")
-mMod[[3]]   <- glm(M_flow_t1 ~ N,     data=pans, family = "poisson")
-mMod[[4]]   <- glm(M_flow_t1 ~ N + sr,data=pans, family = "poisson")
-mMod[[5]]   <- glm(M_flow_t1 ~  N * sr,data=pans, family = "poisson")
+mMod[[1]]   <- glm.nb(M_flow_t1 ~ 1,     data=pans)
+mMod[[2]]   <- glm.nb(M_flow_t1 ~ sr,    data=pans)
+mMod[[3]]   <- glm.nb(M_flow_t1 ~ N,     data=pans)
+mMod[[4]]   <- glm.nb(M_flow_t1 ~ N + sr,data=pans)
+mMod[[5]]   <- glm.nb(M_flow_t1 ~  N * sr,data=pans)
 
 # Model average
 m_pan_sel   <- AICtab(mMod,weights=T)
