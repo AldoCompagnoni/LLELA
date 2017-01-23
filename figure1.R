@@ -54,7 +54,7 @@ cRamp <- function(x){
 }  
 
 # Graph
-tiff("Results/VitalRates_3/figure1.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
+tiff("Results/VitalRates_3/figure1_pois.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
 
 par(mfrow=c(2,2),mar=c(3,2.5,0.1,0.1),mgp=c(1.4,0.35,0),cex.lab=1.1,cex.axis=0.8,
     cex.main=0.9, oma=c(0,0,0.2,0))
@@ -72,10 +72,10 @@ plot(jitter(pans_m$M_flow_t1) ~ pans_m$N,pch=17,xlab="",ylab="",col="red",
 xSeq  <- seq(1,48,1)
 betaF <- f_pan_avg$avg
 betaM <- m_pan_avg$avg
-yF_h  <- (betaF[1] + betaF[2]*xSeq + betaF[4]*xSeq*1 + betaF[3]*1)
-yF_l  <- (betaF[1] + betaF[2]*xSeq + betaF[4]*xSeq*0.2 + betaF[3]*0.2)
-yM_h  <- (betaM[1] + betaM[2]*xSeq + betaM[4]*xSeq*1 + betaM[3]*1)
-yM_l  <- (betaM[1] + betaM[2]*xSeq + betaM[4]*xSeq*0.2 + betaM[3]*0.2)
+yF_h  <- exp(betaF[1] + betaF[2]*xSeq + betaF[4]*xSeq*1 + betaF[3]*1)
+yF_l  <- exp(betaF[1] + betaF[2]*xSeq + betaF[4]*xSeq*0.2 + betaF[3]*0.2)
+yM_h  <- exp(betaM[1] + betaM[2]*xSeq + betaM[4]*xSeq*1 + betaM[3]*1)
+yM_l  <- exp(betaM[1] + betaM[2]*xSeq + betaM[4]*xSeq*0.2 + betaM[3]*0.2)
 
 lines(xSeq, yF_h, col = "blue", lwd = 2, lty = 1)
 lines(xSeq, yF_l, col = "blue", lwd = 2, lty = 2)

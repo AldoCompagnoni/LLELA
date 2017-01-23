@@ -37,8 +37,8 @@ design      <- mutate(design, "N:sr" = sr * N)
 expect_equal( all(names(design) == f_pan_avg$predictor), TRUE )
 expect_equal( all(names(design) == m_pan_avg$predictor), TRUE )
 pred_pan    <- mutate(design, 
-                      n_f_flow = as.vector( as.matrix(design) %*% f_pan_avg$avg ),
-                      n_m_flow = as.vector( as.matrix(design) %*% m_pan_avg$avg ))
+                      n_f_flow = as.vector( exp(as.matrix(design) %*% f_pan_avg$avg )),
+                      n_m_flow = as.vector( exp(as.matrix(design) %*% m_pan_avg$avg )))
 
 # Seeds per flower (fecundity model, Figure 1b) -----------------------------------
 expect_equal( all(names(design) == fec_beta$predictor), TRUE )
@@ -83,7 +83,7 @@ z1<-matrix(fert$pc_viab_seeds, nrow=length(unique(fert$sr)),
 
 
 
-tiff("Results/VitalRates_3/figure2.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
+tiff("Results/VitalRates_3/figure2_pois.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
 
 par(mfrow=c(1,1))
 persp(x,y,z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
@@ -95,7 +95,7 @@ persp(x,y,z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
 dev.off()
 
 # Alternatives to persp() function
-tiff("Results/VitalRates_3/figure2_contour.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
+tiff("Results/VitalRates_3/figure2_contour_pois.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
 
 par(mar=c(4,4,1,0.5),mgp=c(2,0.7,0))
 filled.contour(x,y,z, color.palette=heat.colors, cex.lab = 1.4,
