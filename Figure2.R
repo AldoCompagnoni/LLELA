@@ -5,140 +5,112 @@ library(dplyr)
 library(boot)
 library(testthat) # to test "order/correspondence of predictors" 
 
-# Read best models --------------------------------------------------------------------
-f_pan_avg   <- read.csv("Results/VitalRates_3/f_flowers_plot_best.csv", stringsAsFactors = F)
-m_pan_avg   <- read.csv("Results/VitalRates_3/m_flowers_plot_best.csv", stringsAsFactors = F)
+# Read in data--------------------------------------------------------------------
+# raw data
+d           <- read.csv("Data/vr.csv")
+
+# best models
+n_flow_beta <- read.csv("Results/VitalRates_3/n_flowers_best.csv", stringsAsFactors = F)
 fec_beta    <- read.csv("Results/VitalRates_3/fecuntity_best.csv", stringsAsFactors = F)
 germ_beta   <- read.csv("Results/VitalRates_3/germination_best.csv", stringsAsFactors = F) 
 
-# Format beta tables -------------------------------------------------------------
-format_beta = function(x){
-  if(any(x$predictor == "totFlow") ){
-    r           <- match( c("(Intercept)", "totFlow", "sr_f", "sr_f:totFlow"), x$predictor )
-  } else{
-    x$predictor <- gsub("TotDensity","N",x$predictor)
-    x$predictor <- gsub("sr:N","N:sr",x$predictor)
-    r           <- match( c("(Intercept)", "N", "sr", "N:sr"), x$predictor )
-  }
-  return(x[r,])
-}
-fec_beta  <- format_beta(fec_beta)
-germ_beta <- format_beta(germ_beta)
+# FORMAT DATA ---------------------------------------------------------------------
+
+# plot level data, including number of flowers per individual ---------------------
+d14         <- subset(d, year == 2014)
+d14         <- subset(d14, surv_t1 != 0)
+f14         <- na.omit(dplyr::select(d14,plot,log_l_t0,flowN_t1,sex,sr,TotDensity))
 
 
 # MODEL PREDICTIONS ---------------------------------------------------------------
 
-# Design matrix
-design      <- expand.grid("(Intercept)" = 1,
-                           N = seq(1,48,1), sr = seq(0,1,0.01) )
-design      <- mutate(design, "N:sr" = sr * N)
+# Flowers per individual (flowering model, Figure 1a) -----------------------------
+predict_flower <- expand.grid("(Intercept)" = 1, 
+                              log_l_t0 = mean(f14$log_l_t0),
+                              TotDensity = seq(1,48,1),
+                              sr = seq(0,1,0.01),
+                              sexm = c(1,0))
+predict_flower <- mutate(predict_flower, "sr:TotDensity" = sr * TotDensity)
+predict_flower <- mutate(predict_flower, "log_l_t0:sexm" = log_l_t0 * sexm)
 
-# Prediction (Per capita number of flowers)
-expect_equal( all(names(design) == f_pan_avg$predictor), TRUE )
-expect_equal( all(names(design) == m_pan_avg$predictor), TRUE )
-pred_pan    <- mutate(design, 
-                      n_f_flow = as.vector( exp(as.matrix(design) %*% f_pan_avg$avg )),
-                      n_m_flow = as.vector( exp(as.matrix(design) %*% m_pan_avg$avg )))
+# change order of predictors to match prediction matrix
+flow_beta      <- n_flow_beta[c(1,2,3,4,6,5,7), c("predictor","avg")]
+# TEST correspondence of predictors
+expect_equal( all(names(predict_flower) == flow_beta$predictor), TRUE )
+# Per capita number of flowers
+predict_flower <- mutate(predict_flower, 
+                         pc_n_flowers = as.vector(exp( as.matrix(predict_flower) %*% flow_beta$avg )))
+
 
 # Seeds per flower (fecundity model, Figure 1b) -----------------------------------
-expect_equal( all(names(design) == fec_beta$predictor), TRUE )
-pred_fec <- mutate(design, seeds_per_f = 
-                           as.vector(exp( as.matrix(design) %*% fec_beta$avg )) )
+
+# Number of female flowers (panicles) per plot 
+females        <- subset(predict_flower, sexm == 0)
+females        <- females[order(females$TotDensity,females$sr),]
+females        <- mutate(females, n_fem = sr * TotDensity) # n. of female flowers in plot
+females        <- mutate(females, n_f_flowers = n_fem * pc_n_flowers) #n. of fem. panicles
+
+# Seeds per flower (panicle)
+predict_fec <- expand.grid("(Intercept)" = 1, 
+                           sr = seq(0,1,0.01),
+                           TotDensity = seq(1,48,1) )
+predict_fec <- mutate(predict_fec, "sr:TotDensity" = TotDensity * sr)
+# TEST correspondence of predictors
+expect_equal( all(names(predict_fec) == fec_beta$predictor), TRUE )
+predict_fec <- mutate(predict_fec, seeds_per_f = 
+                        as.vector(exp( as.matrix(predict_fec) %*% fec_beta$avg )) )
 
 
 # Seed viability (viability model, Figure 1d) -------------------------------------
-pred_v      <- pred_pan %>% mutate(totFlow     = n_f_flow + n_m_flow,
-                                   sr_f        = n_f_flow / totFlow)
-pred_v      <- mutate(pred_v,   "sr_f:totFlow" = totFlow * sr_f)
-viab_design <- as.matrix( pred_v[,c("(Intercept)","totFlow","sr_f","sr_f:totFlow")] )
-expect_equal( all(colnames(viab_design) == germ_beta$predictor), TRUE )
-pred_viab   <- mutate(pred_v, 
-                      pred_viab  = as.vector( inv.logit( viab_design %*% germ_beta$avg)) )
+predict_viab  <- dplyr::select(predict_fec,-seeds_per_f)
+predict_viab  <- predict_viab[,order(names(predict_viab))] 
+germ_beta     <- mutate(germ_beta, predictor = gsub("_f","",predictor) )
+germ_beta     <- mutate(germ_beta, predictor = gsub("totFlow","TotDensity",predictor) )
+expect_equal( all(names(predict_viab) == germ_beta$predictor), TRUE )
+predict_viab  <- mutate(predict_viab, pred_viab  = 
+                          as.vector( inv.logit( as.matrix(predict_viab) %*% germ_beta$avg)) )
 
 
 # Final data frame ----------------------------------------------------------------
 
 # Seeds per plot
-tmp           <- merge(pred_viab,
-                       dplyr::select(pred_fec,   sr, N, seeds_per_f))
-seed_x_plot   <- mutate(tmp, n_seeds = n_f_flow * seeds_per_f)
+seed_x_plot   <- merge(dplyr::select(females,    sr, TotDensity, n_f_flowers),
+                       dplyr::select(predict_fec,sr, TotDensity, seeds_per_f))
+seed_x_plot   <- mutate(seed_x_plot, n_seeds = n_f_flowers * seeds_per_f)
 
 # fertility (viable seeds)
-fert          <- mutate(seed_x_plot, viable_seeds = pred_viab * n_seeds)
-fert          <- fert[order(fert$N,fert$sr),] #order requires by persp & contour
+fert          <- merge(dplyr::select(seed_x_plot, sr,TotDensity,n_seeds),
+                       dplyr::select(predict_viab,sr,TotDensity,pred_viab))
+fert          <- mutate(fert, viable_seeds = pred_viab * n_seeds )
+fert          <- fert[order(fert$TotDensity,fert$sr),] #order requires by persp & contour
 
-
-fert          <- mutate(fert, pc_viab_seeds = viable_seeds/n_f_flow )
-fert$pc_viab_seeds[fert$pc_viab_seeds == Inf] = NA
 
 # FIGURE 2 ------------------------------------------------------------------------
 
 # Prepare data
-x<- unique(fert$sr)
-y<- unique(fert$N)
+x<-unique(fert$sr)
+y<-unique(fert$TotDensity)
 z<-matrix(fert$viable_seeds, nrow=length(unique(fert$sr)),
-          ncol=length(unique(fert$N)))
-z1<-matrix(fert$pc_viab_seeds, nrow=length(unique(fert$sr)),
-          ncol=length(unique(fert$N)))
+          ncol=length(unique(females$TotDensity)))
 
 
+tiff("Results/VitalRates_3/figure2_target.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
 
-tiff("Results/VitalRates_3/figure2_nb.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
-
-par(mfrow=c(1,1))
 persp(x,y,z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
       xlab = "Proportion of female individuals", 
       ylab = "Density",ticktype = "detailed",
-      zlab = "Per capita viable seeds",
+      zlab = "Viable seeds",
       main = "Fertility")
 
 dev.off()
 
 # Alternatives to persp() function
-tiff("Results/VitalRates_3/figure2_contour_nb.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
+tiff("Results/VitalRates_3/figure2_contour_target.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
 
 par(mar=c(4,4,1,0.5),mgp=c(2,0.7,0))
 filled.contour(x,y,z, color.palette=heat.colors, cex.lab = 1.4,
                xlab = "Proportion of female individuals", 
-               ylab = "Density", 
-               main = "Viable seeds")
+               ylab = "Planting density", 
+               main = "Number of viable seeds")
 
 dev.off()
-
-
-
-# graph shows separate repronse variables ---------------------------------------------
-par(mfrow=c(2,2))
-
-# number of flowers
-one <- subset(pred_fec, sr == 0.2)
-two <- subset(pred_fec, sr == 1)
-
-plot(one$N, one$seeds_per_f, ylim=c(0,300), type="l") #; plot(new=T)
-par(new=T)
-plot(two$N, two$seeds_per_f, ylim=c(0,300), type="l",lty=2)
-
-# viability
-one <- subset(pred_viab, sr == 0.2)
-two <- subset(pred_viab, sr == 1)
-
-plot(one$N, one$pred_viab,ylim=c(0,1),type="l") #; plot(new=T)
-par(new=T)
-plot(two$N, two$pred_viab,ylim=c(0,1),type="l",lty=2)
-
-# number of (female) flowers
-one <- subset(pred_pan, sr == 0.2)
-two <- subset(pred_pan, sr == 1)
-
-plot(one$N, one$n_f_flow,ylim=c(0,100),type="l") #; plot(new=T)
-par(new=T)
-plot(two$N, two$n_f_flow,ylim=c(0,100),type="l",lty=2)
-
-
-# number of viable seeds
-one <- subset(fert, sr == 0.2)
-two <- subset(fert, sr == 1)
-
-plot(one$N, one$viable_seeds,ylim=c(0,3000),type="l") #; plot(new=T)
-par(new=T)
-plot(two$N, two$viable_seeds,ylim=c(0,3000),type="l",lty=2)

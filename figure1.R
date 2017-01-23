@@ -6,15 +6,13 @@ library(boot)
 
 #Read data--------------------------------------------------------------------
 d           <- read.csv("Data/vr.csv")
-pans        <- read.csv("Data/Spring 2014/plot_level_panicles.csv")
 fem_seeds   <- read.csv("Data/Spring 2014/SeedCount/Poa Arachnifera_seedCount.csv")
 m_spiklet   <- read.csv("Data/Spring 2014/maleCounts/malePaniculesSpring2014.csv")
 viabVr      <- read.csv("Data/Spring 2014/viability/tetra_germ_plot_data.csv",
                         stringsAsFactors = F)
 
 # best models
-f_pan_avg   <- read.csv("Results/VitalRates_3/f_flowers_plot_best.csv")
-m_pan_avg   <- read.csv("Results/VitalRates_3/m_flowers_plot_best.csv")
+n_flow_beta <- read.csv("Results/VitalRates_3/n_flowers_best.csv")
 fec_beta    <- read.csv("Results/VitalRates_3/fecuntity_best.csv")
 m_spik_beta <- read.csv("Results/VitalRates_3/male_spikelets.csv")
 germ_beta   <- read.csv("Results/VitalRates_3/germination_best.csv")
@@ -22,22 +20,22 @@ germ_beta   <- read.csv("Results/VitalRates_3/germination_best.csv")
 
 # FORMAT DATA -------------------------------------------------------------------
 
-# plot level data
-design    <- dplyr::select(pans,plot,N,sr)
-
 # Number of flowers in 2014
-pans_f    <- subset(pans, F != 0) # plots containing females
-pans_m    <- subset(pans, M != 0) # plots containing males
+d14         <- subset(d, year == 2014)
+d14         <- subset(d14, surv_t1 != 0)
+d14         <- d14 %>% mutate(new_t1 = as.numeric( as.character(new_t1)) )
+f14         <- na.omit(dplyr::select(d14,plot,flow_t1,log_l_t0,flowN_t1,
+                                     sex,sr,new_t1,TotDensity))
 
 # fecundity data  
 fem_seeds   <- mutate(fem_seeds, focalI = paste("f",IndividualN,sep=""))
 fem_seeds   <- dplyr::select(fem_seeds,Plot,focalI,SeedN)
 fem_seeds   <- filter(fem_seeds, !is.na(SeedN) )
 fem_seeds   <- rename(fem_seeds, plot = Plot)
-fecund_data <- merge(design,fem_seeds) 
+fecund_data <- merge(d14,fem_seeds)
 
 # male allocation (spikelets) data  
-m_alloc     <- merge(design, m_spiklet)
+m_alloc     <- merge(d14, m_spiklet)
 
 # remove three plots with more than 60 flowers 
 viabVr      <- subset(viabVr, totFlow < 60)
@@ -54,68 +52,80 @@ cRamp <- function(x){
 }  
 
 # Graph
-tiff("Results/VitalRates_3/figure1_nb.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
+tiff("Results/VitalRates_3/figure1.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
 
 par(mfrow=c(2,2),mar=c(3,2.5,0.1,0.1),mgp=c(1.4,0.35,0),cex.lab=1.1,cex.axis=0.8,
     cex.main=0.9, oma=c(0,0,0.2,0))
 
 # Flowering ------------------------------------------------------------------------------
+# Set up colors for plots
+f14$col <- as.character(factor(as.integer(f14$sex),labels=c("blue","red")))
+mal14   <- subset(f14,sex=="m")
+fem14   <- subset(f14,sex=="f")
 
-# Plot data
-plot(jitter(pans_f$F_flow_t1) ~ pans_f$N, xlab=expression("Planting density"),
-     ylab="Number of flowers", pch=16, col="blue", ylim = c(-0.5,90))
-par(new=T) ; 
-plot(jitter(pans_m$M_flow_t1) ~ pans_m$N,pch=17,xlab="",ylab="",col="red",
-     xaxt="n", ylim = c(-0.5,90))
+# means
+meanF   <- fem14 %>% group_by(TotDensity) %>% 
+  summarise( meanF = mean(flowN_t1), sdF = sd(flowN_t1) )
+meanM   <- mal14 %>% group_by(TotDensity) %>% 
+  summarise( meanM = mean(flowN_t1), sdM = sd(flowN_t1) )
 
-# lines
-xSeq  <- seq(1,48,1)
-betaF <- f_pan_avg$avg
-betaM <- m_pan_avg$avg
-yF_h  <- exp(betaF[1] + betaF[2]*xSeq + betaF[4]*xSeq*1 + betaF[3]*1)
-yF_l  <- exp(betaF[1] + betaF[2]*xSeq + betaF[4]*xSeq*0.2 + betaF[3]*0.2)
-yM_h  <- exp(betaM[1] + betaM[2]*xSeq + betaM[4]*xSeq*1 + betaM[3]*1)
-yM_l  <- exp(betaM[1] + betaM[2]*xSeq + betaM[4]*xSeq*0.2 + betaM[3]*0.2)
+# plots
+plot(meanF$TotDensity , meanF$meanF, pch = 16, col = "blue", ylim = c(0.3,2),
+     ylab = "Number of flowers per capita", xlab="Planting density")
+arrows(meanF$TotDensity, meanF$meanF - meanF$sdF*0.1, col = "blue",
+       meanF$TotDensity, meanF$meanF + meanF$sdF*0.1, length=0.02, angle=90, code=3)
+par(new = T)
+plot(meanM$meanM ~ meanM$TotDensity , pch = 16, col = "red", ylim = c(0.3,2),
+     ylab = "", xlab="")
+arrows(meanM$TotDensity, meanM$meanM - meanM$sdM*0.1, col = "red",  
+       meanM$TotDensity, meanM$meanM + meanM$sdM*0.1, length=0.02, angle=90, code=3)
 
-lines(xSeq, yF_h, col = "blue", lwd = 2, lty = 1)
-lines(xSeq, yF_l, col = "blue", lwd = 2, lty = 2)
-lines(xSeq, yM_h, col = "red",  lwd = 2, lty = 1)
-lines(xSeq, yM_l, col = "red",  lwd = 2, lty = 2)
+size  <- mean(f14$log_l_t0)
+xSeq  <- seq(0,48, by = 1)
+beta  <- n_flow_beta[,c("predictor","avg")]$avg
 
-# legends
-legend(0,95,c("100% female plot","  20% female plot"),lty = c(1,2), lwd = 2, bty="n")
-legend(1.5,82,c("male","female"), lty=1, lwd=2, col=c("red","blue"), bty="n", pch = c(17,16) )
+y_m <- exp( beta[1] + beta[2]*size + beta[3]*xSeq + beta[4]*0.5 + 
+              beta[5]*0.5*xSeq + beta[6] + beta[7]*size)
+y_f <- exp( beta[1] + beta[2]*size + beta[3]*xSeq + beta[4]*0.5 + beta[5]*0.5*xSeq)
+
+lines(xSeq,y_m,lty=1,lwd=2,col="blue")
+lines(xSeq,y_f,lty=2,lwd=2,col="red")
+
+legend(1,2.1,c("male","female"), lty=1, lwd=2, 
+       col=c("red","blue"), bty="n", pch = 16 )
 
 text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.11,
      par("usr")[4]*0.97,"(a)", cex = 1.2, xpd = T)
 
 
 # fecundity ----------------------------------------------------------------------------
-plot(fecund_data$N, fecund_data$SeedN, pch = 21, 
+plot(fecund_data$TotDensity, fecund_data$SeedN, pch = 21, 
      bg = cRamp(fecund_data$sr) , ylim = c(0, 1000), cex = 1.5,
      xlab = "Planting density", ylab = "Seeds per flower")
 xSeq   <- seq(0,48,by = 1)
 beta   <- fec_beta$avg
-y_low  <- exp(beta[1] + beta[2]*0.1 + beta[3]*xSeq + beta[4]*xSeq*0.1)
+y_low  <- exp(beta[1] + beta[2]*0.2 + beta[3]*xSeq + beta[4]*xSeq*0.2)
 y_high <- exp(beta[1] + beta[2]*1 + beta[3]*xSeq + beta[4]*xSeq*1)
 
 lines(xSeq, y_low, lwd = 2, lty = 2)
 lines(xSeq, y_high, lwd = 2)
+
+legend(14.5,830,c("100% female plot","  20% female plot"),lty = c(1,2), lwd = 2, bty="n")
 
 text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.11,
      par("usr")[4]*0.97,"(b)", cex = 1.2, xpd = T)
 
 colfunc = colorRampPalette(cRamp(unique(arrange(fecund_data,sr)$sr)))
 legend_image <- as.raster(matrix(colfunc(19), ncol=1))
-text(x=24.5, y = seq(800,950,l=3), labels = seq(0,1,l=3))
-rasterImage(legend_image, 17, 800, 22, 950)
-text(25, 950, "Percent of", pos = 4)
-text(25, 875, "males in", pos = 4)
-text(25, 800, "plot", pos = 4)
+text(x=24.5, y = seq(850,1000,l=3), labels = seq(0,1,l=3))
+rasterImage(legend_image, 17, 850, 22, 1000)
+text(25, 1000, "Percent of", pos = 4)
+text(25, 925, "males in", pos = 4)
+text(25, 850, "plot", pos = 4)
 
 
 # male allocation ----------------------------------------------------------------------
-plot(m_alloc$N,m_alloc$CountSpikelets,pch=21, 
+plot(m_alloc$TotDensity,m_alloc$CountSpikelets,pch=21, 
      bg = cRamp(m_alloc$sr), cex = 1.5,
      ylab="Spikelet number per male flower",xlab="Planting density")
 beta <- m_spik_beta$avg
@@ -137,7 +147,7 @@ plot(jitter(viabVr$totFlow,factor = 2),jitter(viabVr$germ_ratio,factor = 2),pch=
 xSeq=seq(min(viabVr$totFlow),max(viabVr$totFlow),length.out=100)
 beta=germ_beta$avg
 yMeanLow=inv.logit(beta[1] + beta[2]*0.2 + beta[3]*xSeq*0.2 + beta[4]*xSeq)
-yMeanHigh=inv.logit(beta[1] + beta[2]*1  + beta[3]*xSeq*1   + beta[4]*xSeq)
+yMeanHigh=inv.logit(beta[1] + beta[2]*1 + beta[3]*xSeq*1 + beta[4]*xSeq)
 
 lines(xSeq,yMeanLow,lwd=2,lty=2)
 lines(xSeq,yMeanHigh,lwd=2,lty=1)
@@ -146,4 +156,3 @@ text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.11,
      par("usr")[4]*0.97,"(d)", cex = 1.2, xpd = T)
 
 dev.off()
-

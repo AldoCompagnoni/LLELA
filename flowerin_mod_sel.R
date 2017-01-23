@@ -3,19 +3,10 @@ setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experimen
 library(bbmle)
 library(boot)
 library(glmmADMB)
-source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
+source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
 
 #read in data
 d <- read.csv("Data/vr.csv")
-
-#Remove resuscitated individuals (dead in spring 2014, alive in 2015)
-#NOTE: possibly these are NOT DEAD in 2014, because they all have
-#few leaves: resprouted from base?
-d <- d[-which(d$plot == 18 & d$focalI =="m2"),]
-d <- d[-which(d$plot == 38 & d$focalI =="f1"),]
-d <- d[-which(d$plot == 46 & d$focalI =="f1"),]
-d <- d[-which(d$plot == 83 & d$focalI =="f5"),]
-d <- d[-which(d$plot == 36 & d$focalI =="m3"),]
 
 #logtransform leaf numbers
 d$log_l_t0 <- log(d$l_t0)
@@ -70,7 +61,7 @@ write.csv(flow_avg, "Results/VitalRates_3/flowering_best.csv", row.names = F)
 
 # GRAPHS -------------------------------------------------------------------------------------
 
-tiff("Results/VitalRates_3/flowering.tiff",unit="in",width=3.5,height=3.5,res=600,compression="lzw")
+#tiff("Results/VitalRates_3/flowering.tiff",unit="in",width=3.5,height=3.5,res=600,compression="lzw")
 
 par(mfrow=c(1,1),mar=c(2.5,2.5,0.1,0.5),mgp=c(1.4,0.35,0),cex.lab=0.8,cex.axis=0.8,
     cex.main=0.9)
@@ -113,4 +104,4 @@ lines(xSeq,y_f_l,lty=2,lwd=2,col="blue")
 legend(0,0.5,c("high density","low density","male","female"),
        lty=c(1,2,1,1),lwd=2,col=c("black","black","red","blue"),bty="n")
 
-dev.off()
+#dev.off()
