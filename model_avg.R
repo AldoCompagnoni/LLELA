@@ -113,3 +113,24 @@ format_flower <- function(x){
   return(f14)
   
 }
+
+
+# format data for 3d graph
+form_3d_surf <- function(d,response){
+  
+  # transform response in a string
+  resp <- deparse( substitute(response) )
+  
+  # order data
+  d  <- d[order(d$TotDensity,d$sr),] 
+  
+  # Prepare data
+  x<-unique(d$sr)
+  y<-unique(d$TotDensity)
+  z<-matrix(d[,resp], nrow=length(unique(d$sr)),
+            ncol=length(unique(d$TotDensity)))
+  
+  return(list(x=x,y=y,z=z))
+  
+}
+  
