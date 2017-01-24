@@ -3,6 +3,7 @@ setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experimen
 library(bbmle) 
 library(dplyr)
 library(boot)
+source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
 
 #Read data--------------------------------------------------------------------
 d           <- read.csv("Data/vr.csv")
@@ -21,11 +22,7 @@ germ_beta   <- read.csv("Results/VitalRates_3/germination_best.csv")
 # FORMAT DATA -------------------------------------------------------------------
 
 # Number of flowers in 2014
-d14         <- subset(d, year == 2014)
-d14         <- subset(d14, surv_t1 != 0)
-d14         <- d14 %>% mutate(new_t1 = as.numeric( as.character(new_t1)) )
-f14         <- na.omit(dplyr::select(d14,plot,flow_t1,log_l_t0,flowN_t1,
-                                     sex,sr,new_t1,TotDensity))
+f14   <- format_flower(d)
 
 # fecundity data  
 fem_seeds   <- mutate(fem_seeds, focalI = paste("f",IndividualN,sep=""))
@@ -80,14 +77,11 @@ plot(meanM$meanM ~ meanM$TotDensity , pch = 16, col = "red", ylim = c(0.3,2),
 arrows(meanM$TotDensity, meanM$meanM - meanM$sdM*0.1, col = "red",  
        meanM$TotDensity, meanM$meanM + meanM$sdM*0.1, length=0.02, angle=90, code=3)
 
-size  <- mean(f14$log_l_t0)
 xSeq  <- seq(0,48, by = 1)
 beta  <- n_flow_beta[,c("predictor","avg")]$avg
-
-y_m <- exp( beta[1] + beta[2]*size + beta[3]*xSeq + beta[4]*0.5 + 
-              beta[5]*0.5*xSeq + beta[6] + beta[7]*size)
-y_f <- exp( beta[1] + beta[2]*size + beta[3]*xSeq + beta[4]*0.5 + beta[5]*0.5*xSeq)
-
+y_m <- exp(beta[1] + beta[2]*xSeq + beta[3] + beta[4]*0.5 + 
+           beta[5]*0.5*xSeq + beta[6]*xSeq + beta[7]*0.5)
+y_f <- exp(beta[1] + beta[2]*xSeq + beta[4]*0.5 + beta[5]*0.5*xSeq)
 lines(xSeq,y_m,lty=1,lwd=2,col="blue")
 lines(xSeq,y_f,lty=2,lwd=2,col="red")
 

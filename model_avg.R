@@ -100,3 +100,16 @@ one_sex_format <- function(form_gr_dat){
   return(one_sex)
   
 }
+
+
+# format data for one-sex plots only
+format_flower <- function(x){
+  
+  d       <- mutate(x, plot = as.factor(plot) )
+  # Data from 2014; only live individuals  
+  tmp     <- subset(d, year==2014 & surv_t1 != 0)
+  f14     <- na.omit(dplyr::select(tmp,flowN_t1,plot,sex,sr,TotDensity))
+  
+  return(f14)
+  
+}

@@ -3,43 +3,38 @@ setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experimen
 library(bbmle) #For AIC weights, because I'm lazy!
 library(glmmADMB)
 library(dplyr)
-source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
+source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
 
 
 # read in data -------------------------------------------------------------------------------
 d       <- read.csv("Data/vr.csv")
-
-# format data -------------------------------------------------------------------------------
-# make "plot" a factor to fit glmmadmb models 
-d       <- mutate(d, plot = as.factor(plot) )
-# Data from 2014; only live individuals  
-tmp     <- subset(d, year==2014 & surv_t1 != 0)
-f14     <- na.omit(dplyr::select(tmp,flowN_t1,log_l_t0,plot,sex,sr,TotDensity))
+f14     <- format_flower(d)
 
 
 # Model selection ----------------------------------------------------------------------------------
 
 # Planting density
 nfMod=list() # lMod stands for "leaf model" (density is quantified by N. of leaves)
-nfMod[[1]]=glmmadmb(flowN_t1 ~ log_l_t0 + (1 | plot),data=f14,family="nbinom2")
-nfMod[[2]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex + (1 | plot),data=f14,family="nbinom2")
-nfMod[[3]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + (1 | plot),data=f14,family="nbinom2")
-# Target fitness: effect + tot density 
-nfMod[[4]]=glmmadmb(flowN_t1 ~ log_l_t0 + TotDensity + (1 | plot),data=f14,family="nbinom2")
-nfMod[[5]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex + TotDensity + (1 | plot),data=f14,family="nbinom2")
-nfMod[[6]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + TotDensity + (1 | plot),data=f14,family="nbinom2")
-# Target fitness: effect + sex ratio
-nfMod[[7]]=glmmadmb(flowN_t1 ~ log_l_t0 + sr + (1 | plot),data=f14,family="nbinom2")
-nfMod[[8]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex + sr + (1 | plot),data=f14,family="nbinom2")
-nfMod[[9]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + sr + (1 | plot),data=f14,family="nbinom2")
-# Target fitness: tot density + sex ratio
-nfMod[[10]]=glmmadmb(flowN_t1 ~ log_l_t0 + sr + TotDensity + (1 | plot),data=f14,family="nbinom2")
-nfMod[[11]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex + sr + TotDensity + (1 | plot),data=f14,family="nbinom2")
-nfMod[[12]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + sr + TotDensity + (1 | plot),data=f14,family="nbinom2")
-# Target fitness: tot density X sex ratio
-nfMod[[13]]=glmmadmb(flowN_t1 ~ log_l_t0 + sr * TotDensity + (1 | plot),data=f14,family="nbinom2")
-nfMod[[14]]=glmmadmb(flowN_t1 ~ log_l_t0 + sex + sr * TotDensity + (1 | plot),data=f14,family="nbinom2")
-nfMod[[15]]=glmmadmb(flowN_t1 ~ log_l_t0 * sex + sr * TotDensity + (1 | plot),data=f14,family="nbinom2")
+nfMod[[1]]=glmmadmb(flowN_t1 ~ (1 | plot),data=f14,family="nbinom2")
+# single predictor
+nfMod[[2]]=glmmadmb(flowN_t1 ~ sex + (1 | plot),data=f14,family="nbinom2")
+nfMod[[3]]=glmmadmb(flowN_t1 ~ sr + (1 | plot),data=f14,family="nbinom2")
+nfMod[[4]]=glmmadmb(flowN_t1 ~ TotDensity + (1 | plot),data=f14,family="nbinom2")
+# two predictors 
+nfMod[[5]]=glmmadmb(flowN_t1 ~ sex + sr + (1 | plot),data=f14,family="nbinom2")
+nfMod[[6]]=glmmadmb(flowN_t1 ~ sr + TotDensity + (1 | plot),data=f14,family="nbinom2")
+nfMod[[7]]=glmmadmb(flowN_t1 ~ TotDensity + sex + (1 | plot),data=f14,family="nbinom2")
+# two predictors - interaction
+nfMod[[8]]=glmmadmb(flowN_t1 ~ sex * sr + (1 | plot),data=f14,family="nbinom2")
+nfMod[[9]]=glmmadmb(flowN_t1 ~ sr * TotDensity + (1 | plot),data=f14,family="nbinom2")
+nfMod[[10]]=glmmadmb(flowN_t1 ~ TotDensity * sex + (1 | plot),data=f14,family="nbinom2")
+# two interacting predictors + one simple predictor
+nfMod[[11]]=glmmadmb(flowN_t1 ~ sex * sr + TotDensity + (1 | plot),data=f14,family="nbinom2")
+nfMod[[12]]=glmmadmb(flowN_t1 ~ sr * TotDensity + sex + (1 | plot),data=f14,family="nbinom2")
+nfMod[[13]]=glmmadmb(flowN_t1 ~ TotDensity * sex + sr + (1 | plot),data=f14,family="nbinom2")
+# three predictors
+nfMod[[14]]=glmmadmb(flowN_t1 ~ sex + sr + TotDensity + (1 | plot),data=f14,family="nbinom2")
+nfMod[[15]]=glmmadmb(flowN_t1 ~ sr * TotDensity * sex + (1 | plot),data=f14,family="nbinom2")
 
 # Model average
 n_flow_select <- AICtab(nfMod, weights=T)
