@@ -11,7 +11,7 @@ source("C:/Users/ac79/Documents/CODE/LLELA/prediction.R")
 n_flow_beta <- read.csv("Results/VitalRates_3/n_flowers_best.csv", stringsAsFactors = F)
 fec_beta    <- read.csv("Results/VitalRates_3/fecuntity_best.csv", stringsAsFactors = F)
 germ_beta   <- read.csv("Results/VitalRates_3/germination_best.csv", stringsAsFactors = F) 
-
+newt_beta   <- read.csv("Results/VitalRates_3/new_t_best.csv", stringsAsFactors = F)
 
 # MODEL PREDICTIONS ---------------------------------------------------------------
 
@@ -28,6 +28,10 @@ germ_beta     <- mutate(germ_beta, predictor = gsub("_f","",predictor) )
 germ_beta     <- mutate(germ_beta, predictor = gsub("totFlow","TotDensity",predictor) )
 des_viab      <- new_design(germ_beta)
 pred_viab     <- pred(des_viab, germ_beta, pred_viab, inv.logit)
+
+# new tillers
+des_till      <- data.frame(TotDensity = seq(1,48,1))
+des_till      <- des_till %>% mutate(pred_new_t = (newt_beta[,1]*TotDensity)/(1+newt_beta[,2]*TotDensity))
 
 
 # COMBINE MODELS #####################################################################
@@ -76,6 +80,9 @@ fert          <- merge(pred_viab_s, seed_prod)
 fert          <- mutate(fert, viable_seeds     = seed_prod * viab,
                               viable_seeds_pc  = (seed_prod * viab)/n_fem)
 
+# reproduction
+reprod    <- merge(fert,des_till)
+reprod    <- mutate(reprod, reprod = viable_seeds + pred_new_t)
 
 # FIGURE 2 ------------------------------------------------------------------------------
 
@@ -84,9 +91,11 @@ seed_3d <- form_3d_surf(seed_prod,pc_seed_prod)
 viab_3d <- form_3d_surf(pred_viab,pred_viab)
 vs_3d   <- form_3d_surf(fert,viable_seeds)
 #vs_3d   <- form_3d_surf(fert,viable_seeds_pc)
+#vs_3d   <- form_3d_surf(reprod,reprod)
 
 tiff("Results/VitalRates_3/figure2_decomp.tiff",unit="in",width=6.3,height=2.1,res=600,compression="lzw")
 #tiff("Results/VitalRates_3/figure2_decomp_pc.tiff",unit="in",width=6.3,height=2.1,res=600,compression="lzw")
+#tiff("Results/VitalRates_3/figure2_decomp_reprod.tiff",unit="in",width=6.3,height=2.1,res=600,compression="lzw")
 
 par(mfrow=c(1,3),mar=c(1,2,1,0),cex=0.5)
 
