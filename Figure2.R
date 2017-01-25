@@ -6,6 +6,8 @@ library(boot)
 library(testthat) # to test "order/correspondence of predictors" 
 source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
 source("C:/Users/ac79/Documents/CODE/LLELA/prediction.R")
+source("C:/Users/ac79/Documents/CODE/LLELA/unload_mass.R")
+unload_mass()
 
 # Read in best models--------------------------------------------------------------------
 n_flow_beta <- read.csv("Results/VitalRates_3/n_flowers_best.csv", stringsAsFactors = F)
@@ -30,8 +32,8 @@ des_viab      <- new_design(germ_beta)
 pred_viab     <- pred(des_viab, germ_beta, pred_viab, inv.logit)
 
 # new tillers
-des_till      <- data.frame(TotDensity = seq(1,48,1))
-des_till      <- des_till %>% mutate(pred_new_t = (newt_beta[,1]*TotDensity)/(1+newt_beta[,2]*TotDensity))
+des_till      <- expand.grid(TotDensity = seq(1,48,1), sr = seq(0,1,0.05) )
+pred_till     <- des_till %>% mutate(pred_new_t = (newt_beta[,1]*TotDensity)/(1+newt_beta[,2]*TotDensity))
 
 
 # COMBINE MODELS #####################################################################
@@ -81,56 +83,42 @@ fert          <- mutate(fert, viable_seeds     = seed_prod * viab,
                               viable_seeds_pc  = (seed_prod * viab)/n_fem)
 
 # reproduction
-reprod    <- merge(fert,des_till)
+reprod    <- merge(fert,pred_till)
 reprod    <- mutate(reprod, reprod = viable_seeds + pred_new_t)
 
 # FIGURE 2 ------------------------------------------------------------------------------
 
 # data for 3d graph
-seed_3d <- form_3d_surf(seed_prod,pc_seed_prod)
+seed_3d <- form_3d_surf(seed_prod,seed_prod)
 viab_3d <- form_3d_surf(pred_viab,pred_viab)
+till_3d <- form_3d_surf(pred_till,pred_new_t)
 vs_3d   <- form_3d_surf(fert,viable_seeds)
-#vs_3d   <- form_3d_surf(fert,viable_seeds_pc)
-#vs_3d   <- form_3d_surf(reprod,reprod)
 
-tiff("Results/VitalRates_3/figure2_decomp.tiff",unit="in",width=6.3,height=2.1,res=600,compression="lzw")
-#tiff("Results/VitalRates_3/figure2_decomp_pc.tiff",unit="in",width=6.3,height=2.1,res=600,compression="lzw")
-#tiff("Results/VitalRates_3/figure2_decomp_reprod.tiff",unit="in",width=6.3,height=2.1,res=600,compression="lzw")
+tiff("Results/VitalRates_3/figure2_abs.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
 
-par(mfrow=c(1,3),mar=c(1,2,1,0),cex=0.5)
+m_line <- -2
+par(mfrow=c(2,2),mar=c(0,2,0,0),mgp=c(3,1,0), oma=c(0,0,0,0),cex=0.8,
+    cex.axis = 0.7)
 
 persp(seed_3d$x,seed_3d$y,seed_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals", 
+      xlab = "Proportion of female individuals",line = m_line,
       ylab = "Density",ticktype = "detailed",
-      zlab = "Seeds per individual",
-      main = "Per-capita seed production")
+      zlab = "Seeds per individual",mgp=c(2,1,0),
+      main = "Plot-level seed productions")
 persp(viab_3d$x,viab_3d$y,viab_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals", 
+      xlab = "Proportion of female individuals", line = m_line,
       ylab = "Density",ticktype = "detailed",
       zlab = "Proportion viable",
       main = "Seed viability")
+persp(till_3d$x,till_3d$y,till_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
+      xlab = "Proportion of female individuals", line = m_line,
+      ylab = "Density",ticktype = "detailed",
+      zlab = "New Tillers",
+      main = "Production of new tillers")
 persp(vs_3d$x,vs_3d$y,vs_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
       xlab = "Proportion of female individuals", 
-      ylab = "Density",ticktype = "detailed",
+      ylab = "Density",ticktype = "detailed",line = m_line,
       zlab = "Viable seeds",
-      main = "Fertility")
+      main = "Reproduction")
 
 dev.off()
-
-
-# Alternatives to persp() function
-#tiff("Results/VitalRates_3/figure2_contour_decomp.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
-
-par(mfrow=c(2,2),mar=c(4,4,1,0.5),mgp=c(2,0.7,0))
-filled.contour(seed_3d$x,seed_3d$y,seed_3d$z, color.palette=heat.colors, cex.lab = 1.4,
-               xlab = "Proportion of female individuals", 
-               ylab = "Planting density", 
-               main = "Number of viable seeds")
-filled.contour(viab_3d$x,viab_3d$y,viab_3d$z, color.palette=heat.colors, cex.lab = 1.4,
-               xlab = "Proportion of female individuals", 
-               ylab = "Planting density", 
-               main = "Number of viable seeds")
-filled.contour(vs_3d$x,vs_3d$y,vs_3d$z, color.palette=heat.colors, cex.lab = 1.4,
-               xlab = "Proportion of female individuals", 
-               ylab = "Planting density", 
-               main = "Number of viable seeds")
