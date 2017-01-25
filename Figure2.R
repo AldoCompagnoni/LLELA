@@ -130,7 +130,7 @@ filled.contour(vs_3d$x,vs_3d$y,vs_3d$z, color.palette=heat.colors, cex.lab = 1.4
                ylab = "Planting density", 
                main = "Number of viable seeds")
 
-dev.off()
+#dev.off()
 
 
 
