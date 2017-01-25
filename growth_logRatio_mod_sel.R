@@ -99,7 +99,7 @@ par(mfrow=c(1,2),mar=c(2.5,2.5,0.1,0.1),mgp=c(1.4,0.5,0),oma=c(0,0,0,0))
 
 # 2014 
 plot(jitter(d14$TotDensity), d14$log_ratio, pch = d14$symb, ylab="Log ratio (2014)", 
-     xlab="Planting sex ratio",bg=cRamp(d14$sr), ylim = c(0,10), 
+     xlab="Planting density",bg=cRamp(d14$sr), ylim = c(0,10), 
      lwd = 1)
 beta  <- lr_14_avg[,c("predictor","avg")]$avg
 y_m   <- beta[1] + beta[2] + beta[3]*0.5 + beta[4]*0.5
@@ -109,7 +109,7 @@ abline(h = y_f, col = "blue")
 
 # 2015
 plot(jitter(d15$TotDensity), d15$log_ratio, pch = d15$symb, ylab="Log ratio (2015)", 
-     xlab="Planting sex ratio",bg=cRamp(d15$sr), ylim = c(0,10), 
+     xlab="Planting density",bg=cRamp(d15$sr), ylim = c(0,10), 
      lwd = 1)
 xSeq  <- seq(0,48,1)
 beta  <- lr_15_avg[,c("predictor","avg")]$avg
