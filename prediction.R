@@ -7,7 +7,7 @@ new_design <- function(mod_avg){
   # design
   des <- expand.grid("(Intercept)" = 1, 
                      TotDensity = seq(1,48,1),
-                     sr = seq(0,1,0.01),
+                     sr = seq(0,1,0.05),
                      sexm = c(1,0))
   des <- mutate(des, "sr:TotDensity" = sr * TotDensity)
   des <- mutate(des, "sexm:sr" = sr * sexm)
@@ -23,15 +23,19 @@ new_design <- function(mod_avg){
 }
   
 # predict 
-pred <- function(design, mod_avg, pred_name){
+pred <- function(design, mod_avg, pred_name, link){
 
   # give it a name
   pred_name <- deparse( substitute(pred_name) )
+  link_f    <- deparse( substitute(link) )
   #test correspondence
-  expect_equal( all(names(design) == mod_avg$predictor), TRUE )
+  if( all(names(design) == mod_avg$predictor) != TRUE ) {
+    stop("Design matrix does not correspond to sequence of predictors")
+  }
   
   # Prediction
   pred_val <- as.vector( as.matrix(design) %*% mod_avg$avg )
+  pred_val <- eval(parse(text = paste0("sapply(pred_val,",link_f,")")) )
   design   <- cbind(design,NA)
   design[ncol(design)] <- pred_val
   names(design)[ncol(design)] <- pred_name
