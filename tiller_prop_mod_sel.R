@@ -95,16 +95,18 @@ lines(xSeq,y_l,lwd=2,lty=2)
 abline(0,1,lty=2)
 
 
-
 # Density Graphs ##########################################################
-par(mfrow=c(1,2), mar = c(4,4,0.5,0.5))
+tiff("Results/VitalRates_3/tiller_proport.tiff",unit="in",
+     width=6.3,height=3.15,res=600,compression="lzw")
+
+par(mfrow=c(1,2), mar = c(4,4,2,0.5), mgp = c(1.5,0.5,0))
 cexlab = 1.1
 
 #2014 -----------------------------------------------------------------------
 scal <- ((d14$sr/1)+0.1)*2
 plot(d14$TotDensity, d14$prop_f, xlab = "Planting density",
      cex=scal,cex.lab=cexlab,
-     ylab = expression("Proportion of female tillers"[t]))
+     ylab = expression("Proportion of female tillers"[t+1]))
 
 xSeq  <- seq(0,48,1) 
 beta  <- coef(t14[[4]])
@@ -113,11 +115,15 @@ y_h   <- inv.logit( beta[1] + beta[2]*xSeq + beta[3]*0.9 + beta[4]*0.9*xSeq )
 lines(xSeq,y_h,lwd=3)
 lines(xSeq,y_l,lwd=2,lty=2)
 
+pt = (c(0.1,0.9)+0.1)*2
+legend(0, 1.32,c("10% female plots","90% female plots"),lty=c(2,1),lwd=c(1,2),
+       pch=1,xpd=NA, bty = "n", pt.cex = pt) 
+
 #2015 -----------------------------------------------------------------------
 scal <- ((d15$sr/1)+0.1)*2
 plot(d15$TotDensity, d15$prop_f, xlab = "Planting density",
      cex=scal,cex.lab=cexlab,
-     ylab = expression("Proportion of female tillers"[t]))
+     ylab = expression("Proportion of female tillers"[t+1]))
 
 xSeq  <- seq(0,48,1) 
 beta  <- coef(t15[[4]])
@@ -125,3 +131,5 @@ y_l   <- inv.logit( beta[1] + beta[2]*xSeq + beta[3]*0.1 + beta[4]*0.1*xSeq )
 y_h   <- inv.logit( beta[1] + beta[2]*xSeq + beta[3]*0.9 + beta[4]*0.9*xSeq )
 lines(xSeq,y_h,lwd=3)
 lines(xSeq,y_l,lwd=2,lty=2)
+
+dev.off()
