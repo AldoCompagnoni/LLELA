@@ -3,12 +3,12 @@ setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experimen
 library(bbmle)
 library(lme4)
 library(dplyr)
-source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
+source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
 
 # load and format data ------------------------------------------------------------------
-d     <- read.csv("Data/vr.csv")
-d14   <- format_growth(d)$`2014`
-d15   <- format_growth(d)$`2015`
+d     <- format_growth( read.csv("Data/vr.csv") )
+d14   <- subset(d, year == 2014)
+d15   <- subset(d, year == 2015)
 
 # remove extreme outlier (over 8 sd above mean)
 # d15$log_ratio[d15$log_ratio > 5] =NA
@@ -98,23 +98,23 @@ tiff("Results/VitalRates_3/log_ratio_growth.tiff",unit="in",width=6.3,height=3.1
 par(mfrow=c(1,2),mar=c(2.5,2.5,0.1,0.1),mgp=c(1.4,0.5,0),oma=c(0,0,0,0))
 
 # 2014 
-plot(jitter(d14$sr), d14$log_ratio, pch = d14$symb, ylab="Log ratio (2014)", 
+plot(jitter(d14$TotDensity), d14$log_ratio, pch = d14$symb, ylab="Log ratio (2014)", 
      xlab="Planting sex ratio",bg=cRamp(d14$sr), ylim = c(0,10), 
      lwd = 1)
 beta  <- lr_14_avg[,c("predictor","avg")]$avg
-xSeq  <- seq(0,1,0.1)
-y_m   <- beta[1] + beta[2] + beta[3]*xSeq + beta[4]*xSeq
-y_f   <- beta[1] + beta[3]*xSeq
-lines(xSeq,y_m,col="red")
-lines(xSeq,y_f,col="blue")
+y_m   <- beta[1] + beta[2] + beta[3]*0.5 + beta[4]*0.5
+y_f   <- beta[1] + beta[3]*0.5
+abline(h = y_m, col = "red")
+abline(h = y_f, col = "blue")
 
 # 2015
-plot(jitter(d15$sr), d15$log_ratio, pch = d15$symb, ylab="Log ratio (2015)", 
+plot(jitter(d15$TotDensity), d15$log_ratio, pch = d15$symb, ylab="Log ratio (2015)", 
      xlab="Planting sex ratio",bg=cRamp(d15$sr), ylim = c(0,10), 
      lwd = 1)
-beta <- lr_15_avg[,c("predictor","avg")]$avg
-y_m <- beta[1] + beta[2]*xSeq + beta[3]*xSeq
-y_f <- beta[1] + beta[2]*xSeq
+xSeq  <- seq(0,48,1)
+beta  <- lr_15_avg[,c("predictor","avg")]$avg
+y_m   <- beta[1] + beta[2]*0.5 + beta[3] + beta[4]*xSeq
+y_f   <- beta[1] + beta[2]*0.5 + beta[4]*xSeq
 lines(xSeq,y_f,lwd=1.5,lty=1,col="blue")
 lines(xSeq,y_m,lwd=1.5,lty=1,col="red")
 
@@ -123,10 +123,10 @@ legend(0.05,10.5,c("Males","Females"), cex = 0.8, pch = c(24,21),
 
 colfunc = colorRampPalette(cRamp(unique(arrange(d15,sr)$sr)))
 legend_image <- as.raster(matrix(colfunc(21), ncol=1))
-text(x=0.1, y = seq(6.2,8.2,l=3), labels = seq(0,1,l=3))
-rasterImage(legend_image, 0.2, 6.2, 0.3, 8.2)
-text(0.3, 8.2, "Percent of", pos = 4)
-text(0.3, 7.2, "males in", pos = 4)
-text(0.3, 6.2, "plot", pos = 4)
+text(x=1.5, y = seq(7.2,9.2,l=3), labels = seq(0,1,l=3))
+rasterImage(legend_image, 4, 7.2, 7.5, 9.2)
+text(7.5, 9.2, "Percent of", pos = 4)
+text(7.5, 8.2, "males in", pos = 4)
+text(7.5, 7.2, "plot", pos = 4)
 
 dev.off()
