@@ -2,7 +2,11 @@
 setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
 library(bbmle)
 library(dplyr)
+source("C:/Users/ac79/Documents/CODE/LLELA/unload_mass.R")
+unload_mass()
 source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
+source("C:/Users/ac79/Documents/CODE/LLELA/bh_util_fnc.R")
+
 
 # load and format data -----------------------------------------------------
 x       <- read.csv("Data/vr.csv")
@@ -11,83 +15,100 @@ d14     <- subset(d, year == 2014)
 d15     <- subset(d, year == 2015)
 d15     <- subset(d15, plot != 149) # Remove outlier
 # omit NAs
-d14 <- na.omit(select(d14, TotDensity, new_t1))
-d15 <- na.omit(select(d15, TotDensity, new_t1))
+d14 <- na.omit(select(d14, TotDensity, sr, new_t1))
+d15 <- na.omit(select(d15, TotDensity, sr, new_t1))
 
-# ML Model selection -------------------------------------------------------
 
-# sex independent model 
-fit.BH<-function(params, N){
-  yhat<-(params[1]*N$TotDensity)/(1+params[2]*N$TotDensity)
-  NLL<- -sum(dnbinom(N$new_t1,mu=yhat,size=params[3],log=T))
-  return(NLL)
-}
-MLE.BH<-optim(par=c(2,0.1,5),fn=fit.BH, gr=NULL, d15, control=list(maxit=5000))
+# Model fits --------------------------------------------------------------------------------------------
 
-x<-0:max(d15$TotDensity)
-plot(d15$TotDensity,d15$new_t1, pch = 16)
-lines(x,(MLE.BH$par[1]*x)/(1+MLE.BH$par[2]*x), lwd = 2)
+# 2014
+BH.14         <-optim(par=setNames(c(2,0.1,5),c("lam","b","size")),
+                      fn=fit.BH, gr=NULL, d14, control=list(maxit=5000))
+BH.sex.14     <-optim(par=setNames(c(10,10,0.5,0.5,5),c("lam_f","lam_m","b_f","b_m","size")),
+                      fn=fit.BH.sex,gr=NULL, d14,control=list(maxit=5000))
+BH.sex.lam.14 <-optim(par=setNames(c(10,10,0.5,5),c("lam_f","lam_m","b","size")),
+                      fn=fit.BH.sex.lambda,gr=NULL, d14, control=list(maxit=5000))
+BH.sex.b.14   <-optim(par=setNames(c(10,0.5,0.5,5),c("lam","b_f","b_m","size")),
+                      fn=fit.BH.sex.b,gr=NULL, d14, control=list(maxit=5000))
+
+# 2015
+BH.15         <-optim(par=setNames(c(2,0.1,5),c("lam","b","size")),
+                      fn=fit.BH, gr=NULL, d15, control=list(maxit=5000))
+BH.sex.15     <-optim(par=setNames(c(10,10,0.5,0.5,5),c("lam_f","lam_m","b_f","b_m","size")),
+                      fn=fit.BH.sex,gr=NULL, d15,control=list(maxit=5000))
+BH.sex.lam.15 <-optim(par=setNames(c(10,10,0.5,5),c("lam_f","lam_m","b","size")),
+                      fn=fit.BH.sex.lambda,gr=NULL, d15, control=list(maxit=5000))
+BH.sex.b.15   <-optim(par=setNames(c(10,0.5,0.5,5),c("lam","b_f","b_m","size")),
+                      fn=fit.BH.sex.b,gr=NULL, d15, control=list(maxit=5000))
+
+
+# Compare models --------------------------------------------------------------------------------------
+
+# 2014
+m14 <- list()
+m14[[1]]  <-2*BH.14$value+2*length(BH.14$par)
+m14[[2]]  <-2*BH.sex.lam.14$value+2*length(BH.sex.lam.14$par)
+m14[[3]]  <-2*BH.sex.b.14$value+2*length(BH.sex.b.14$par)
+m14[[4]]  <-2*BH.sex.14$value+2*length(BH.sex.14$par)
+m14       <- setNames(m14, c("AIC.BH.14", "AIC.BH.sex.lam.14", "AIC.BH.sex.b.14", "AIC.BH.sex.14"))
+
+# 2015
+m15 <- list()
+m15[[1]]  <-2*BH.15$value+2*length(BH.15$par)
+m15[[2]]  <-2*BH.sex.lam.15$value+2*length(BH.sex.lam.15$par)
+m15[[3]]  <-2*BH.sex.b.15$value+2*length(BH.sex.b.15$par)
+m15[[4]]  <-2*BH.sex.15$value+2*length(BH.sex.15$par)
+m15       <- setNames(m15, c("AIC.BH.15", "AIC.BH.sex.lam.15", "AIC.BH.sex.b.15", "AIC.BH.sex.15"))
+
+mod_weights(m14)
+mod_weights(m15)
+
+
+# Model selection ----------------------------------------------------------------------------------------
 
 # Only 14 ----------------------------------------------------------------------------------
-MLE.BH_14<-optim(par=c(2,0.1,5),fn=fit.BH, gr=NULL, d14, control=list(maxit=5000))
+sr_seq    <- seq(0,1,0.05)
+des       <- expand.grid(TotDensity = seq(1,48,1), sr = sr_seq)
+
+# best model 1
+beta_1    <- BH.sex.lam.14$par
+beta_2    <- BH.14$par
+beta_3    <- BH.sex.14$par
+
+lambdas_1 <- beta_1["lam_f"]*sr_seq + beta_1["lam_m"]*(1-sr_seq)
+lambdas_3 <- beta_3["lam_f"]*sr_seq + beta_3["lam_m"]*(1-sr_seq)
+b_3       <- beta_3["b_f"]*sr_seq   + beta_3["b_m"]*(1-sr_seq)
+
+lambda_df <- data.frame(sr = sr_seq, lambda_1 = lambdas,       b_1 = beta_1["b"],
+                                     lambda_2 = beta_2["lam"], b_2 = beta_2["b"],
+                                     lambda_3 = lambdas_3,     b_3 = b_3)
+
+
+
+des       <- merge(des, lambda_df)
+des       <- mutate(des, yhat = (lambda*TotDensity) / (1+beta["b"]*TotDensity))
+des       <- mutate(des, yhat_pc = yhat / TotDensity)
+
+
+
+
+
+till_3d <- form_3d_surf(des,yhat_pc)
+
+persp(till_3d$x,till_3d$y,till_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
+      xlab = "Proportion of female individuals", 
+      ylab = "Density",ticktype = "detailed",
+      zlab = "New Tillers_PC",
+      main = "Production of new tillers_PC")
+
+
+
+# plot
+x <- c(0:max(d14$TotDensity))
 plot(d14$TotDensity,d14$new_t1, pch = 16)
-lines(x,(MLE.BH_14$par[1]*x)/(1+MLE.BH_14$par[2]*x), lwd = 2)
-betas_14 <- as.data.frame(t(MLE.BH_14$par))
-betas_14 <- setNames(betas_14,c("lam","b","size"))
-write.csv(betas_14, 
-          "C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/Results/VitalRates_3/new_t_best.csv",
-          row.names = F)
-# ----------------------------------------------------------------------------------
-
-#########################################################################
-## option 1 is that there may be male-specific and female-specific parameters
-## and population mean is a weighted mean of the two (but this ignores their interactions)
-fit.BH.sex<-function(params){
-  lambda.F<-params[1]
-  lambda.M<-params[2]
-  lambda.mean<-lambda.F*d15$sr+lambda.M*(1-d15$sr)
-  b.F<-params[3]
-  b.M<-params[4]
-  b.mean<-b.F*d15$sr+b.M*(1-d15$sr)
-  
-  yhat<-(lambda.mean*d15$TotDensity)/(1+b.mean*d15$TotDensity)
-  NLL<- -sum(dnbinom(d15$new_t1,mu=yhat,size=params[5],log=T))
-  return(NLL)
-}
-MLE.BH.sex<-optim(par=c(10,10,0.5,0.5,5),fn=fit.BH.sex,control=list(maxit=50000))
-
-# sex effect in plambda only
-fit.BH.sex.lambda<-function(params){
-  lambda.F<-params[1]
-  lambda.M<-params[2]
-  lambda.mean<-lambda.F*d15$sr+lambda.M*(1-d15$sr)
-  
-  yhat<-(lambda.mean*d15$TotDensity)/(1+params[3]*d15$TotDensity)
-  NLL<- -sum(dnbinom(d15$new_t1,mu=yhat,size=params[4],log=T))
-  return(NLL)
-}
-MLE.BH.sex.lambda<-optim(par=c(10,10,0.5,5),fn=fit.BH.sex.lambda,control=list(maxit=5000))
-
-fit.BH.sex.b<-function(params){
-  b.F<-params[1]
-  b.M<-params[2]
-  b.mean<-b.F*d15$sr+b.M*(1-d15$sr)
-  
-  yhat<-(params[3]*d15$TotDensity)/(1+b.mean*d15$TotDensity)
-  NLL<- -sum(dnbinom(d15$new_t1,mu=yhat,size=params[4],log=T))
-  return(NLL)
-}
-MLE.BH.sex.b<-optim(par=c(10,0.5,0.5,5),fn=fit.BH.sex.b,control=list(maxit=5000))
-
-#####################################################
-## compare models
-
-AIC.BH<-2*MLE.BH$value+2*length(MLE.BH$par)
-AIC.BH.sex.lambda<-2*MLE.BH.sex.lambda$value+2*length(MLE.BH.sex.lambda$par)
-AIC.BH.sex.b<-2*MLE.BH.sex.b$value+2*length(MLE.BH.sex.b$par)
-AIC.BH.sex<-2*MLE.BH.sex$value+2*length(MLE.BH.sex$par)
+lines(x,yhat_h, col = "green", lwd = 2)
+lines(x,yhat_l, col = "blue", lwd = 2)
 
 
-x<-0:max(d15$TotDensity)
-plot(d15$TotDensity,d15$new_t1,ylab="New tillers",xlab="Total density", pch = 16)
-lines(x,(MLE.BH$par[1]*x)/(1+MLE.BH$par[2]*x),lwd=4)
+# model average ---------------------------------------------------------------------------------------
+# best mod
