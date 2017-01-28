@@ -130,7 +130,15 @@ form_3d_surf <- function(d,response){
   z<-matrix(d[,resp], nrow=length(unique(d$sr)),
             ncol=length(unique(d$TotDensity)))
   
-  return(list(x=x,y=y,z=z))
+  # substitute Inf values
+  out <- list(x=x,y=y,z=z)
+  
+  for(i in seq_along(out)){
+    if(any(out[[i]]==Inf,na.rm=T) == T){ out[[i]][out[[i]]==Inf]=NA }
+    if(any(is.nan(out[[i]])) == T){ out[[i]][is.nan(out[[i]])]=NA }
+  }
+  
+  return(out)
   
 }
   

@@ -131,5 +131,6 @@ y_l   <- inv.logit( beta[1] + beta[2]*xSeq + beta[3]*0.1 + beta[4]*0.1*xSeq )
 y_h   <- inv.logit( beta[1] + beta[2]*xSeq + beta[3]*0.9 + beta[4]*0.9*xSeq )
 lines(xSeq,y_h,lwd=3)
 lines(xSeq,y_l,lwd=2,lty=2)
+title("2015")
 
 dev.off()
