@@ -1,90 +1,77 @@
 # Code to produce figure1 (panels a,b,c)
-setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
+setwd("C:/Users/Aldo/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
 library(dplyr)
 
-#Read data--------------------------------------------------------------------
+
+#Read and format data--------------------------------------------------------------------
 d       <- read.csv("Data/vr.csv")
-
-# Format data ------------------------------------------------------------------
-
-# remove dead individuals (this is a GROWTH model!)
-d       <- filter(d, surv_t1 != 0)
+d       <- format_growth(d)
 # separate years
 d14     <- filter(d, year == 2014)
 d15     <- filter(d, year == 2015)
 
-# Best models
-gr14_avg  <- read.csv("Results/VitalRates_3/growth_14N_best.csv")
-gr15_avg  <- read.csv("Results/VitalRates_3/growthN_best.csv")
-
-
 
 # FIGURE 3 ----------------------------------------------------------------------
 
-# Sex ratio as dot color ---------------
+# Best models
+lr_14_avg   <- read.csv("Results/VitalRates_3/log_ratio_14_best.csv")
+lr_15_avg   <- read.csv("Results/VitalRates_3/log_ratio_15_best.csv")
 
 # service functions
+# color palette
 range01 <- function(x)(x-min(x))/diff(range(x))
 cRamp <- function(x){
   cols <- colorRamp(topo.colors(7))(range01(x))
   apply(cols, 1, function(xt)rgb(xt[1], xt[2], xt[3], maxColorValue=255))
 }  
 
-# Set up symbols for the sexes ---------
+# Symbols for the sexes 
 sex_symbol <- function(x){
   out <- x %>% mutate(symb = as.integer( as.character( 
-                                factor( as.integer(sex),labels=c("21","24")))) )
+    factor( as.integer(sex),labels=c("21","24")))) )
   return(out)
 }
 d14 <- sex_symbol(d14)
 d15 <- sex_symbol(d15)
 
 
-# Graph
-tiff("Results/VitalRates_3/Figure3.tiff",unit="in",width=6.3,height=3.5,res=600,compression="lzw")
+# plot
+tiff("Results/VitalRates_3/Figure3.tiff",unit="in",width=6.3,height=3.15,res=600,compression="lzw")
 
-par(mfrow=c(1,2),mar=c(2.5,2.5,1.3,0.5),mgp=c(1.4,0.35,0),cex.lab=1,cex.axis=0.8,
-    cex.main=0.9,xpd=NA)
+par(mfrow=c(1,2),mar=c(2.5,2.5,0.1,0.1),mgp=c(1.4,0.5,0),oma=c(0,0,0,0))
 
-# 2014
-plot(jitter(d14$TotDensity), d14$l_t1, pch = d14$symb, ylab="Number of leaves in 2014", 
-     xlab="Planting density",bg=cRamp(d14$sr), ylim = c(0,99), 
+# 2014 
+plot(jitter(d14$TotDensity), d14$log_ratio, pch = d14$symb, ylab="Log ratio (2014)", 
+     xlab="Planting density",bg=cRamp(d14$sr), ylim = c(-3,2.5), 
      lwd = 1)
-beta <- gr14_avg[,c("predictor","avg")]$avg
-xSeq <- seq(0,48,by=1)
-sr   <- 0.5
-size <- mean(d14$log_l_t0)
-y_m <- exp( beta[1] + beta[2]*size + beta[3] + beta[4]*xSeq + 
-              beta[5]*sr + beta[6]*size + beta[7]*xSeq*sr )
-y_f <- exp( beta[1] + beta[2]*size + beta[4]*xSeq + beta[5]*sr + beta[7]*xSeq*sr)
-lines(xSeq,y_f,lwd=1.5,lty=1,col="blue")
-lines(xSeq,y_m,lwd=1.5,lty=1,col="red")
-text(-2,107.5,"a) Target individuals, year 2014",pos=4)
+beta  <- lr_14_avg[,c("predictor","avg")]$avg
+y_m   <- beta[1] + beta[2] + beta[3]*0.5
+y_f   <- beta[1] + beta[3]*0.5
+abline(h = y_f,col="khaki3",lwd=2)
+abline(h = y_m,col="blue3",lwd=2, lty = 2)
 
-legend(29,105,c("Males","Females"), cex = 0.8, pch = c(24,21),
-       lty=1,lwd=1.5,col=c("red","blue"),bty="n")
-
-# 2015
-plot(jitter(d15$TotDensity),d15$l_t1, pch = d15$symb, ylab="Number of leaves in 2015",
-     xlab="Planting density",bg=cRamp(d15$sr), ylim = c(0,99),
-     lwd = 1)
-beta <- gr15_avg[,c("predictor","avg")]$avg
-xSeq <- seq(0,48,by=1)
-size <- mean(d15$log_l_t0)
-y_m <- exp( beta[1] + beta[2]*size + beta[3] + beta[4]*0.5 + 
-              beta[5]*xSeq + beta[6]*size + beta[7]*0.5 + beta[8]*xSeq )
-y_f <- exp( beta[1] + beta[2]*size + beta[4]*0.5 + beta[5]*xSeq )
-lines(xSeq,y_f,lwd=1.5,lty=1,col="blue")
-lines(xSeq,y_m,lwd=1.5,lty=1,col="red")
-text(-2,107.5,"b) Target individuals, year 2015", pos=4)
 
 colfunc = colorRampPalette(cRamp(unique(arrange(d15,sr)$sr)))
 legend_image <- as.raster(matrix(colfunc(21), ncol=1))
-text(x=23, y = seq(78,98,l=3), labels = seq(0,1,l=3))
-rasterImage(legend_image, 15, 78, 20, 98)
-text(25, 98, "Percent of", pos = 4)
-text(25, 88, "males in", pos = 4)
-text(25, 78, "plot", pos = 4)
+text(x=24, y = seq(-3,-1.5,l=3), labels = seq(0,1,l=3))
+rasterImage(legend_image, 27, -3, 31, -1.5)
+text(30, -1.5, "Percent of", pos = 4)
+text(30, -2.25, "males in", pos = 4)
+text(30, -3.0, "plot", pos = 4)
+
+legend(0.05,-2,c("Males","Females"), cex = 0.8, pch = c(24,21),
+       lty=c(2,1),lwd=1.5,col=c("blue3","khaki3"),bty="n")
+
+
+# 2015
+plot(jitter(d15$TotDensity), d15$log_ratio, pch = d15$symb, ylab="Log ratio (2015)", 
+     xlab="Planting density",bg=cRamp(d15$sr),ylim = c(-3,2.5), 
+     lwd = 1)
+xSeq  <- seq(0,48,1)
+beta  <- lr_15_avg[,c("predictor","avg")]$avg
+y_m   <- beta[1] + beta[2]*xSeq + beta[3]*0.5 + beta[4]
+y_f   <- beta[1] + beta[2]*xSeq + beta[4]*0.5
+lines(xSeq,y_f,lwd=1.5,lty=1,col="khaki3")
+lines(xSeq,y_m,lwd=1.5,lty=2,col="blue3")
 
 dev.off()
-

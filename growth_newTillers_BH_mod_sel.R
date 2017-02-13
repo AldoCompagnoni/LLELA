@@ -1,11 +1,11 @@
 ##Response variable: total number of tillers 
-setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
+setwd("C:/Users/Aldo/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
 library(bbmle)
 library(dplyr)
-source("C:/Users/ac79/Documents/CODE/LLELA/unload_mass.R")
+source("C:/Users/Aldo/Documents/CODE/LLELA/unload_mass.R")
 unload_mass()
-source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
-source("C:/Users/ac79/Documents/CODE/LLELA/bh_util_fnc.R")
+source("C:/Users/Aldo/Documents/CODE/LLELA/model_avg.R")
+source("C:/Users/Aldo/Desktop/POAR/bh_util_fnc.R")
 
 
 # load and format data -----------------------------------------------------
@@ -14,101 +14,153 @@ d       <- format_growth(x)
 d14     <- subset(d, year == 2014)
 d15     <- subset(d, year == 2015)
 d15     <- subset(d15, plot != 149) # Remove outlier
+
 # omit NAs
-d14 <- na.omit(select(d14, TotDensity, sr, new_t1))
-d15 <- na.omit(select(d15, TotDensity, sr, new_t1))
+d14 <- na.omit(select(d14, TotDensity, F, M, sr, new_t1))
+d15 <- na.omit(select(d15, TotDensity, F, M, sr, new_t1))
+
+# Model fits 2014 ---------------------------------------------------------------
+res         <- list()
+res[[1]]    <-optim(par=c(2,0.1,5),         fn=fit_null, gr=NULL, d14, control=list(maxit=5000))
+res[[2]]    <-optim(par=c(5,5,0.5,5),       fn=fit_lam, gr=NULL, d14, control=list(maxit=5000))
+res[[3]]    <-optim(par=c(5,0.5,0.5,5),     fn=fit_b, gr=NULL, d14, control=list(maxit=5000))
+res[[4]]    <-optim(par=c(5,0.5,0.1,0.1,5), fn=fit_a, gr=NULL, d14, control=list(maxit=5000))
+res[[5]]    <-optim(par=c(5,5,0.5,0.5,5),       fn=fit_lam_b, gr=NULL, d14, control=list(maxit=5000))
+res[[6]]    <-optim(par=c(5,5,0.5,0.1,0.1,5),   fn=fit_lam_a, gr=NULL, d14, control=list(maxit=5000))
+res[[7]]    <-optim(par=c(5,0.5,0.5,0.1,0.1,5), fn=fit_b_a, gr=NULL, d14, control=list(maxit=5000))
+res[[8]]    <-optim(par=c(5,5,0.5,0.5,0.1,0.1,5), fn=fit_full, gr=NULL, d14, control=list(maxit=5000))
+res         <-setNames(res, c("null","lam","b","a","lam_b","lam_a","b_a","full"))
+
+# parameter names
+res$null    <- par_names(res$null, null_par)
+res$lam     <- par_names(res$lam, lam_par)
+res$b       <- par_names(res$b, b_par)
+res$a       <- par_names(res$a, a_par)
+res$lam_b   <- par_names(res$lam_b, lam_b_par)
+res$lam_a   <- par_names(res$lam_a, lam_a_par)
+res$b_a     <- par_names(res$b_a, b_a_par)
+res$full    <- par_names(res$full, full_par)
+
+# aic weights
+m14         <- lapply(res,aic_calc)
+mod_w       <- mod_weights(m14)
+
+# Model selection table
+write.csv(mod_w,"new_tillers_BH14_mod_sel.csv",row.names=F)
+
+# Average AIC weight models --------------------------------------------------------------------------------------
+mat <- matrix(data = 1, nrow = length(res), ncol = 6) 
+for(i in 1:length(res)){
+  
+  params  <- c("lam.f","lam.m","b.f","b.m","a.f","a.m")
+  
+  lam_r   <- grep("lam.",names(res[[i]]$par) )
+  b_r     <- grep("b.",names(res[[i]]$par) )
+  a_r     <- grep("^a$|a.f|a.m",names(res[[i]]$par) )
+  
+  if( length(lam_r) > 0 ) mat[i,grep("lam.",params)] <- res[[i]]$par[lam_r]
+  if( length(b_r) > 0 )   mat[i,grep("b.",params)]   <- res[[i]]$par[b_r]
+  if( length(a_r) > 0 )   mat[i,grep("a.f|a.m",params)]   <- res[[i]]$par[a_r]
+  
+}
+results   <- data.frame(mat)
+results   <- setNames(results, params)
+results   <- mutate(results, model = names(res) )
+results   <- merge(results, mod_w[,c("model","weights")])
+results   <- arrange(results, desc(weights) ) # best model first, then the rest
+results   <- mutate(results, cum_weight = cumsum(weights))
+# only the the models making up to 95% (included) weights
+min_cum_weight <- min(results$cum_weight[results$cum_weight > 0.95])
+weight_i  <- which(results$cum_weight == min_cum_weight)
+weighted  <- (select(results,lam.f:a.m) * results$weights)[1:weight_i,]
+summed    <- apply(weighted,2,sum) 
+avg       <- summed / results$cum_weight[weight_i]
+avg14     <- as.data.frame(t(avg))
+
+write.csv(avg14, "Results/VitalRates_3/new_t_bh14_best.csv",row.names=F)
 
 
-# Model fits --------------------------------------------------------------------------------------------
+# Model fits 2015 ---------------------------------------------------------------
+res         <- list()
+res[[1]]    <-optim(par=c(2,0.1,5),         fn=fit_null, gr=NULL, d15, control=list(maxit=5000))
+res[[2]]    <-optim(par=c(5,5,0.5,5),       fn=fit_lam, gr=NULL, d15, control=list(maxit=5000))
+res[[3]]    <-optim(par=c(5,0.5,0.5,5),     fn=fit_b, gr=NULL, d15, control=list(maxit=5000))
+res[[4]]    <-optim(par=c(5,0.5,0.1,0.1,5), fn=fit_a, gr=NULL, d15, control=list(maxit=5000))
+res[[5]]    <-optim(par=c(5,5,0.5,0.5,5),       fn=fit_lam_b, gr=NULL, d15, control=list(maxit=5000))
+res[[6]]    <-optim(par=c(5,5,0.5,0.1,0.1,5),   fn=fit_lam_a, gr=NULL, d15, control=list(maxit=5000))
+res[[7]]    <-optim(par=c(5,0.5,0.5,0.1,0.1,5), fn=fit_b_a, gr=NULL, d15, control=list(maxit=5000))
+res[[8]]    <-optim(par=c(5,5,0.5,0.5,0.1,0.1,5), fn=fit_full, gr=NULL, d15, control=list(maxit=5000))
+res         <-setNames(res, c("null","lam","b","a","lam_b","lam_a","b_a","full"))
 
-# 2014
-BH.14         <-optim(par=setNames(c(2,0.1,5),c("lam","b","size")),
-                      fn=fit.BH, gr=NULL, d14, control=list(maxit=5000))
-BH.sex.14     <-optim(par=setNames(c(10,10,0.5,0.5,5),c("lam_f","lam_m","b_f","b_m","size")),
-                      fn=fit.BH.sex,gr=NULL, d14,control=list(maxit=5000))
-BH.sex.lam.14 <-optim(par=setNames(c(10,10,0.5,5),c("lam_f","lam_m","b","size")),
-                      fn=fit.BH.sex.lambda,gr=NULL, d14, control=list(maxit=5000))
-BH.sex.b.14   <-optim(par=setNames(c(10,0.5,0.5,5),c("lam","b_f","b_m","size")),
-                      fn=fit.BH.sex.b,gr=NULL, d14, control=list(maxit=5000))
+# parameter names
+res$null    <- par_names(res$null, null_par)
+res$lam     <- par_names(res$lam, lam_par)
+res$b       <- par_names(res$b, b_par)
+res$a       <- par_names(res$a, a_par)
+res$lam_b   <- par_names(res$lam_b, lam_b_par)
+res$lam_a   <- par_names(res$lam_a, lam_a_par)
+res$b_a     <- par_names(res$b_a, b_a_par)
+res$full    <- par_names(res$full, full_par)
 
-# 2015
-BH.15         <-optim(par=setNames(c(2,0.1,5),c("lam","b","size")),
-                      fn=fit.BH, gr=NULL, d15, control=list(maxit=5000))
-BH.sex.15     <-optim(par=setNames(c(10,10,0.5,0.5,5),c("lam_f","lam_m","b_f","b_m","size")),
-                      fn=fit.BH.sex,gr=NULL, d15,control=list(maxit=5000))
-BH.sex.lam.15 <-optim(par=setNames(c(10,10,0.5,5),c("lam_f","lam_m","b","size")),
-                      fn=fit.BH.sex.lambda,gr=NULL, d15, control=list(maxit=5000))
-BH.sex.b.15   <-optim(par=setNames(c(10,0.5,0.5,5),c("lam","b_f","b_m","size")),
-                      fn=fit.BH.sex.b,gr=NULL, d15, control=list(maxit=5000))
+# aic weights
+m15         <- lapply(res,aic_calc)
+mod_w       <- mod_weights(m15)
+
+# Model selection table
+write.csv(mod_w,"new_tillers_BH15_mod_sel.csv",row.names=F)
 
 
-# Compare models --------------------------------------------------------------------------------------
 
-# 2014
-m14 <- list()
-m14[[1]]  <-2*BH.14$value+2*length(BH.14$par)
-m14[[2]]  <-2*BH.sex.lam.14$value+2*length(BH.sex.lam.14$par)
-m14[[3]]  <-2*BH.sex.b.14$value+2*length(BH.sex.b.14$par)
-m14[[4]]  <-2*BH.sex.14$value+2*length(BH.sex.14$par)
-m14       <- setNames(m14, c("AIC.BH.14", "AIC.BH.sex.lam.14", "AIC.BH.sex.b.14", "AIC.BH.sex.14"))
+# Average AIC weight models --------------------------------------------------------------------------------------
+mat <- matrix(data = 1, nrow = length(res), ncol = 6) 
+for(i in 1:length(res)){
+  
+  params  <- c("lam.f","lam.m","b.f","b.m","a.f","a.m")
+  
+  lam_r   <- grep("lam.",names(res[[i]]$par) )
+  b_r     <- grep("b.",names(res[[i]]$par) )
+  a_r     <- grep("^a$|a.f|a.m",names(res[[i]]$par) )
+  
+  if( length(lam_r) > 0 ) mat[i,grep("lam.",params)] <- res[[i]]$par[lam_r]
+  if( length(b_r) > 0 )   mat[i,grep("b.",params)]   <- res[[i]]$par[b_r]
+  if( length(a_r) > 0 )   mat[i,grep("a.f|a.m",params)]   <- res[[i]]$par[a_r]
+  
+}
+results   <- data.frame(mat)
+results   <- setNames(results, params)
+results   <- mutate(results, model = names(res) )
+results   <- merge(results, mod_w[,c("model","weights")])
+results   <- arrange(results, desc(weights) ) # best model first, then the rest
+results   <- mutate(results, cum_weight = cumsum(weights))
+# only the the models making up to 95% (included) weights
+min_cum_weight <- min(results$cum_weight[results$cum_weight > 0.95])
+weight_i  <- which(results$cum_weight == min_cum_weight)
+weighted  <- (select(results,lam.f:a.m) * results$weights)[1:weight_i,]
+summed    <- apply(weighted,2,sum) 
+avg       <- summed / results$cum_weight[weight_i]
+avg15     <- as.data.frame(t(avg))
 
-# 2015
-m15 <- list()
-m15[[1]]  <-2*BH.15$value+2*length(BH.15$par)
-m15[[2]]  <-2*BH.sex.lam.15$value+2*length(BH.sex.lam.15$par)
-m15[[3]]  <-2*BH.sex.b.15$value+2*length(BH.sex.b.15$par)
-m15[[4]]  <-2*BH.sex.15$value+2*length(BH.sex.15$par)
-m15       <- setNames(m15, c("AIC.BH.15", "AIC.BH.sex.lam.15", "AIC.BH.sex.b.15", "AIC.BH.sex.15"))
-
-mod_weights(m14)
-mod_weights(m15)
+write.csv(avg15, "Results/VitalRates_3/new_t_bh15_best.csv",row.names=F)
 
 
 # Model selection ----------------------------------------------------------------------------------------
 
 # Only 14 ----------------------------------------------------------------------------------
 sr_seq    <- seq(0,1,0.05)
-des       <- expand.grid(TotDensity = seq(1,48,1), sr = sr_seq)
+des       <- expand.grid(TotDensity = seq(1,48,1), sr = seq(0,1,0.05))
+des       <- mutate(des, F = sr*TotDensity, M = (1-sr)*TotDensity)
 
 # best model 1
-beta_1    <- BH.sex.lam.14$par
-beta_2    <- BH.14$par
-beta_3    <- BH.sex.14$par
+fem_n     <- (avg["lam.f"]*des$F) / (1 + avg["b.f"]*(avg["a.m"]*des$M +            des$F))
+mal_n     <- (avg["lam.m"]*des$M) / (1 + avg["b.m"]*(           des$M + avg["a.f"]*des$F))
+t_pred    <- fem_n + mal_n
+des       <- mutate(des, t_pred = t_pred)
+des       <- mutate(des, t_pred_pc = t_pred / TotDensity)
 
-lambdas_1 <- beta_1["lam_f"]*sr_seq + beta_1["lam_m"]*(1-sr_seq)
-lambdas_3 <- beta_3["lam_f"]*sr_seq + beta_3["lam_m"]*(1-sr_seq)
-b_3       <- beta_3["b_f"]*sr_seq   + beta_3["b_m"]*(1-sr_seq)
-
-lambda_df <- data.frame(sr = sr_seq, lambda_1 = lambdas,       b_1 = beta_1["b"],
-                                     lambda_2 = beta_2["lam"], b_2 = beta_2["b"],
-                                     lambda_3 = lambdas_3,     b_3 = b_3)
-
-
-
-des       <- merge(des, lambda_df)
-des       <- mutate(des, yhat = (lambda*TotDensity) / (1+beta["b"]*TotDensity))
-des       <- mutate(des, yhat_pc = yhat / TotDensity)
-
-
-
-
-
-till_3d <- form_3d_surf(des,yhat_pc)
-
+# Graph --------------------------------------
+till_3d <- form_3d_surf(des,t_pred_pc)
 persp(till_3d$x,till_3d$y,till_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
       xlab = "Proportion of female individuals", 
       ylab = "Density",ticktype = "detailed",
       zlab = "New Tillers_PC",
       main = "Production of new tillers_PC")
-
-
-
-# plot
-x <- c(0:max(d14$TotDensity))
-plot(d14$TotDensity,d14$new_t1, pch = 16)
-lines(x,yhat_h, col = "green", lwd = 2)
-lines(x,yhat_l, col = "blue", lwd = 2)
-
-
-# model average ---------------------------------------------------------------------------------------
-# best mod

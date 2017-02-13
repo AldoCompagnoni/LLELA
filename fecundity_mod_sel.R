@@ -1,9 +1,10 @@
 # model selection for fecundity (seeds per flower) 
-setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
+setwd("C:/Users/Aldo/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
 library(bbmle) 
 library(MASS)
 library(dplyr)
-source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
+source("C:/Users/Aldo/Documents/CODE/LLELA/model_avg.R")
+source("C:/Users/Aldo/Documents/CODE/LLELA/model_sel_results.R")
 
 #read in data--------------------------------------------------------------
 d         <- read.csv("Data/vr.csv")
@@ -47,6 +48,10 @@ nsMod[[5]]= glmmadmb(SeedN ~ sr * TotDensity + ( 1 | plot), family="nbinom2", da
 fec_select <- AICtab(nsMod,weights=T)
 fec_avg    <- model_avg(fec_select, nsMod)
 write.csv(fec_avg, "Results/VitalRates_3/fecuntity_best.csv", row.names = F)
+
+# Model selection table
+write.csv(sel_results(fec_select, 5, "Seeds per flower"),
+          "fecuntity_mod_sel.csv",row.names=F)
 
 
 # GRAPH -------------------------------------------------------------------------

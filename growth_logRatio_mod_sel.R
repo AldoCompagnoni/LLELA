@@ -34,7 +34,8 @@ m14[[11]]=lmer(log_ratio ~ sex * TotDensity + sr + (1 | plot),data=d14)
 m14[[12]]=lmer(log_ratio ~ sex * sr + TotDensity + (1 | plot),data=d14)
 m14[[13]]=lmer(log_ratio ~ TotDensity * sr + sex + (1 | plot),data=d14)
 # three way interaction
-m14[[14]]=lmer(log_ratio ~ TotDensity * sr * sex + (1 | plot),data=d14)
+m14[[14]]=lmer(log_ratio ~ TotDensity * sr + sex + (1 | plot),data=d14)
+m14[[15]]=lmer(log_ratio ~ TotDensity * sr * sex + (1 | plot),data=d14)
 
 lr_14_mod_sel   <- AICtab(m14, weights = T)
 lr_14_avg       <- model_avg(lr_14_mod_sel, m14)
@@ -99,34 +100,36 @@ par(mfrow=c(1,2),mar=c(2.5,2.5,0.1,0.1),mgp=c(1.4,0.5,0),oma=c(0,0,0,0))
 
 # 2014 
 plot(jitter(d14$TotDensity), d14$log_ratio, pch = d14$symb, ylab="Log ratio (2014)", 
-     xlab="Planting density",bg=cRamp(d14$sr), ylim = c(0,10), 
+     xlab="Planting density",bg=cRamp(d14$sr),ylim=c(-3,2.5), 
      lwd = 1)
 beta  <- lr_14_avg[,c("predictor","avg")]$avg
-y_m   <- beta[1] + beta[2] + beta[3]*0.5 + beta[4]*0.5
+
+# NOTE: sex ratio differences too small to portray
+y_m   <- beta[1] + beta[2] + beta[3]*0.5
 y_f   <- beta[1] + beta[3]*0.5
 abline(h = y_m, col = "red")
 abline(h = y_f, col = "blue")
 
-# 2015
-plot(jitter(d15$TotDensity), d15$log_ratio, pch = d15$symb, ylab="Log ratio (2015)", 
-     xlab="Planting density",bg=cRamp(d15$sr), ylim = c(0,10), 
-     lwd = 1)
-xSeq  <- seq(0,48,1)
-beta  <- lr_15_avg[,c("predictor","avg")]$avg
-y_m   <- beta[1] + beta[2]*0.5 + beta[3] + beta[4]*xSeq
-y_f   <- beta[1] + beta[2]*0.5 + beta[4]*xSeq
-lines(xSeq,y_f,lwd=1.5,lty=1,col="blue")
-lines(xSeq,y_m,lwd=1.5,lty=1,col="red")
-
-legend(0.05,10.5,c("Males","Females"), cex = 0.8, pch = c(24,21),
+legend(0.05,-2,c("Males","Females"), cex = 0.8, pch = c(24,21),
        lty=1,lwd=1.5,col=c("red","blue"),bty="n")
 
 colfunc = colorRampPalette(cRamp(unique(arrange(d15,sr)$sr)))
 legend_image <- as.raster(matrix(colfunc(21), ncol=1))
-text(x=1.5, y = seq(7.2,9.2,l=3), labels = seq(0,1,l=3))
-rasterImage(legend_image, 4, 7.2, 7.5, 9.2)
-text(7.5, 9.2, "Percent of", pos = 4)
-text(7.5, 8.2, "males in", pos = 4)
-text(7.5, 7.2, "plot", pos = 4)
+text(x=25, y = seq(-2.8,-1.8,l=3), labels = seq(0,1,l=3))
+rasterImage(legend_image, 28, -2.8, 31, -1.8)
+text(31, -1.8, "Percent of", pos = 4)
+text(31, -2.3, "males in", pos = 4)
+text(31, -2.8, "plot", pos = 4)
+
+
+# 2015
+plot(jitter(d15$TotDensity), d15$log_ratio, pch = d15$symb, ylab="Log ratio (2015)", 
+     xlab="Planting density",bg=cRamp(d15$sr),ylim=c(-3,2.5), lwd = 1)
+xSeq  <- seq(0,48,1)
+beta  <- lr_15_avg[,c("predictor","avg")]$avg
+y_m   <- beta[1] + beta[2]*xSeq + beta[3]*0.5 + beta[4]
+y_f   <- beta[1] + beta[2]*xSeq + beta[3]*0.5
+lines(xSeq,y_f,lwd=1.5,lty=1,col="blue")
+lines(xSeq,y_m,lwd=1.5,lty=1,col="red")
 
 dev.off()

@@ -1,9 +1,9 @@
 ##Response variable: total number of tillers 
-setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
+setwd("C:/Users/Aldo/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
 library(bbmle) 
 library(glmmADMB) # Fit models with a Negative Binomial
 library(dplyr)
-source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
+source("C:/Users/Aldo/Documents/CODE/LLELA/model_avg.R")
 
 # load and format data -----------------------------------------------------
 x       <- read.csv("Data/vr.csv")
@@ -13,8 +13,8 @@ d15     <- subset(d, year == 2015)
 d15     <- subset(d15, plot != 149) # Remove outlier
 
 # Model averages
-grow_new_t14_avg  <- read.csv("Results/VitalRates_3/growth_new_t_14.csv")
-grow_new_t15_avg  <- read.csv("Results/VitalRates_3/growth_new_t_15.csv")
+avg14   <- read.csv("Results/VitalRates_3/new_t_bh14_best.csv")
+avg15   <- read.csv("Results/VitalRates_3/new_t_bh15_best.csv")
 
 
 # Graph -----------------------------------------------------------------------------
@@ -27,7 +27,6 @@ cRamp <- function(x){
   apply(cols, 1, function(xt)rgb(xt[1], xt[2], xt[3], maxColorValue=255))
 }  
 
-
 #Graph: total number of tillers -----------------------------------------------------
 tiff("Results/VitalRates_3/Figure4.tiff",unit="in",width=6.3,height=3.15,res=600,compression="lzw")
 
@@ -37,12 +36,18 @@ par(mfrow=c(1,2),mar=c(2.6,2.5,1.3,0.1),mgp=c(1.4,0.5,0),oma=c(0,0,0,0.1))
 # total number of tillers
 plot(d14$TotDensity,d14$new_t1,pch=21,ylab="Number of new tillers",
      xlab="Planting density", bg = cRamp(d14$sr), cex = 1.5, ylim = c(0,max(d15$new_t1,na.rm=T)))
-beta  <-  grow_new_t14_avg[,c("predictor","avg")]$avg
-xSeq  <-  seq(0,48,by=1)
-yL    <-  exp( beta[1] + beta[2]*xSeq + beta[3]*xSeq^2 + beta[4]*0.1 + beta[5]*xSeq*0.1 )
-yH    <-  exp( beta[1] + beta[2]*xSeq + beta[3]*xSeq^2 + beta[4]*0.9 + beta[5]*xSeq*0.9 )
-lines(xSeq,yL,col="blue3",lwd=2)
-lines(xSeq,yH,col="khaki3",lwd=2, lty = 2)
+N    <- seq(0,48,1)
+beta <- as.data.frame(avg14)
+fem  <- N*0.9
+mal  <- N*0.1
+y_h  <- (beta[,"lam.f"]*fem) / (1 + beta[,"b.f"] * (fem + beta[,"a.m"]*mal)) + 
+  (beta[,"lam.m"]*mal) / (1 + beta[,"b.m"]* (beta[,"a.f"]*fem + mal))
+fem  <- N*0.1
+mal  <- N*0.9
+y_l  <- (beta[,"lam.f"]*fem) / (1 + beta[,"b.f"] * (fem + beta[,"a.m"]*mal)) + 
+  (beta[,"lam.m"]*mal) / (1 + beta[,"b.m"]* (beta[,"a.f"]*fem + mal))
+lines(N,y_l,col="blue3",lwd=2)
+lines(N,y_h,col="khaki3",lwd=2, lty = 2)
 
 # sex ratio legend
 colfunc = colorRampPalette(cRamp(unique(arrange(d15,sr)$sr)))
@@ -65,12 +70,17 @@ text(-2,245,"a) Plot level data, year 2014",pos=4, xpd = NA)
 # total number of tillers
 plot(d15$TotDensity,d15$new_t1,pch=21,ylab="Number of new tillers",
      xlab="Planting density", bg = cRamp(d15$sr), cex = 1.5)
-beta  <-  grow_new_t15_avg[,c("predictor","avg")]$avg
-xSeq  <-  seq(0,48,by=1)
-yL    <-  exp( beta[1] + beta[2]*xSeq + beta[3]*xSeq^2 + beta[4]*0.1 + beta[5]*xSeq*0.1 )
-yH    <-  exp( beta[1] + beta[2]*xSeq + beta[3]*xSeq^2 + beta[4]*0.9 + beta[5]*xSeq*0.9 )
-lines(xSeq,yL,col="blue3",lwd=2)
-lines(xSeq,yH,col="khaki3",lwd=2, lty = 2)
+beta <- as.data.frame(avg15)
+fem  <- N*0.9
+mal  <- N*0.1
+y_h  <- (beta[,"lam.f"]*fem) / (1 + beta[,"b.f"] * (fem + beta[,"a.m"]*mal)) + 
+  (beta[,"lam.m"]*mal) / (1 + beta[,"b.m"]* (beta[,"a.f"]*fem + mal))
+fem  <- N*0.1
+mal  <- N*0.9
+y_l  <- (beta[,"lam.f"]*fem) / (1 + beta[,"b.f"] * (fem + beta[,"a.m"]*mal)) + 
+  (beta[,"lam.m"]*mal) / (1 + beta[,"b.m"]* (beta[,"a.f"]*fem + mal))
+lines(N,y_l,col="blue3",lwd=2)
+lines(N,y_h,col="khaki3",lwd=2, lty = 2)
 
 # panel ID
 text(-2,245,"b) Plot level data, year 2015",pos=4, xpd = NA)

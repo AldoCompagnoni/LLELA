@@ -65,7 +65,7 @@ format_growth <- function(x){
   # remove dead individuals (this is a GROWTH model!)
   d       <- subset(x, surv_t1 != 0)
   # create log ratio: log(sizet1/sizet0)
-  d       <- mutate(d, log_ratio = l_t1 / l_t0)
+  d       <- mutate(d, log_ratio = log(l_t1 / l_t0) )
   # glmmadmb wants plot as a factor
   d       <- mutate(d, plot = as.factor(plot) ) 
   
