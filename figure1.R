@@ -49,7 +49,7 @@ viabVr      <- subset(viabVr, totFlow < 60)
 # service functions
 range01 <- function(x)(x-min(x))/diff(range(x))
 cRamp <- function(x){
-  cols <- colorRamp(topo.colors(7))(range01(x))
+  cols <- colorRamp(gray.colors(7))(range01(x))
   apply(cols, 1, function(xt)rgb(xt[1], xt[2], xt[3], maxColorValue=255))
 }  
 
@@ -74,14 +74,14 @@ meanM   <- mal14 %>%
             summarise( meanM = mean(flowN_t1), sdM = sd(flowN_t1) )
 
 # plots
-plot(meanF$TotDensity , meanF$meanF, pch = 16, col = "blue", ylim = c(0.3,2),
+plot(meanF$TotDensity , meanF$meanF, pch = 16, col = "#ABABAB", ylim = c(0.3,2),
      ylab = "Number of flowers per capita", xlab="Planting density")
-arrows(meanF$TotDensity, meanF$meanF - meanF$sdF*0.1, col = "blue",
+arrows(meanF$TotDensity, meanF$meanF - meanF$sdF*0.1, col = "#ABABAB",
        meanF$TotDensity, meanF$meanF + meanF$sdF*0.1, length=0.02, angle=90, code=3)
 par(new = T)
-plot(meanM$meanM ~ meanM$TotDensity , pch = 16, col = "red", ylim = c(0.3,2),
+plot(meanM$meanM ~ meanM$TotDensity , pch = 16, col = "#5D5D5D", ylim = c(0.3,2),
      ylab = "", xlab="")
-arrows(meanM$TotDensity, meanM$meanM - meanM$sdM*0.1, col = "red",  
+arrows(meanM$TotDensity, meanM$meanM - meanM$sdM*0.1, col = "#5D5D5D",  
        meanM$TotDensity, meanM$meanM + meanM$sdM*0.1, length=0.02, angle=90, code=3)
 
 xSeq  <- seq(0,48, by = 1)
@@ -89,11 +89,11 @@ beta  <- n_flow_beta[,c("predictor","avg")]$avg
 y_m <- exp(beta[1] + beta[2]*xSeq + beta[3] + beta[4]*0.5 + 
            beta[5]*0.5*xSeq + beta[6]*xSeq + beta[7]*0.5)
 y_f <- exp(beta[1] + beta[2]*xSeq + beta[4]*0.5 + beta[5]*0.5*xSeq)
-lines(xSeq,y_m,lty=1,lwd=2,col="red")
-lines(xSeq,y_f,lty=2,lwd=2,col="blue")
+lines(xSeq,y_m,lty=1,lwd=2,col="#5D5D5D")
+lines(xSeq,y_f,lty=2,lwd=2,col="#ABABAB")
 
 legend(1,2.1,c("male","female"), lty=1, lwd=2, 
-       col=c("red","blue"), bty="n", pch = 16 )
+       col=c("#5D5D5D","#ABABAB"), bty="n", pch = 16 )
 
 text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.11,
      par("usr")[4]*0.97,"(a)", cex = 1.2, xpd = T)
