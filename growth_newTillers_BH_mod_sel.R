@@ -12,6 +12,13 @@ source("C:/Users/Aldo/Desktop/POAR/bh_util_fnc.R")
 x       <- read.csv("Data/vr.csv")
 d       <- format_growth(x)
 d14     <- subset(d, year == 2014)
+<<<<<<< HEAD
+# omit NAs
+d14 <- na.omit(select(d14, TotDensity, F, M, new_t1))
+
+
+# Model fits ---------------------------------------------------------------
+=======
 d15     <- subset(d, year == 2015)
 d15     <- subset(d15, plot != 149) # Remove outlier
 
@@ -20,6 +27,7 @@ d14 <- na.omit(select(d14, TotDensity, F, M, sr, new_t1))
 d15 <- na.omit(select(d15, TotDensity, F, M, sr, new_t1))
 
 # Model fits 2014 ---------------------------------------------------------------
+>>>>>>> c71ad217545fb8340e79c46e6eca994ebe95e557
 res         <- list()
 res[[1]]    <-optim(par=c(2,0.1,5),         fn=fit_null, gr=NULL, d14, control=list(maxit=5000))
 res[[2]]    <-optim(par=c(5,5,0.5,5),       fn=fit_lam, gr=NULL, d14, control=list(maxit=5000))
@@ -45,6 +53,8 @@ res$full    <- par_names(res$full, full_par)
 m14         <- lapply(res,aic_calc)
 mod_w       <- mod_weights(m14)
 
+<<<<<<< HEAD
+=======
 # Model selection table
 write.csv(mod_w,"new_tillers_BH14_mod_sel.csv",row.names=F)
 
@@ -110,6 +120,7 @@ mod_w       <- mod_weights(m15)
 write.csv(mod_w,"new_tillers_BH15_mod_sel.csv",row.names=F)
 
 
+>>>>>>> c71ad217545fb8340e79c46e6eca994ebe95e557
 
 # Average AIC weight models --------------------------------------------------------------------------------------
 mat <- matrix(data = 1, nrow = length(res), ncol = 6) 
@@ -138,9 +149,15 @@ weight_i  <- which(results$cum_weight == min_cum_weight)
 weighted  <- (select(results,lam.f:a.m) * results$weights)[1:weight_i,]
 summed    <- apply(weighted,2,sum) 
 avg       <- summed / results$cum_weight[weight_i]
+<<<<<<< HEAD
+avg       <- as.data.frame(t(avg))
+
+write.csv(avg, "Results/VitalRates_3/new_t_bh_best.csv",row.names=F)
+=======
 avg15     <- as.data.frame(t(avg))
 
 write.csv(avg15, "Results/VitalRates_3/new_t_bh15_best.csv",row.names=F)
+>>>>>>> c71ad217545fb8340e79c46e6eca994ebe95e557
 
 
 # Model selection ----------------------------------------------------------------------------------------
@@ -164,3 +181,7 @@ persp(till_3d$x,till_3d$y,till_3d$z, theta = 30, phi = 30, expand = 0.5, col = "
       ylab = "Density",ticktype = "detailed",
       zlab = "New Tillers_PC",
       main = "Production of new tillers_PC")
+<<<<<<< HEAD
+
+=======
+>>>>>>> c71ad217545fb8340e79c46e6eca994ebe95e557
