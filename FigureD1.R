@@ -102,57 +102,81 @@ reprod    <- mutate(reprod, reprod_pc = reprod /TotDensity)
 
 
 
-# FIGURE 2 ------------------------------------------------------------------------------
+# FIGURE D1 -------------------------------------------------------------------
 
-seed_3d <- form_3d_surf(seed_prod,seed_prod_pc)
-viab_3d <- form_3d_surf(pred_viab,viab)
-till_3d <- form_3d_surf(pred_till,pred_new_t_pc)
-vs_3d   <- form_3d_surf(reprod,reprod_pc)
+# Varying Per capita seedling survival ---------------------------------
+s_d       <- 1 #per capita seedling death
+reprod    <- merge(fert,pred_till)
+reprod    <- mutate(reprod, reprod    = (viable_seeds * s_d) + pred_new_t)
+reprod    <- mutate(reprod, reprod_pf = reprod /n_fem )
+reprod    <- mutate(reprod, reprod_pc = reprod /TotDensity)
+vs_3d_1   <- form_3d_surf(reprod,reprod_pc)
 
-tiff("Results/VitalRates_3/figure2.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
+s_d       <- 0.7 #per capita seedling death
+reprod    <- merge(fert,pred_till)
+reprod    <- mutate(reprod, reprod    = (viable_seeds * s_d) + pred_new_t)
+reprod    <- mutate(reprod, reprod_pf = reprod /n_fem )
+reprod    <- mutate(reprod, reprod_pc = reprod /TotDensity)
+vs_3d_2   <- form_3d_surf(reprod,reprod_pc)
+
+s_d       <- 0.46 #per capita seedling death
+reprod    <- merge(fert,pred_till)
+reprod    <- mutate(reprod, reprod    = (viable_seeds * s_d) + pred_new_t)
+reprod    <- mutate(reprod, reprod_pf = reprod /n_fem )
+reprod    <- mutate(reprod, reprod_pc = reprod /TotDensity)
+vs_3d_3   <- form_3d_surf(reprod,reprod_pc)
+
+s_d       <- 0.31 #per capita seedling death
+reprod    <- merge(fert,pred_till)
+reprod    <- mutate(reprod, reprod    = (viable_seeds * s_d) + pred_new_t)
+reprod    <- mutate(reprod, reprod_pf = reprod /n_fem )
+reprod    <- mutate(reprod, reprod_pc = reprod /TotDensity)
+vs_3d_4   <- form_3d_surf(reprod,reprod_pc)
+
+
+tiff("Results/VitalRates_3/figureD1_surface.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
 
 m_line <- -2
 par(mfrow=c(2,2),mar=c(0,2,0,0),mgp=c(3,1,0), oma=c(0,0,0,0),cex=0.7,
     cex.axis = 0.7)
 
-persp(seed_3d$x,seed_3d$y,seed_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
+persp(vs_3d_1$x,vs_3d_1$y,vs_3d_1$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
       xlab = "Proportion of female individuals",line = m_line,
       ylab = "Density",ticktype = "detailed",
-      zlab = expression(Psi),mgp=c(2,1,0), sub = "a",
-      main = expression("a)   Reproductive potential ("*Psi*")"))
-persp(viab_3d$x,viab_3d$y,viab_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
+      zlab = "Regeneration",mgp=c(2,1,0), sub = "a",
+      main = expression("a)   100% seedling surv"))
+persp(vs_3d_2$x,vs_3d_2$y,vs_3d_2$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
       xlab = "Proportion of female individuals", line = m_line,
       ylab = "Density",ticktype = "detailed",
-      zlab = expression(omega),
-      main = expression("b)     Seed viability("*omega*")"))
-persp(till_3d$x,till_3d$y,till_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
+      zlab = "Regeneration",
+      main = expression("b)   70% seedling surv"))
+persp(vs_3d_3$x,vs_3d_3$y,vs_3d_3$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
       xlab = "Proportion of female individuals", line = m_line,
       ylab = "Density",ticktype = "detailed",
-      zlab = expression(gamma),
-      main = expression("c)    Production of new tillers("*gamma*")"))
-persp(vs_3d$x,vs_3d$y,vs_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
+      zlab = "Regeneration",
+      main = expression("c)   46% seedling surv"))
+persp(vs_3d_4$x,vs_3d_4$y,vs_3d_4$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
       xlab = "Proportion of female individuals", 
       ylab = "Density",ticktype = "detailed",line = m_line,
-      zlab = "R",
-      main = expression("d)   Regeneration(R)"))
+      zlab = "Regeneration",
+      main = expression("d)   31% seedling surv"))
 
 dev.off()
 
 
-# countour
-tiff("Results/VitalRates_3/figure2_contour.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
+tiff("Results/VitalRates_3/figureD1_contour.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
 
 par(mfrow=c(2,2),mar=c(2,2,1,0.2),mgp=c(2,0.5,0), oma=c(1,1,0,0),cex=0.7,
     cex.axis = 0.7)
 
-contour(seed_3d$x,seed_3d$y,seed_3d$z, 
-        main = expression("a) Reproductive potential ("*Psi*")"))
-contour(viab_3d$x,viab_3d$y,viab_3d$z,
-        main = expression("b) Seed viability ("*omega*")"))
-contour(till_3d$x,till_3d$y,till_3d$z,
-        main = expression("c) Production of new tillers ("*gamma*")"))
-contour(vs_3d$x,vs_3d$y,vs_3d$z,
-        main = expression("d) Regeneration (R)"))
+contour(vs_3d_1$x,vs_3d_1$y,vs_3d_1$z, 
+        main = expression("a) R: seedling survival 100%"))
+contour(vs_3d_2$x,vs_3d_2$y,vs_3d_2$z,
+        main = expression("b) R: seedling survival 70%"))
+contour(vs_3d_3$x,vs_3d_3$y,vs_3d_3$z,
+        main = expression("c) R: seedling survival 46%"))
+contour(vs_3d_4$x,vs_3d_4$y,vs_3d_4$z,
+        main = expression("d) R: seedling survival 31%"))
 
 mtext("Density",side=2,line=-0.2,outer=T,cex=1)
 mtext("Proportion of female individuals",at=0.5,line=-0.2,side=1,outer=T,cex=1)
@@ -160,7 +184,8 @@ mtext("Proportion of female individuals",at=0.5,line=-0.2,side=1,outer=T,cex=1)
 dev.off()
 
 
-# FIGURE 2 COUNTOUR ##################################################################################
+
+# FIGURE D1 COUNTOUR ##################################################################################
 # NOTE: you need to export this file MANUALLY using R studio.
 par(opar)
 
@@ -374,206 +399,5 @@ filled.legend(
 
 mtext("Proportion of female individuals",side=1, 
       line=-1, outer=T, adj = c(0.43) ,cex=1.5)
-
-
-
-
-
-# Varying Per capita seedling survival ---------------------------------
-s_d       <- 1 #per capita seedling death
-reprod    <- merge(fert,pred_till)
-reprod    <- mutate(reprod, reprod    = (viable_seeds * s_d) + pred_new_t)
-reprod    <- mutate(reprod, reprod_pf = reprod /n_fem )
-reprod    <- mutate(reprod, reprod_pc = reprod /TotDensity)
-vs_3d_1   <- form_3d_surf(reprod,reprod_pc)
-
-s_d       <- 0.7 #per capita seedling death
-reprod    <- merge(fert,pred_till)
-reprod    <- mutate(reprod, reprod    = (viable_seeds * s_d) + pred_new_t)
-reprod    <- mutate(reprod, reprod_pf = reprod /n_fem )
-reprod    <- mutate(reprod, reprod_pc = reprod /TotDensity)
-vs_3d_2   <- form_3d_surf(reprod,reprod_pc)
-
-s_d       <- 0.20 #per capita seedling death
-reprod    <- merge(fert,pred_till)
-reprod    <- mutate(reprod, reprod    = (viable_seeds * s_d) + pred_new_t)
-reprod    <- mutate(reprod, reprod_pf = reprod /n_fem )
-reprod    <- mutate(reprod, reprod_pc = reprod /TotDensity)
-vs_3d_3   <- form_3d_surf(reprod,reprod_pc)
-
-s_d       <- 0.05 #per capita seedling death
-reprod    <- merge(fert,pred_till)
-reprod    <- mutate(reprod, reprod    = (viable_seeds * s_d) + pred_new_t)
-reprod    <- mutate(reprod, reprod_pf = reprod /n_fem )
-reprod    <- mutate(reprod, reprod_pc = reprod /TotDensity)
-vs_3d_4   <- form_3d_surf(reprod,reprod_pc)
-
-
-tiff("Results/VitalRates_3/figure2_seedling_surv_estimates.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
-
-m_line <- -2
-par(mfrow=c(2,2),mar=c(0,2,0,0),mgp=c(3,1,0), oma=c(0,0,0,0),cex=0.7,
-    cex.axis = 0.7)
-
-persp(vs_3d_1$x,vs_3d_1$y,vs_3d_1$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals",line = m_line,
-      ylab = "Density",ticktype = "detailed",
-      zlab = "Regeneration",mgp=c(2,1,0), sub = "a",
-      main = expression("a)   100% seedling surv"))
-persp(vs_3d_2$x,vs_3d_2$y,vs_3d_2$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals", line = m_line,
-      ylab = "Density",ticktype = "detailed",
-      zlab = "Regeneration",
-      main = expression("b)   70% seedling surv"))
-persp(vs_3d_3$x,vs_3d_3$y,vs_3d_3$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals", line = m_line,
-      ylab = "Density",ticktype = "detailed",
-      zlab = "Regeneration",
-      main = expression("c)   20% seedling surv"))
-persp(vs_3d_4$x,vs_3d_4$y,vs_3d_4$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals", 
-      ylab = "Density",ticktype = "detailed",line = m_line,
-      zlab = "Regeneration",
-      main = expression("d)   5% seedling surv"))
-
-dev.off()
-
-
-
-par(mfrow=c(2,2),mar=c(2,2,1,0.2),mgp=c(2,0.5,0), oma=c(1,1,0,0),cex=0.7,
-    cex.axis = 0.7)
-
-contour(vs_3d_1$x,vs_3d_1$y,vs_3d_1$z, 
-        main = expression("a) Regeneration: seedling survival 100%"))
-contour(vs_3d_2$x,vs_3d_2$y,vs_3d_2$z,
-        main = expression("b) Regeneration: seedling survival 70%"))
-contour(vs_3d_3$x,vs_3d_3$y,vs_3d_3$z,
-        main = expression("c) Regeneration: seedling survival 20%"))
-contour(vs_3d_4$x,vs_3d_4$y,vs_3d_4$z,
-        main = expression("d) Regeneration: seedling survival 5%"))
-
-mtext("Density",side=2,line=-0.2,outer=T,cex=1)
-mtext("Proportion of female individuals",at=0.5,line=-0.2,side=1,outer=T,cex=1)
-
-
-
-
-# data for PER FEMALE data
-seed_3d <- form_3d_surf(seed_prod,seed_prod_pf)
-viab_3d <- form_3d_surf(pred_viab,pred_viab)
-till_3d <- form_3d_surf(pred_till,pred_new_t_pf)
-vs_3d   <- form_3d_surf(reprod,reprod_pf)
-
-tiff("Results/VitalRates_3/figure2_pf.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
-
-m_line <- -2
-par(mfrow=c(2,2),mar=c(0,2,0,0),mgp=c(3,1,0), oma=c(0,0,0,0),cex=0.7,
-    cex.axis = 0.7)
-
-persp(seed_3d$x,seed_3d$y,seed_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals",line = m_line,
-      ylab = "Density",ticktype = "detailed",
-      zlab = "Seed produced_PF",mgp=c(2,1,0),
-      main = "Seed production_PF")
-persp(viab_3d$x,viab_3d$y,viab_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals", line = m_line,
-      ylab = "Density",ticktype = "detailed",
-      zlab = "Seed viability",
-      main = "Seed viability")
-persp(till_3d$x,till_3d$y,till_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals", line = m_line,
-      ylab = "Density",ticktype = "detailed",
-      zlab = "New Tillers_PF",
-      main = "Production of new tillers_PF")
-persp(vs_3d$x,vs_3d$y,vs_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals", 
-      ylab = "Density",ticktype = "detailed",line = m_line,
-      zlab = "Viable recruits_PF",
-      main = "Reproduction_PF")
-
-dev.off()
-
-
-
-# data for ABSOLUTE data
-seed_3d <- form_3d_surf(seed_prod,seed_prod)
-viab_3d <- form_3d_surf(pred_viab,pred_viab)
-till_3d <- form_3d_surf(pred_till,pred_new_t)
-vs_3d   <- form_3d_surf(reprod,reprod)
-
-tiff("Results/VitalRates_3/figure2_abs.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
-
-m_line <- -2
-par(mfrow=c(2,2),mar=c(0,2,0,0),mgp=c(3,1,0), oma=c(0,0,0,0),cex=0.7,
-    cex.axis = 0.7)
-
-persp(seed_3d$x,seed_3d$y,seed_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals",line = m_line,
-      ylab = "Density",ticktype = "detailed",
-      zlab = "Seed produced",mgp=c(2,1,0),
-      main = "Plot-level seed production")
-persp(viab_3d$x,viab_3d$y,viab_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals", line = m_line,
-      ylab = "Density",ticktype = "detailed",
-      zlab = "Seed viability",
-      main = "Seed viability")
-persp(till_3d$x,till_3d$y,till_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals", line = m_line,
-      ylab = "Density",ticktype = "detailed",
-      zlab = "New Tillers",
-      main = "Production of new tillers")
-persp(vs_3d$x,vs_3d$y,vs_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals", 
-      ylab = "Density",ticktype = "detailed",line = m_line,
-      zlab = "Viable recruits",
-      main = "Reproduction")
-
-dev.off()
-
-
-# contour
-par(mar=c(4,4,1,0.5),mgp=c(2,0.7,0))
-filled.contour(vs_3d$x,vs_3d$y,vs_3d$z, color.palette=heat.colors, cex.lab = 1.4,
-               xlab = "Proportion of female individuals", 
-               ylab = "Planting density", 
-               main = "Number of viable seeds")
-
-
-
-# "sensitivities" ------------------------------------------------------------------------------
-
-# flowers per male/female -----------------------------
-flow_m_3d <- form_3d_surf(subset(pred_flower,sexm == 1),
-                          n_flowers_pc)
-flow_f_3d <- form_3d_surf(subset(pred_flower,sexm == 0),
-                          n_flowers_pc)
-par(mfrow=c(1,2),mar=c(0,2,0,0),mgp=c(3,1,0), oma=c(0,0,0,0),cex=0.7,
-    cex.axis = 0.7)
-#females
-persp(flow_f_3d$x,flow_f_3d$y,flow_f_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals", #zlim = c(0,2),
-      ylab = "Density",ticktype = "detailed",
-      zlab = expression(Psi),mgp=c(2,1,0), sub = "a",
-      main = expression("a)   Reproductive potential ("*Psi*")"))
-persp(flow_m_3d$x,flow_m_3d$y,flow_f_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals", #zlim = c(0,2),
-      ylab = "Density",ticktype = "detailed",
-      zlab = expression(Psi),mgp=c(2,1,0), sub = "a",
-      main = expression("a)   Reproductive potential ("*Psi*")"))
-
-
-# seeds per female--------------------------------
-seed_f_3d <- form_3d_surf(subset(pred_seed),
-                          seeds_per_f)
-par(mfrow=c(1,1),mar=c(0,2,0,0),mgp=c(3,1,0), oma=c(0,0,0,0),cex=0.7,
-    cex.axis = 0.7)
-#females
-persp(seed_f_3d$x,seed_f_3d$y,seed_f_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals", #zlim = c(0,2),
-      ylab = "Density",ticktype = "detailed",
-      zlab = expression(Psi),mgp=c(2,1,0), sub = "a",
-      main = expression("a)   Reproductive potential ("*Psi*")"))
-
-
 
 

@@ -25,6 +25,8 @@ mod_length  <- lm(SeedN ~ Panicule.Length_.cm., data = seeds)
 
 plot(log(seeds$Seed.weight..mg.), log(seeds$SeedN) )
 
+# Mean seed weight
+mean(seeds$Seed.weight..mg. / seeds$SeedN, na.rm=T)
 
 # summary from COMADRE database -------------------------------------
 
@@ -54,3 +56,11 @@ stu_sex     <- nrow(subset(stu_sex, StudiedSex == "M/F"))
 ((9.078*2) / 5000) * 100
 # sodium phosphate  concentration
 ((9.472*3) / 5000) * 100
+
+
+# Poa pratensis Seedling survival estimate
+chai  <- read.csv("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/Data/literature_seedling_surv/poa_seedl_surv_chai_et_al.csv")
+edwd  <- read.csv("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/Data/literature_seedling_surv/poa_seedl_surv_edwards_et_al.csv")
+
+quantile(as.matrix(chai), prob = c(0.1,0.9))
+min(as.matrix(chai))
