@@ -13,19 +13,20 @@ sel_results <- function(x, candidate_num, response){
   # model ranks plus mode weights  
   mod_rank  <- do.call(rbind,strsplit(attributes(x)$row.names , "model"))
   mod_rank  <- data.frame( Model = as.numeric(mod_rank[,2]),
+                           dAIC  = x$dAIC,
                            AIC_weight = x$weight )
   
   # Combine model structures and model weights
   sel_res     <- merge(mod_rank, mod_str, sort = F)
   if(candidate_num == 15){
     sel_res   <- dplyr::select(sel_res, Model, Target, Competitive.effect, 
-                               Competitive.response,Equation, AIC_weight)
+                               Competitive.response,Equation, dAIC, AIC_weight)
   } 
   if(candidate_num == 5){
-    sel_res   <- dplyr::select(sel_res, Model, Competitive.effect, Equation, AIC_weight)
+    sel_res   <- dplyr::select(sel_res, Model, Competitive.effect, Equation, dAIC, AIC_weight)
   }
   
-  sel_res     <- mutate(sel_res, weight = round(AIC_weight,5))
+  sel_res     <- mutate(sel_res, weight = round(AIC_weight,3))
   
   return(sel_res)
   

@@ -1,10 +1,10 @@
 ##Sex predictor of flowering probability: SEX RATIO (female individuals/total individuals)
-setwd("C:/Users/Aldo/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
+setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
 library(bbmle) #For AIC weights, because I'm lazy!
 library(glmmADMB)
 library(dplyr)
-source("C:/Users/Aldo/Documents/CODE/LLELA/model_avg.R")
-source("C:/Users/Aldo/Documents/CODE/LLELA/model_sel_results.R")
+source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
+source("C:/Users/ac79/Documents/CODE/LLELA/model_sel_results.R")
 
 
 # read in data -------------------------------------------------------------------------------
@@ -38,13 +38,13 @@ nfMod[[14]]=glmmadmb(flowN_t1 ~ sex + sr + TotDensity + (1 | plot),data=f14,fami
 nfMod[[15]]=glmmadmb(flowN_t1 ~ sr * TotDensity * sex + (1 | plot),data=f14,family="nbinom2")
 
 # Model average
-n_flow_select <- AICtab(nfMod, weights=T)
+n_flow_select <- AICtab(nfMod, weights=T,sort=F)
 n_flow_avg    <- model_avg(n_flow_select, nfMod)
 write.csv(n_flow_avg, "Results/VitalRates_3/n_flowers_best.csv", row.names = F)
 
 # Model selection table
 write.csv(sel_results(n_flow_select, 15, "Panicle number"),
-          "n_flowers_mod_sel.csv",row.names=F)
+          "Results/VitalRates_3/n_flowers_mod_sel.csv",row.names=F)
 
 
 # GRAPHS ---------------------------------------------------------------------------------------------------------------
@@ -66,7 +66,6 @@ par(new=T) ; plot( mal14$flowN_t1-0.05 ~ mal14$sr,pch = 16,ylim=c(0,7),xlim=c(0,
 
 low   <- 5
 high  <- 42
-size  <- mean(f14$log_l_t0)
 xSeq  <- seq(0,1,by = 0.1)
 beta  <- n_flow_avg[,c("predictor","avg")]$avg
 

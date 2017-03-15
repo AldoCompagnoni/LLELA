@@ -39,12 +39,12 @@ plot(d14$TotDensity,d14$new_t1,pch=21,ylab="Number of new tillers",
      ylim = c(0,100))
 N    <- seq(0,48,1)
 beta <- as.data.frame(avg14)
-fem  <- N*0.9
-mal  <- N*0.1
+fem  <- N*0.95
+mal  <- N*0.05
 y_h  <- (beta[,"lam.f"]*fem) / (1 + beta[,"b.f"] * (fem + beta[,"a.m"]*mal)) + 
   (beta[,"lam.m"]*mal) / (1 + beta[,"b.m"]* (beta[,"a.f"]*fem + mal))
-fem  <- N*0.1
-mal  <- N*0.9
+fem  <- N*0.05
+mal  <- N*0.95
 y_l  <- (beta[,"lam.f"]*fem) / (1 + beta[,"b.f"] * (fem + beta[,"a.m"]*mal)) + 
   (beta[,"lam.m"]*mal) / (1 + beta[,"b.m"]* (beta[,"a.f"]*fem + mal))
 lines(N,y_l,col="#636363",lwd=2)
@@ -60,7 +60,7 @@ text(8.8, 80, "females in", pos = 4)
 text(8.8, 60, "plot", pos = 4)
 
 # prediction legend
-legend("topright", c("10% female plot", "90% female plot"), cex = 1,
+legend("topright", c("5% female plot", "95% female plot"), cex = 1,
        lty = c(1,2), lwd=2, col=c("#636363","#DCDCDC"), bty = "n")
 
 dev.off()

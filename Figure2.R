@@ -36,8 +36,8 @@ des_till    <- expand.grid(TotDensity = seq(1,48,1), sr = seq(0,1,0.05))
 des_till    <- mutate(des_till, F = TotDensity*sr, 
                                   M = TotDensity*(1-sr))
 pred_till   <- des_till %>% mutate(pred_new_t = 
-                                    (newt_beta[,"lam.f"]*F) / (1+newt_beta[,"b.f"]*(F + newt_beta[,"a.m"]*M)) + 
-                                    (newt_beta[,"lam.m"]*M) / (1+newt_beta[,"b.m"]*(newt_beta[,"a.f"]*F + M))
+                                    (newt_beta[,"lam.f"]*F) / (1+ newt_beta[,"b.f"]*(F + newt_beta[,"a."]*M)) + 
+                                    (newt_beta[,"lam.m"]*M) / (1+ newt_beta[,"b.m"]*(F + newt_beta[,"a."]*M))
                                      )
 pred_till   <- mutate(pred_till, pred_new_t_pc = pred_new_t/TotDensity)
 pred_till   <- mutate(pred_till, pred_new_t_pf = pred_new_t/(TotDensity*sr) )
@@ -74,18 +74,16 @@ des_v     <- flow_num %>% mutate(Intercept = 1,
                                   totFlow = n_m_flowers + n_f_flowers,
                                   sr_f = n_f_flowers / (n_m_flowers + n_f_flowers)
                                  )
-des_v     <- des_v %>% mutate(sr_f_x_totFlow = totFlow * sr_f)
+des_v     <- des_v %>% 
+              mutate(sr_f_x_totFlow = totFlow * sr_f)
 names(des_v)[c(7,10)] <- c("(Intercept)","sr_f:totFlow")
-pred_viab <- pred(des_v[,c("(Intercept)","sr_f","sr_f:totFlow","totFlow")], 
+viab_raw <- pred(des_v[,c("(Intercept)","sr_f","sr_f:totFlow","totFlow")], 
                   germ_beta, viab, inv.logit)
-
-all.equal(select(pred_viab,sr_f,totFlow),select(des_v,sr_f,totFlow))
-pred_viab  <- cbind(select(des_v,TotDensity,sr,
-                           n_fem,n_f_flowers,
-                           n_mal,n_m_flowers),
-                    pred_viab)
-
-
+all.equal(select(viab_raw,sr_f,totFlow),select(des_v,sr_f,totFlow))
+pred_viab  <- des_v %>%
+                select(TotDensity,sr, n_fem,n_f_flowers, n_mal,n_m_flowers) %>%
+                cbind(viab_raw)
+  
 # PANEL 3: Viable Seed production ----------------------------------------------------
 
 # n. of flowers + viability
@@ -163,7 +161,7 @@ dev.off()
 # FIGURE 2 COUNTOUR ##################################################################################
 # NOTE: you need to export this file MANUALLY using R studio.
 par(opar)
-
+dev.off()
 # gplots has the function colorpanel, which is handy for making gray-scale contour plots
 library(gplots)
 
@@ -394,14 +392,14 @@ reprod    <- mutate(reprod, reprod_pf = reprod /n_fem )
 reprod    <- mutate(reprod, reprod_pc = reprod /TotDensity)
 vs_3d_2   <- form_3d_surf(reprod,reprod_pc)
 
-s_d       <- 0.20 #per capita seedling death
+s_d       <- 0.46 #per capita seedling death
 reprod    <- merge(fert,pred_till)
 reprod    <- mutate(reprod, reprod    = (viable_seeds * s_d) + pred_new_t)
 reprod    <- mutate(reprod, reprod_pf = reprod /n_fem )
 reprod    <- mutate(reprod, reprod_pc = reprod /TotDensity)
 vs_3d_3   <- form_3d_surf(reprod,reprod_pc)
 
-s_d       <- 0.05 #per capita seedling death
+s_d       <- 0.31 #per capita seedling death
 reprod    <- merge(fert,pred_till)
 reprod    <- mutate(reprod, reprod    = (viable_seeds * s_d) + pred_new_t)
 reprod    <- mutate(reprod, reprod_pf = reprod /n_fem )
@@ -537,43 +535,4 @@ filled.contour(vs_3d$x,vs_3d$y,vs_3d$z, color.palette=heat.colors, cex.lab = 1.4
                xlab = "Proportion of female individuals", 
                ylab = "Planting density", 
                main = "Number of viable seeds")
-
-
-
-# "sensitivities" ------------------------------------------------------------------------------
-
-# flowers per male/female -----------------------------
-flow_m_3d <- form_3d_surf(subset(pred_flower,sexm == 1),
-                          n_flowers_pc)
-flow_f_3d <- form_3d_surf(subset(pred_flower,sexm == 0),
-                          n_flowers_pc)
-par(mfrow=c(1,2),mar=c(0,2,0,0),mgp=c(3,1,0), oma=c(0,0,0,0),cex=0.7,
-    cex.axis = 0.7)
-#females
-persp(flow_f_3d$x,flow_f_3d$y,flow_f_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals", #zlim = c(0,2),
-      ylab = "Density",ticktype = "detailed",
-      zlab = expression(Psi),mgp=c(2,1,0), sub = "a",
-      main = expression("a)   Reproductive potential ("*Psi*")"))
-persp(flow_m_3d$x,flow_m_3d$y,flow_f_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals", #zlim = c(0,2),
-      ylab = "Density",ticktype = "detailed",
-      zlab = expression(Psi),mgp=c(2,1,0), sub = "a",
-      main = expression("a)   Reproductive potential ("*Psi*")"))
-
-
-# seeds per female--------------------------------
-seed_f_3d <- form_3d_surf(subset(pred_seed),
-                          seeds_per_f)
-par(mfrow=c(1,1),mar=c(0,2,0,0),mgp=c(3,1,0), oma=c(0,0,0,0),cex=0.7,
-    cex.axis = 0.7)
-#females
-persp(seed_f_3d$x,seed_f_3d$y,seed_f_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals", #zlim = c(0,2),
-      ylab = "Density",ticktype = "detailed",
-      zlab = expression(Psi),mgp=c(2,1,0), sub = "a",
-      main = expression("a)   Reproductive potential ("*Psi*")"))
-
-
-
 

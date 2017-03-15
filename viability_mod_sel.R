@@ -1,10 +1,10 @@
 # Model selection for seed VIABILITY
 # Data: tetrazolium scoring and germination data 
-setwd("C:/Users/Aldo/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
+setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
 library(lme4) ; library(bbmle) ; library(boot) ; library(testthat)
 library(dplyr) ; library(glmmADMB)
-source("C:/Users/Aldo/Documents/CODE/LLELA/model_avg.R")
-source("C:/Users/Aldo/Documents/CODE/LLELA/model_sel_results.R")
+source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
+source("C:/Users/ac79/Documents/CODE/LLELA/model_sel_results.R")
 
 # Read in data and format -----------------------------------------------------------
 d           <- read.csv("Data/vr.csv")
@@ -50,13 +50,13 @@ germ_flowN[[4]] <- glmmadmb(cbind(germTot,germFail) ~ sr_f + totFlow + (1 | plot
 germ_flowN[[5]] <- glmmadmb(cbind(germTot,germFail) ~ sr_f * totFlow + (1 | plot),family="binomial", data=germ_dat)
 
 # Model averagin models
-germ_flowN_sel  <- AICtab(germ_flowN,weights=T) 
+germ_flowN_sel  <- AICtab(germ_flowN,weights=T,sort=F) 
 germ_flowN_avg  <- model_avg(germ_flowN_sel, germ_flowN)
 write.csv(germ_flowN_avg, "Results/VitalRates_3/germination_best.csv", row.names = F)
 
 # Model selection table
 write.csv(sel_results(germ_flowN_sel, 5, "Seeds germination rate"),
-          "germination_mod_sel.csv",row.names=F)
+          "Results/VitalRates_3/germination_mod_sel.csv",row.names=F)
 
 
 # 2. viable Seed Number: tetrazolium assays  (Yes / fail) ---------------------------

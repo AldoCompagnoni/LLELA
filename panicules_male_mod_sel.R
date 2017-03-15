@@ -1,10 +1,10 @@
-setwd("C:/Users/Aldo/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
+setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
 library(bbmle)
 library(lme4)
 library(dplyr)
 library(glmmADMB)
-source("C:/Users/Aldo/Documents/CODE/LLELA/model_avg.R")
-source("C:/Users/Aldo/Documents/CODE/LLELA/model_sel_results.R")
+source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
+source("C:/Users/ac79/Documents/CODE/LLELA/model_sel_results.R")
 
 # load and format data --------------------------------------------------------------
 d             <- read.csv("Data/vr.csv")
@@ -41,13 +41,13 @@ plMod[[4]]=glmmadmb(CountSpikelets ~ sr + TotDensity + (1 | plot), family = "nbi
 plMod[[5]]=glmmadmb(CountSpikelets ~ sr * TotDensity + (1 | plot), family = "nbinom2", data=spike_data)
 
 # Model average
-m_alloc_select    <- AICtab(plMod,weights=T)
+m_alloc_select    <- AICtab(plMod,weights=T,sort=F)
 m_alloc_avg       <- model_avg(m_alloc_select, plMod)
 write.csv(m_alloc_avg, "Results/VitalRates_3/male_spikelets.csv", row.names = F)
 
 # Model selection table
 write.csv(sel_results(m_alloc_select, 5, "Spikelet number"),
-          "male_spikelets_mod_sel.csv",row.names=F)
+          "Results/VitalRates_3/male_spikelets_mod_sel.csv",row.names=F)
 
 
 # Graph ---------------------------------------------------------------------------

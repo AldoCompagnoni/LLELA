@@ -11,14 +11,12 @@ unload_mass()
 d           <- read.csv("Data/vr.csv", stringsAsFactors = F)
 fem_seeds   <- read.csv("Data/Spring 2014/SeedCount/Poa Arachnifera_seedCount.csv")
 m_spiklet   <- read.csv("Data/Spring 2014/maleCounts/malePaniculesSpring2014.csv")
-viabVr      <- read.csv("Data/Spring 2014/viability/tetra_germ_plot_data.csv",
-                        stringsAsFactors = F)
 
 # best models
 n_flow_beta <- read.csv("Results/VitalRates_3/n_flowers_best.csv")
 fec_beta    <- read.csv("Results/VitalRates_3/fecuntity_best.csv")
 m_spik_beta <- read.csv("Results/VitalRates_3/male_spikelets.csv")
-germ_beta   <- read.csv("Results/VitalRates_3/germination_best.csv")
+avg14       <- read.csv("Results/VitalRates_3/new_t_bh14_best.csv")
 
 
 # FORMAT DATA -------------------------------------------------------------------
@@ -39,8 +37,9 @@ fecund_data <- fecund_data %>% unique()
 m_alloc     <- merge(select(f14,plot,sr,TotDensity), m_spiklet)
 m_alloc     <- m_alloc %>% unique()
 
-# remove three plots with more than 60 flowers 
-viabVr      <- subset(viabVr, totFlow < 60)
+# tiller production data
+d       <- format_growth(d)
+d14     <- subset(d, year == 2014)
 
 
 # FIGURE 1 -----------------------------------------------------------------------------
@@ -61,7 +60,7 @@ par(mfrow=c(2,2),mar=c(3,2.5,0.1,0.1),mgp=c(1.4,0.35,0),cex.lab=1.1,cex.axis=0.8
 
 # Flowering ------------------------------------------------------------------------------
 # Set up colors for plots
-f14$col <- as.character(factor(as.integer(f14$sex),labels=c("blue","red")))
+f14$col <- as.character(factor(f14$sex,labels=c("blue","red")))
 mal14   <- subset(f14,sex=="m")
 fem14   <- subset(f14,sex=="f")
 
@@ -86,9 +85,9 @@ arrows(meanM$TotDensity, meanM$meanM - meanM$sdM*0.1, col = "#5D5D5D",
 
 xSeq  <- seq(0,48, by = 1)
 beta  <- n_flow_beta[,c("predictor","avg")]$avg
-y_m <- exp(beta[1] + beta[2]*xSeq + beta[3] + beta[4]*0.5 + 
-           beta[5]*0.5*xSeq + beta[6]*xSeq + beta[7]*0.5)
-y_f <- exp(beta[1] + beta[2]*xSeq + beta[4]*0.5 + beta[5]*0.5*xSeq)
+y_m <- exp(beta[1] + beta[2] + beta[3]*0.5 + beta[4]*xSeq + 
+           beta[5]*0.5 + beta[6]*0.5*xSeq + beta[7]*xSeq)
+y_f <- exp(beta[1] + beta[3]*0.5 + beta[4]*xSeq + beta[6]*0.5*xSeq)
 lines(xSeq,y_m,lty=1,lwd=2,col="#5D5D5D")
 lines(xSeq,y_f,lty=2,lwd=2,col="#ABABAB")
 
@@ -105,13 +104,13 @@ plot(fecund_data$TotDensity, fecund_data$SeedN, pch = 21,
      xlab = "Planting density", ylab = "Seeds per flower")
 xSeq   <- seq(0,48,by = 1)
 beta   <- fec_beta$avg
-y_low  <- exp(beta[1] + beta[2]*0.2 + beta[3]*xSeq + beta[4]*xSeq*0.2)
-y_high <- exp(beta[1] + beta[2]*1 + beta[3]*xSeq + beta[4]*xSeq*1)
+y_low  <- exp(beta[1] + beta[3]*0.05 + beta[2]*xSeq + beta[4]*xSeq*0.05)
+y_high <- exp(beta[1] + beta[3]*0.95 + beta[2]*xSeq + beta[4]*xSeq*0.95)
 
 lines(xSeq, y_low, lwd = 2, lty = 2)
 lines(xSeq, y_high, lwd = 2)
 
-legend(14.5,830,c("100% female plot","  20% female plot"),lty = c(1,2), lwd = 2, bty="n")
+legend(14.5,830,c("95% female plot","  5% female plot"),lty = c(1,2), lwd = 2, bty="n")
 
 text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.11,
      par("usr")[4]*0.97,"(b)", cex = 1.2, xpd = T)
@@ -131,8 +130,8 @@ plot(m_alloc$TotDensity,m_alloc$CountSpikelets,pch=21,
      ylab="Spikelet number per male flower",xlab="Planting density")
 beta <- m_spik_beta$avg
 xSeq <- seq(1,48,by =1)
-y_l  <- exp(beta[1] + beta[2]*xSeq + beta[3]*0.2 + beta[4]*xSeq*0.2)
-y_h  <- exp(beta[1] + beta[2]*xSeq + beta[3]*1 + beta[4]*xSeq*1)
+y_l  <- exp(beta[1] + beta[2]*xSeq + beta[3]*0.05 + beta[4]*xSeq*0.2)
+y_h  <- exp(beta[1] + beta[2]*xSeq + beta[3]*0.95 + beta[4]*xSeq*0.95)
 
 lines(xSeq,y_l,lwd=2,lty=2)
 lines(xSeq,y_h,lwd=2,lty=1)
@@ -141,19 +140,24 @@ text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.11,
      par("usr")[4]*0.97,"(c)", cex = 1.2, xpd = T)
 
 
-# viability (germination) data ---------------------------------------------------------
-plot(jitter(viabVr$totFlow,factor = 2),jitter(viabVr$germ_ratio,factor = 2),pch=21,ylim=c(0,1.01), 
-     bg = cRamp(viabVr$sr_f), cex = 1.5,
-     xlab="Number of flowers",ylab="Seed viability rate")
-xSeq=seq(min(viabVr$totFlow),max(viabVr$totFlow),length.out=100)
-beta=germ_beta$avg
-yMeanLow=inv.logit(beta[1] + beta[2]*0.2 + beta[3]*xSeq*0.2 + beta[4]*xSeq)
-yMeanHigh=inv.logit(beta[1] + beta[2]*1 + beta[3]*xSeq*1 + beta[4]*xSeq)
-
-lines(xSeq,yMeanLow,lwd=2,lty=2)
-lines(xSeq,yMeanHigh,lwd=2,lty=1)
+# total number of tillers 2014 --------------------------------------------------------
+plot(d14$TotDensity,d14$new_t1,pch=21,ylab="Number of new tillers",
+     xlab="Planting density", bg = cRamp(d14$sr), cex = 1.5)
+N    <- seq(0,48,1)
+beta <- as.data.frame(avg14)
+fem  <- N*0.95
+mal  <- N*0.05
+y_h  <- (beta[,"lam.f"]*fem) / (1 + beta[,"b.f"] * (fem + beta[,"a."]*mal)) + 
+        (beta[,"lam.m"]*mal) / (1 + beta[,"b.m"] * (fem + beta[,"a."]*mal))
+fem  <- N*0.05
+mal  <- N*0.95
+y_l  <- (beta[,"lam.f"]*fem) / (1 + beta[,"b.f"] * (fem + beta[,"a."]*mal)) + 
+        (beta[,"lam.m"]*mal) / (1 + beta[,"b.m"] * (fem + beta[,"a."]*mal))
+lines(N,y_h,lwd=2, lty = 1) #col="#DCDCDC",
+lines(N,y_l,lwd=2, lty = 2) #col="#636363",
 
 text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.11,
      par("usr")[4]*0.97,"(d)", cex = 1.2, xpd = T)
+
 
 dev.off()
