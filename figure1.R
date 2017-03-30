@@ -48,7 +48,7 @@ d14     <- subset(d, year == 2014)
 # service functions
 range01 <- function(x)(x-min(x))/diff(range(x))
 cRamp <- function(x){
-  cols <- colorRamp(gray.colors(7))(range01(x))
+  cols <- colorRamp(gray.colors(7,start=0,end=1))(range01(x))
   apply(cols, 1, function(xt)rgb(xt[1], xt[2], xt[3], maxColorValue=255))
 }  
 
@@ -78,9 +78,9 @@ plot(meanF$TotDensity , meanF$meanF, pch = 16, col = "#ABABAB", ylim = c(0.3,2),
 arrows(meanF$TotDensity, meanF$meanF - meanF$sdF*0.1, col = "#ABABAB",
        meanF$TotDensity, meanF$meanF + meanF$sdF*0.1, length=0.02, angle=90, code=3)
 par(new = T)
-plot(meanM$meanM ~ meanM$TotDensity , pch = 16, col = "#5D5D5D", ylim = c(0.3,2),
+plot(meanM$meanM ~ meanM$TotDensity , pch = 16, col = "black", ylim = c(0.3,2),
      ylab = "", xlab="")
-arrows(meanM$TotDensity, meanM$meanM - meanM$sdM*0.1, col = "#5D5D5D",  
+arrows(meanM$TotDensity, meanM$meanM - meanM$sdM*0.1, col = "black",  
        meanM$TotDensity, meanM$meanM + meanM$sdM*0.1, length=0.02, angle=90, code=3)
 
 xSeq  <- seq(0,48, by = 1)
@@ -88,11 +88,11 @@ beta  <- n_flow_beta[,c("predictor","avg")]$avg
 y_m <- exp(beta[1] + beta[2] + beta[3]*0.5 + beta[4]*xSeq + 
            beta[5]*0.5 + beta[6]*0.5*xSeq + beta[7]*xSeq)
 y_f <- exp(beta[1] + beta[3]*0.5 + beta[4]*xSeq + beta[6]*0.5*xSeq)
-lines(xSeq,y_m,lty=1,lwd=2,col="#5D5D5D")
+lines(xSeq,y_m,lty=1,lwd=2,col="black")
 lines(xSeq,y_f,lty=2,lwd=2,col="#ABABAB")
 
-legend(1,2.1,c("male","female"), lty=1, lwd=2, 
-       col=c("#5D5D5D","#ABABAB"), bty="n", pch = 16 )
+legend(1,2.1,c("male","female"), lty=c(1,2), lwd=2, 
+       col=c("black","#ABABAB"), bty="n", pch = 16 )
 
 text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.11,
      par("usr")[4]*0.97,"(a)", cex = 1.2, xpd = T)

@@ -195,11 +195,15 @@ surface.matrix <- seed_3d$z
 par(new = "TRUE", plt = c(x_rng_1,y_rng_1),
     las = 1, cex.axis = 0.8, tck = -0.02, mgp = mgps) 
 
+gray.colors_me <- function(n, start = 0, end =1, gamma = 2.2, alpha = NULL){
+  gray.colors(n = n, start = start, end = end, gamma = gamma, alpha = alpha)
+}
+
 # Top left plot:
 filled.contour3(xcoords,
                 ycoords,
                 surface.matrix,
-                color=gray.colors,
+                color=gray.colors_me,
                 xlab = "",        # suppress x-axis annotation
                 ylab = "",        # suppress y-axis annotation
                 xlim = c(min(xcoords),max(xcoords)),
@@ -210,7 +214,7 @@ filled.contour3(xcoords,
 text_coord <- par("usr")
 text_y_d   <- (text_coord[4]-text_coord[3])*0.05
 text(x=text_coord[1],y=text_coord[4]+text_y_d,xpd = NA,
-     expression("a) Reproductive potential ("*Psi*")"),
+     expression("a) Unfilled seeds ("*italic(s)*")"),
      cex = 1.2,font = 2, pos = 4, offset = off_m)
 
 # Y-axis for the whole graph (mtext does not function here)
@@ -228,7 +232,7 @@ filled.legend(
   xcoords,
   ycoords,
   surface.matrix,
-  color = gray.colors,
+  color = gray.colors_me,
   xlab = "",
   ylab = "",
   xlim = c(min(xintercepts),max(xintercepts)),
@@ -248,7 +252,7 @@ par(new = "TRUE", plt = c(x_rng_2,y_rng_1), mgp = mgps,
 filled.contour3(xcoords,
                 ycoords,
                 surface.matrix,
-                color=gray.colors,
+                color=gray.colors_me,
                 xlab = "",        # suppress x-axis annotation
                 ylab = "",        # suppress y-axis annotation
                 xlim = c(min(xcoords),max(xcoords)),
@@ -258,7 +262,7 @@ filled.contour3(xcoords,
 text_coord <- par("usr")
 text_y_d   <- (text_coord[4]-text_coord[3])*0.05
 text(x=text_coord[1],y=text_coord[4]+text_y_d,xpd = NA,
-     expression("b) Seed viability ("*omega*")"),
+     expression("b) Seed viability ("*italic(z)*")"),
      cex = 1.2,font = 2, pos = 4, offset = off_m)
 
 
@@ -272,7 +276,7 @@ filled.legend(
   xcoords,
   ycoords,
   surface.matrix,
-  color = gray.colors,
+  color = gray.colors_me,
   xlab = "",
   ylab = "",
   xlim = c(min(xintercepts),max(xintercepts)),
@@ -293,7 +297,7 @@ par(new = "TRUE", plt = c(x_rng_1,y_rng_2), mgp = mgps,
 filled.contour3(xcoords,
                 ycoords,
                 surface.matrix,
-                color=gray.colors,
+                color=gray.colors_me,
                 xlab = "",        # suppress x-axis annotation
                 ylab = "",        # suppress y-axis annotation
                 xlim = c(min(xcoords),max(xcoords)),
@@ -304,7 +308,7 @@ filled.contour3(xcoords,
 text_coord <- par("usr")
 text_y_d   <- (text_coord[4]-text_coord[3])*0.05
 text(x=text_coord[1],y=text_coord[4]+text_y_d,xpd = NA,
-     expression("c) Production of new tillers ("*gamma*")"),
+     expression("c) New tillers ("*italic(a)*")"),
      cex = 1.2,font = 2, pos = 4, offset = off_m)
 
 
@@ -319,7 +323,7 @@ filled.legend(
   xcoords,
   ycoords,
   surface.matrix,
-  color = gray.colors,
+  color = gray.colors_me,
   xlab = "",
   ylab = "",
   xlim = c(min(xintercepts),max(xintercepts)),
@@ -340,7 +344,7 @@ par(new = "TRUE", plt = c(x_rng_2,y_rng_2), mgp = mgps,
 filled.contour3(xcoords,
                 ycoords,
                 surface.matrix,
-                color=gray.colors,
+                color=gray.colors_me,
                 xlab = "",        # suppress x-axis annotation
                 ylab = "",        # suppress y-axis annotation
                 xlim = c(min(xcoords),max(xcoords)),
@@ -351,7 +355,7 @@ filled.contour3(xcoords,
 text_coord <- par("usr")
 text_y_d   <- (text_coord[4]-text_coord[3])*0.05
 text(x=text_coord[1],y=text_coord[4]+text_y_d,xpd = NA,
-     "d) Regeneration (R)",cex = 1.2,pos = 4, offset = off_m)
+     expression("d) Recruitment ("*italic(r)*")"),cex = 1.2,pos = 4, offset = off_m)
 
 
 #Add a legend:
@@ -363,7 +367,7 @@ filled.legend(
   xcoords,
   ycoords,
   surface.matrix,
-  color = gray.colors,
+  color = gray.colors_me,
   xlab = "",
   ylab = "",
   xlim = c(min(xintercepts),max(xintercepts)),

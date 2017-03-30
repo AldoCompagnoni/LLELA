@@ -1,20 +1,23 @@
-##Response variable: total number of tillers 
+##Response variable: ,mating (proportion of fertilized seeds)
 setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
 library(bbmle) 
 library(glmmADMB) # Fit models with a Negative Binomial
 library(dplyr)
 library(boot)
 source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
+source("C:/Users/ac79/Documents/CODE/LLELA/prediction.R")
 
 # load and format data -----------------------------------------------------
-viabVr      <- read.csv("Data/Spring 2014/viability/tetra_germ_plot_data.csv",
+viabVr    <- read.csv("Data/Spring 2014/viability/tetra_germ_plot_data.csv",
                         stringsAsFactors = F)
-
+viabVr    <- subset(viabVr, totFlow < 60) # remove three plots with more than 60 flowers 
 # best model
-germ_beta   <- read.csv("Results/VitalRates_3/germination_best.csv")
-
-# remove three plots with more than 60 flowers 
-viabVr      <- subset(viabVr, totFlow < 60)
+germ_beta <- read.csv("Results/VitalRates_3/germination_best.csv")
+# model matrix for prediction 
+mod_des   <- expand.grid("(Intercept)" = 1, 
+                         totFlow = seq(1,50,1),
+                         sr_f = round(seq(0,1,0.05),2)) 
+mod_des$'sr_f:totFlow' <- mod_des$totFlow * mod_des$sr_f
 
 
 # Graph -----------------------------------------------------------------------------
@@ -23,7 +26,7 @@ viabVr      <- subset(viabVr, totFlow < 60)
 # service functions
 range01 <- function(x)(x-min(x))/diff(range(x))
 cRamp <- function(x){
-  cols <- colorRamp(gray.colors(7))(range01(x))
+  cols <- colorRamp(gray.colors(7,start = 0, end = 1))(range01(x))
   apply(cols, 1, function(xt)rgb(xt[1], xt[2], xt[3], maxColorValue=255))
 }  
 
@@ -38,19 +41,15 @@ plot(jitter(viabVr$totFlow,factor = 2),jitter(viabVr$germ_ratio,factor = 2),
      bg = cRamp(viabVr$sr_f), cex = 1.5,
      xlab="Number of flowers",ylab="Seed viability rate")
 
-# design matrix
-des <- expand.grid("(Intercept)" = 1, 
-                   totFlow = seq(1,50,1),
-                   sr_f = c(0.05,0.95)) 
-des$'sr_f:totFlow' <- des$totFlow * des$sr_f
-# predict using 'pred' function
-des_pred <- pred(des, germ_beta, viab, inv.logit)
-
+# limit model matrix
+l_des <- subset(mod_des,sr_f == 0.05)
+h_des <- subset(mod_des,sr_f == 0.95)
+# predicted values using 'pred' function
+l_pred <- pred(l_des, germ_beta, viab, inv.logit)
+h_pred <- pred(h_des, germ_beta, viab, inv.logit)
 # plot lines
-l_pred <- subset(des_pred,sr_f == 0.05)
-h_pred <- subset(des_pred,sr_f == 0.95)
-lines(h_pred$totFlow,h_pred$viab,lwd=2,lty=2)
-lines(l_pred$totFlow,l_pred$viab,lwd=2,lty=1)
+lines(l_des$totFlow,l_pred$viab,lwd=2,lty=2)
+lines(h_des$totFlow,h_pred$viab,lwd=2,lty=1)
 
 # sex ratio legend
 colfunc = colorRampPalette(cRamp(unique(arrange(viabVr,sr_f)$sr_f)))
