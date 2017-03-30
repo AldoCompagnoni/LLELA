@@ -82,6 +82,37 @@ format_growth <- function(x){
 
 }
 
+
+# function formats data on new tillers   
+format_new_tillers <- function(x){
+  
+  # remove dead individuals (this is a GROWTH model!)
+  d       <- subset(x, surv_t1 != 0)
+  # create log ratio: log(sizet1/sizet0)
+  d       <- mutate(d, log_ratio = l_t1 / l_t0)
+  # glmmadmb wants plot as a factor
+  d       <- mutate(d, plot = as.factor(plot) ) 
+  
+  # format the new_t1 column
+  d       <- mutate(d, new_t1 = replace(new_t1, new_t1 == "SKIPPED", NA))
+  d       <- mutate(d, new_t1 = replace(new_t1, new_t1 == "cnf", NA))
+  d       <- mutate(d, new_t1 = replace(new_t1, new_t1 == "", NA))
+  d       <- mutate(d, new_t1 = as.numeric(as.character(new_t1)))
+  # new columns
+  d       <- mutate(d, TotDensity2 = TotDensity^2,
+                    new_t1_pc   = new_t1/TotDensity)
+  
+  # take unique values - new tillers refer to plots, not individuals 
+  out     <- d %>%
+              select(new_t1, new_t1_pc, plot, sr, M, F, TotDensity, TotDensity2, year) %>%
+              unique() %>%
+              na.omit()
+            
+  return(out)
+  
+}
+
+
 # format data for one-sex plots only
 one_sex_format <- function(form_gr_dat){
   

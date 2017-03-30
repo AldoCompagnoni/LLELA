@@ -8,22 +8,10 @@ source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
 source("C:/Users/ac79/Documents/CODE/LLELA/bh_util_fnc.R")
 
 # load and format data -----------------------------------------------------
-x       <- read.csv("Data/vr.csv")
-d       <- format_growth(x)
-d2014   <- subset(d, year == 2014)
-d2015   <- subset(d, year == 2015)
-
-# omit NAs and take unique values (because each )
-nas_and_unique <- function(x){
-  out <- x %>%
-          select(plot, TotDensity, F, M, sr, new_t1) %>%
-          na.omit() %>%
-          unique()
-  return(out)
-  
-} 
-d14 <- nas_and_unique(d2014)
-d15 <- nas_and_unique(d2015)
+x   <- read.csv("Data/vr.csv")
+d   <- format_new_tillers(x)
+d14 <- subset(d, year == 2014)
+d15 <- subset(d, year == 2015)
 
 
 # Model fits 2014 ---------------------------------------------------------------
@@ -115,7 +103,7 @@ m15         <- lapply(res,aic_calc)
 mod_w       <- mod_weights(m15)
 
 # Model selection table
-write.csv(mod_w,"new_tillers_BH15_mod_sel.csv",row.names=F)
+write.csv(mod_w,"Results/VitalRates_3/new_tillers_BH15_mod_sel.csv",row.names=F)
 
 # Average AIC weight models --------------------------------------------------------------------------------------
 mat <- matrix(data = 1, nrow = length(res), ncol = 5) 
@@ -207,7 +195,7 @@ y_l  <- (beta[,"lam.f"]*fem) / (1 + beta[,"b.f"] * (fem + beta[,"a."]*mal)) +
 lines(N,y_h,lwd=2, lty = 1) #col="#DCDCDC",
 lines(N,y_l,lwd=2, lty = 2) #col="#636363",
 
-colfunc = colorRampPalette(cRamp(unique(arrange(fecund_data,sr)$sr)))
+colfunc = colorRampPalette(cRamp(unique(arrange(d14,sr)$sr)))
 legend_image <- as.raster(matrix(colfunc(19), ncol=1))
 text(x=7, y = seq(140,220,l=3), labels = seq(1,0,l=3))
 rasterImage(legend_image, 0.5, 140, 5, 220)
