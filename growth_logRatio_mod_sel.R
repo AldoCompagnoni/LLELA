@@ -4,6 +4,7 @@ library(bbmle)
 library(lme4)
 library(dplyr)
 source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
+source("C:/Users/ac79/Documents/CODE/LLELA/model_sel_results.R")
 
 # load and format data ------------------------------------------------------------------
 d     <- format_growth( read.csv("Data/vr.csv") )
@@ -41,6 +42,12 @@ lr_14_mod_sel   <- AICtab(m14, weights = T)
 lr_14_avg       <- model_avg(lr_14_mod_sel, m14)
 write.csv(lr_14_avg, "Results/VitalRates_3/log_ratio_14_best.csv", row.names = F)
 
+# model selection results
+lr_14_mod_sel   <- AICtab(m14, weights = T, sort = F)
+mod_14_w        <- sel_results(lr_14_mod_sel, 15, "rgr")
+
+write.csv(mod_14_w,"Results/VitalRates_3/log_ratio_14_mod_sel.csv",row.names=F)
+
 
 # 2015 --------------------------------------------------------------------------------
 m15=list() # lMod stands for "leaf model" (density is quantified by N. of leaves)
@@ -67,6 +74,12 @@ m15[[14]]=lmer(log_ratio ~ TotDensity * sr * sex + (1 | plot),data=d15)
 lr_15_mod_sel  <- AICtab(m15, weights = T)
 lr_15_avg      <- model_avg(lr_15_mod_sel, m15)
 write.csv(lr_15_avg, "Results/VitalRates_3/log_ratio_15_best.csv", row.names = F)
+
+# model selection results
+lr_15_mod_sel   <- AICtab(m15, weights = T, sort = F)
+mod_15_w        <- sel_results(lr_15_mod_sel, 15, "rgr")
+
+write.csv(mod_15_w,"Results/VitalRates_3/log_ratio_15_mod_sel.csv",row.names=F)
 
 
 # GRAPH ------------------------------------------------------------------------------------------------
