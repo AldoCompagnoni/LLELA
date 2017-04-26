@@ -214,7 +214,7 @@ filled.contour3(xcoords,
 text_coord <- par("usr")
 text_y_d   <- (text_coord[4]-text_coord[3])*0.05
 text(x=text_coord[1],y=text_coord[4]+text_y_d,xpd = NA,
-     expression("a) Unfilled seeds ("*italic(s)*")"),
+     expression("a) Initiated seeds ("*italic(a)*")"),
      cex = 1.2,font = 2, pos = 4, offset = off_m)
 
 # Y-axis for the whole graph (mtext does not function here)
@@ -308,7 +308,7 @@ filled.contour3(xcoords,
 text_coord <- par("usr")
 text_y_d   <- (text_coord[4]-text_coord[3])*0.05
 text(x=text_coord[1],y=text_coord[4]+text_y_d,xpd = NA,
-     expression("c) New tillers ("*italic(a)*")"),
+     expression("c) Asexual recruits ("*italic(a)*")"),
      cex = 1.2,font = 2, pos = 4, offset = off_m)
 
 
@@ -355,7 +355,7 @@ filled.contour3(xcoords,
 text_coord <- par("usr")
 text_y_d   <- (text_coord[4]-text_coord[3])*0.05
 text(x=text_coord[1],y=text_coord[4]+text_y_d,xpd = NA,
-     expression("d) Recruitment ("*italic(r)*")"),cex = 1.2,pos = 4, offset = off_m)
+     expression("d) Total recruitment ("*italic(sz)*" + "*italic(a)*")"),cex = 1.2,pos = 4, offset = off_m)
 
 
 #Add a legend:
