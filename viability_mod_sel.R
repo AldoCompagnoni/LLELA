@@ -12,9 +12,10 @@ viabVr      <- read.csv("Data/Spring 2014/viability/tetra_germ_plot_data.csv",
                         stringsAsFactors = F)
 
 # Format data -----------------------------------------------------------------------
-viabVr$totN <- viabVr$F + viabVr$M
-viabVr$sr   <- viabVr$F / viabVr$totN
-viabVr$plot <- as.factor(viabVr$plot)
+viabVr      <- viabVr %>%
+                mutate(totN = F + M) %>%
+                mutate(sr = F / totN) %>%
+                mutate(plot = as.factor(plot) )
 viabVr      <- subset(viabVr, totFlow < 60) #exclude extreme values
 
 
