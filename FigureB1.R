@@ -4,18 +4,25 @@ setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experimen
 library(bbmle) 
 library(dplyr)
 library(boot)
+source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
+source("C:/Users/ac79/Documents/CODE/LLELA/prediction.R")
 
 
 #Read data--------------------------------------------------------------------
 viabVr      <- read.csv("Data/Spring 2014/viability/tetra_germ_plot_data.csv",
                         stringsAsFactors = F)
+# remove three plots with more than 60 flowers 
+viabVr      <- subset(viabVr, totFlow < 60)
 
 # best models
 germ_beta   <- read.csv("Results/VitalRates_3/germination_best.csv")
 tetr_beta   <- read.csv("Results/VitalRates_3/tetrazolium_best.csv")
 
-# remove three plots with more than 60 flowers 
-viabVr      <- subset(viabVr, totFlow < 60)
+# model matrix for prediction 
+mod_des   <- expand.grid("(Intercept)" = 1, 
+                         totFlow = seq(1,50,1),
+                         sr_f = round(seq(0,1,0.05),2)) 
+mod_des$'sr_f:totFlow' <- mod_des$totFlow * mod_des$sr_f
 
 
 # Figure B1 ------------------------------------------------------------
@@ -32,42 +39,58 @@ cRamp <- function(x){
 # Graph
 tiff("Results/VitalRates_3/figureB1.tiff",unit="in",width=6.3,height=2.7,res=600,compression="lzw")
 
-par(mfrow=c(1,2), mar=c(2.5,2.5,1,0.1),mgp=c(1.4,0.35,0),cex.lab=1,cex.axis=0.8,
-    cex.main=0.9, oma=c(0,0,0,8))
+par(mfrow=c(1,2), mar=c(2.5,2.3,1,0.1),mgp=c(1.4,0.3,0),cex.lab=1,cex.axis=0.8,
+    cex.main=0.9, oma=c(0,0,0,9), tcl = -0.3)
 
-# tetrazolium data
+# three lines: three model matrices
+l_des <- subset(mod_des,sr_f == 0.05)
+m_des <- subset(mod_des,sr_f == 0.5)
+h_des <- subset(mod_des,sr_f == 0.95)
+
+# tetrazolium data ----------------------------------------------------------------
 plot(jitter(viabVr$totFlow,factor = 2),jitter(viabVr$tetra_ratio,factor = 2),pch=21,ylim=c(0,1), 
      bg = cRamp(viabVr$sr_f), cex = 1.1, main = "Tetrazolium data",
-     xlab="Number of flowers",ylab="Seed viability rate")
-xSeq=seq(min(viabVr$totFlow),max(viabVr$totFlow),length.out=100)
-beta=tetr_beta$avg
-yMeanLow=inv.logit(beta[1] + beta[2]*0.2 + beta[3]*xSeq*0.2 + beta[4]*xSeq)
-yMeanHigh=inv.logit(beta[1] + beta[2]*1 + beta[3]*xSeq*1 + beta[4]*xSeq)
+     xlab="",ylab="Seed viability rate")
+# predicted values using 'pred' function
+l_pred <- pred(l_des, tetr_beta, viab, inv.logit)
+m_pred <- pred(m_des, tetr_beta, viab, inv.logit)
+h_pred <- pred(h_des, tetr_beta, viab, inv.logit)
+# plot lines
+lines(l_des$totFlow,l_pred$viab,lwd=2,lty=3)
+lines(m_des$totFlow,m_pred$viab,lwd=2,lty=2)
+lines(h_des$totFlow,h_pred$viab,lwd=2,lty=1)
 
-lines(xSeq,yMeanLow,lwd=2,lty=2)
-lines(xSeq,yMeanHigh,lwd=2,lty=1)
 
-# germination data
+# germination data -----------------------------------------------------------------
 plot(jitter(viabVr$totFlow,factor = 2),jitter(viabVr$germ_ratio,factor = 2),pch=21,ylim=c(0,1), 
      bg = cRamp(viabVr$sr_f), cex = 1.1, main = "Germination data",
-     xlab="Number of flowers",ylab="Seed viability rate")
-xSeq=seq(min(viabVr$totFlow),max(viabVr$totFlow),length.out=100)
-beta=germ_beta$avg
-yMeanLow=inv.logit(beta[1] + beta[2]*0.2 + beta[3]*xSeq*0.2 + beta[4]*xSeq)
-yMeanHigh=inv.logit(beta[1] + beta[2]*1 + beta[3]*xSeq*1 + beta[4]*xSeq)
+     xlab="",ylab="")
+# predicted values using 'pred' function
+l_pred <- pred(l_des, germ_beta, viab, inv.logit)
+m_pred <- pred(m_des, germ_beta, viab, inv.logit)
+h_pred <- pred(h_des, germ_beta, viab, inv.logit)
+# plot lines
+lines(l_des$totFlow,l_pred$viab,lwd=2,lty=3)
+lines(m_des$totFlow,m_pred$viab,lwd=2,lty=2)
+lines(h_des$totFlow,h_pred$viab,lwd=2,lty=1)
 
-lines(xSeq,yMeanLow,lwd=2,lty=2)
-lines(xSeq,yMeanHigh,lwd=2,lty=1)
+mtext("Number of panicles", 1, line = 1.2, at = -10)
 
-# legend
-legend(55,1.05,c("100% female","  20% female"),lty = c(1,2), lwd = 2, bty="n", xpd=NA)
+# legends -----------------------------------------------------------------
+# prediction legend
+legend(54,1.1, c("5% female plot",
+               "50% female plot",
+               "95% female plot"), cex = 1, xpd = NA,
+       lty = c(3,2,1), lwd=2, bty = "n")
 
+# color legend
 colfunc = colorRampPalette(cRamp(unique(arrange(viabVr,sr_f)$sr_f)))
 legend_image <- as.raster(matrix(colfunc(19), ncol=1))
-text(x=62, y = seq(0.45,0.65,l=3), labels = seq(0,1,l=3), xpd=NA, cex = 0.8)
-rasterImage(legend_image, 67, 0.45, 75, 0.65,xpd=NA)
-text(75, 0.65, "Percent of", pos = 4,xpd=NA)
-text(75, 0.55, "males in", pos = 4,  xpd=NA)
-text(75, 0.45, "plot", pos = 4,      xpd=NA)
+text(x=62, y = seq(0.25,0.6,l=3), labels = seq(1,0,l=3), xpd=NA, cex = 0.8)
+rasterImage(legend_image, 67, 0.25, 75, 0.6,xpd=NA)
+text(75, 0.6, "Percent of", pos = 4,xpd=NA)
+text(75, 0.48, "female", pos = 4,  xpd=NA)
+text(75, 0.4, "panicles", pos = 4,  xpd=NA)
+text(75, 0.25, "in plot", pos = 4,      xpd=NA)
 
 dev.off()
