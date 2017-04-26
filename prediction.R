@@ -28,11 +28,12 @@ pred <- function(design, mod_avg, pred_name, link){
   # give it a name
   pred_name <- deparse( substitute(pred_name) )
   link_f    <- deparse( substitute(link) )
+  
   #test correspondence
   if( all(names(design) %in% mod_avg$predictor) != TRUE ) {
     stop("Predictors in Design matrix do not correspond to sequence of predictors")
   } else {
-    id_des <- match(names(design), mod_avg$predictor)
+    id_des <- match(as.character(mod_avg$predictor), names(design))
     design <- design[,id_des]
   }
   
