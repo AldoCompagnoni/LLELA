@@ -29,6 +29,23 @@ plot(log(seeds$Seed.weight..mg.), log(seeds$SeedN) )
 mean(seeds$Seed.weight..mg. / seeds$SeedN, na.rm=T)
 
 
+# correlation b/w germination and tetrazolium viability
+viabVr  <- read.csv("Data/Spring 2014/viability/tetra_germ_plot_data.csv",
+                        stringsAsFactors = F)
+# Format viability data 
+viabVr  <- viabVr %>%
+            mutate(totN = F + M) %>%
+            mutate(sr = F / totN) %>%
+            mutate(plot = as.factor(plot) ) %>%
+            subset(totFlow < 60) %>%
+            select_(.dots=c("germ_ratio", "tetra_ratio")) %>%
+            na.omit()
+
+# correlation b/w germination and tetrazolium viability data 
+cor.test(viabVr[,1] , viabVr[,2])
+
+
+
 # table 1 main text -------------------------------------------------------
 nflow <- read.csv("Results/VitalRates_3/n_flowers_mod_sel.csv")
 viab  <- read.csv("Results/VitalRates_3/germination_mod_sel.csv")
