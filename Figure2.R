@@ -98,7 +98,12 @@ reprod    <- mutate(reprod, reprod    = (viable_seeds * s_d) + pred_new_t)
 reprod    <- mutate(reprod, reprod_pf = reprod /n_fem )
 reprod    <- mutate(reprod, reprod_pc = reprod /TotDensity)
 
-
+# sex ratios at which reproduction maximizes 
+low_d     <- subset(reprod, TotDensity == 1)
+max_low_d <- which(low_d$reprod_pc == max(low_d$reprod_pc) )
+high_d    <- subset(reprod, TotDensity == 48)
+max_high_d<- which(high_d$reprod_pc == max(high_d$reprod_pc) )
+c(low_d$sr[max_low_d], high_d$sr[max_high_d])
 
 # FIGURE 2 ------------------------------------------------------------------------------
 
