@@ -214,7 +214,7 @@ filled.contour3(xcoords,
 text_coord <- par("usr")
 text_y_d   <- (text_coord[4]-text_coord[3])*0.05
 text(x=text_coord[1],y=text_coord[4]+text_y_d,xpd = NA,
-     expression("a) Initiated seeds ("*italic(a)*")"),
+     expression("a) Initiated seeds ("*italic(s)*")"),
      cex = 1.2,font = 2, pos = 4, offset = off_m)
 
 # Y-axis for the whole graph (mtext does not function here)

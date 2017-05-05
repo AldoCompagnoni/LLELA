@@ -20,7 +20,7 @@ tiff("Results/VitalRates_3/exp_design.tiff",unit="in",
 par(mar = c(3.2,3.8,0.1,0.1), mgp = c(2.3,1,0))
 
 plot(exp_des$F, exp_des$M, pch = 21, lwd = 2,
-     xlab = "Females density", ylab = "Male density",
+     xlab = "Female density", ylab = "Male density",
      cex = exp_des$rep/pt_exp, cex.lab = 1.5)
 
 legend(x = "topright", bty="n", pch = 21, pt.cex = c(1,2,4)/pt_exp, 

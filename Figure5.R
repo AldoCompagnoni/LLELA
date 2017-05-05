@@ -61,10 +61,14 @@ colfunc = colorRampPalette(cRamp(unique(arrange(viabVr,sr_f)$sr_f)))
 legend_image <- as.raster(matrix(colfunc(21), ncol=1))
 text(x=60, y = seq(0.6,1,l=3), labels = seq(1,0,l=3), xpd=NA)
 rasterImage(legend_image, 51, 0.6, 58, 1, xpd=NA)
-text(61, 1, "Percent of", pos = 4,xpd=NA)
-text(61, 0.83, "female", pos = 4,xpd=NA)
-text(61, 0.77, "panicles", pos = 4,xpd=NA)
-text(61, 0.6, "in plot", pos = 4,xpd=NA)
+# text(61, 1, "Percent of", pos = 4,xpd=NA)
+# text(61, 0.83, "female", pos = 4,xpd=NA)
+# text(61, 0.77, "panicles", pos = 4,xpd=NA)
+# text(61, 0.6, "in plot", pos = 4,xpd=NA)
+text(61, 1, "Sex ratio", pos = 4,xpd=NA)
+text(61, 0.8, "(proportion", pos = 4,xpd=NA)
+text(61, 0.6, "female)", pos = 4,xpd=NA)
+
 
 # prediction legend
 legend(50,0.55, c("5% female plot",
