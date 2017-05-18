@@ -91,17 +91,15 @@ beta  <- lr_14_avg[,c("predictor","avg")]$avg
 xSeq  <- seq(1,48,1)
 y_h   <- beta[1] + beta[2] + beta[3]*0.95
 y_l   <- beta[1] + beta[2] + beta[3]*0.05
-abline(h= y_l, lwd = 2, lty = 2)
-abline(h= y_h, lwd = 2)
+abline(h= y_h, lwd = 2, col="#ABABAB")
+abline(h= y_l, lwd = 2, lty = 2, col="#141414")
+
 
 
 colfunc      <- colorRampPalette(cRamp(unique(arrange(rgr14,sr)$sr)))
 legend_image <- as.raster(matrix(colfunc(21), ncol=1))
 text(x=30, y = seq(-2.75,-1.25,l=3), labels = seq(1,0,l=3), cex = 1.3)
 rasterImage(legend_image, 32.5, -2.75, 36.5, -1.25)
-# text(36, -1.25, "Percent of", pos = 4, cex = 1.3)
-# text(36, -2, "females in", pos = 4, cex = 1.3)
-# text(36, -2.75, "plot", pos = 4, cex = 1.3)
 text(36, -1.25, "Sex ratio", pos = 4, cex = 1.2)
 text(35.9, -2, "(proportion", pos = 4, cex = 1.2)
 text(36, -2.75, "female)", pos = 4, cex = 1.2)
@@ -137,7 +135,7 @@ text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.04,
 
 
 # fecundity 
-plot(fecund_data$TotDensity, fecund_data$SeedN, pch = 21, xlim = c(0,48.5),
+plot(jitter(fecund_data$TotDensity), fecund_data$SeedN, pch = 21, xlim = c(0,48.5),
      bg = cRamp(fecund_data$sr) , ylim = c(0, 1000), cex = cex_dots,
      xlab = "Planting density", ylab = "Seeds per female panicle")
 xSeq   <- seq(0,48,by = 1)
@@ -153,7 +151,7 @@ text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.11,
 
 
 # male allocation 
-plot(m_alloc$TotDensity,m_alloc$CountSpikelets,pch=21, 
+plot(jitter(m_alloc$TotDensity),m_alloc$CountSpikelets,pch=21, 
      bg = cRamp(m_alloc$sr), cex = cex_dots, xlim = c(0,48.5),
      ylab="Spikelets per male panicle",xlab="Planting density")
 beta <- m_spik_beta$avg
@@ -169,7 +167,7 @@ text(par("usr")[1] - (par("usr")[2] - par("usr")[1])*0.11,
 
 
 # total number of tillers 2014 
-plot(till14$TotDensity,till14$new_t1,pch=21,ylab="Asexual recruitment",
+plot(jitter(till14$TotDensity),till14$new_t1,pch=21,ylab="Asexual recruitment",
      xlab="Planting density", bg = cRamp(till14$sr), cex = cex_dots,
      xlim = c(0,48.5))
 N    <- seq(0,48,1)
