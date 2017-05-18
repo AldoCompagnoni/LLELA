@@ -197,6 +197,9 @@ surface.matrix <- seed_3d$z
 
 
 #I am organizing where the plots appear on the page using the "plt" argument in "par()"
+tiff("Results/VitalRates_3/Figure2_grey_contour.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
+
+
 par(new = "TRUE", plt = c(x_rng_1,y_rng_1),
     las = 1, cex.axis = 0.8, tck = -0.02, mgp = mgps) 
 
@@ -379,10 +382,10 @@ filled.legend(
   ylim = c(min(slopes),max(slopes)),
   zlim = range(surface.matrix))
 
-mtext("Proportion of female individuals",side=1, 
+mtext("Sex ratio (proportion female)",side=1, 
       line=-1, outer=T, adj = c(0.43) ,cex=1.5)
 
-
+dev.off()
 
 
 
