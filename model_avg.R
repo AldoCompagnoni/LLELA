@@ -3,17 +3,24 @@ model_avg = function(model_sel,model_list){ #,
 
   mod_list1    <- model_list
   
+  # test that mod sel table is sorted.
+  n <- seq_along(model_sel$weight)
+  if(!identical(n, order(model_sel$weight,decreasing = T))){
+    stop("Sort model selection table (sort=T)!")
+  }
+  
+  # extract model rank
   betaList <- list()
   mod_rank <- do.call(rbind,strsplit(attributes(model_sel)$row.names , "model"))
   mod_rank <- as.numeric(mod_rank[,2])
-
+  
   # Models that make up more than 95% of weight
   k <- 0 ; sumW <- 0 
-  while(sumW < 0.95) { 
+  while(sumW < 0.95){ 
     k <- k + 1
-    sumW <- sum(model_sel$weight[1:k]) 
+    sumW <- sum(model_sel$weight[1:k])
   }
-
+  
   # Store values
   for(i in 1:k){
     
@@ -22,7 +29,7 @@ model_avg = function(model_sel,model_list){ #,
        class(model_list[[mod_rank[i]]])[1] == "glmerMod") {
       
       estimates <- fixef(model_list[[mod_rank[i]]])
-    
+      
     } else estimates <- coef(model_list[[mod_rank[i]]])
     
     # ANNOYING: Translate "TotDensity:sexm" into "sexm:TotDensity"
@@ -44,17 +51,17 @@ model_avg = function(model_sel,model_list){ #,
     }
     
     betaList[[i]] <- data.frame(predictor = names(estimates),
-                                 parameter = estimates)
+                                parameter = estimates)
     names(betaList[[i]])[2] <- paste0("parameter_",i)
     
   }
-
+  
   # Model averages
   beta_avg                  <- Reduce(function(...) merge(...,all=T), betaList)
   beta_avg[is.na(beta_avg)] <- 0
   mod_weights               <- model_sel$weight[1:k]
   beta_avg$avg              <- as.matrix(beta_avg[,-1]) %*% mod_weights / sum(mod_weights)
-
+  
   return(beta_avg)
   
 }
@@ -76,10 +83,10 @@ format_growth <- function(x){
   d       <- mutate(d, new_t1 = as.numeric(as.character(new_t1)))
   # new columns
   d       <- mutate(d, TotDensity2 = TotDensity^2,
-                       new_t1_pc   = new_t1/TotDensity)
+                    new_t1_pc   = new_t1/TotDensity)
   
   return(d)
-
+  
 }
 
 
@@ -104,10 +111,10 @@ format_new_tillers <- function(x){
   
   # take unique values - new tillers refer to plots, not individuals 
   out     <- d %>%
-              select(new_t1, new_t1_pc, plot, sr, M, F, TotDensity, TotDensity2, year) %>%
-              unique() %>%
-              na.omit()
-            
+    select(new_t1, new_t1_pc, plot, sr, M, F, TotDensity, TotDensity2, year) %>%
+    unique() %>%
+    na.omit()
+  
   return(out)
   
 }
@@ -120,14 +127,14 @@ one_sex_format <- function(form_gr_dat){
   tmp     <- form_gr_dat 
   tmp     <- select(tmp,new_t1,plot,sex,year,TotDensity)
   tmp     <- mutate(tmp1, oneSex = replace(oneSex, F==0 | M==0, 1) )
-                    
+  
   # file with one sex-only plots
   one_sex <- subset(tmp, oneSex == 1)
   # flag what is male, and what is female
   one_sex <- mutate(one_sex, plot_sex = "m")
   one_sex <- mutate(one_sex, plot_sex = replace(plot_sex, M == 0,"f") )
   one_sex <- mutate(one_sex, plot_sex = factor(plot_sex, levels = c("f", "m")) ) 
-                    
+  
   return(one_sex)
   
 }
