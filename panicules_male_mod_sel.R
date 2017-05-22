@@ -19,7 +19,7 @@ m_alloc$pan_area        <- m_alloc$panicule_Length_cm *  m_alloc$panicule_Width_
 m_alloc$plot            <- as.factor(m_alloc$plot)
 
 
-# model selection ----------------------------------------------------------------------
+# preliminary analysis ----------------------------------------------------------------------
 spike_data              <- na.omit(dplyr::select(m_alloc, CountSpikelets, 
                                                  log_l_t0, sr, TotDensity, plot))
 
@@ -32,42 +32,30 @@ isMod[[2]]=glmmadmb(CountSpikelets ~ log_l_t0 + (1 | plot), family = "nbinom2", 
 AICtab(isMod, weights=T)
 
 
-# mode selection 
-plMod=list()
-plMod[[1]]=glmmadmb(CountSpikelets ~ (1 | plot), family = "nbinom2", data=spike_data)
-plMod[[2]]=glmmadmb(CountSpikelets ~ TotDensity + (1 | plot), family = "nbinom2", data=spike_data)
-plMod[[3]]=glmmadmb(CountSpikelets ~ sr + (1 | plot), family = "nbinom2", data=spike_data)
-plMod[[4]]=glmmadmb(CountSpikelets ~ sr + TotDensity + (1 | plot), family = "nbinom2", data=spike_data)
-plMod[[5]]=glmmadmb(CountSpikelets ~ sr * TotDensity + (1 | plot), family = "nbinom2", data=spike_data)
+# Model selection -------------------------------------------------
+
+# formulas for candidate models 
+candidate_mods <- list(
+  CountSpikelets ~ ( 1 | plot),
+  CountSpikelets ~ TotDensity + ( 1 | plot),
+  CountSpikelets ~ TotDensity + TotDensity:sr + ( 1 | plot)
+)
+
+# model specification
+fit_func <- function(x){
+  return( glmmadmb(x, family="nbinom2", data=spike_data) )
+}
+
+# fit the models 
+plMod <- lapply(candidate_mods,fit_func)
 
 # Model average
-m_alloc_select    <- AICtab(plMod,weights=T,sort=F)
+m_alloc_select    <- AICtab(plMod,weights=T)
 m_alloc_avg       <- model_avg(m_alloc_select, plMod)
 write.csv(m_alloc_avg, "Results/VitalRates_3/male_spikelets.csv", row.names = F)
 
 # Model selection table
-write.csv(sel_results(m_alloc_select, 5, "Spikelet number"),
-          "Results/VitalRates_3/male_spikelets_mod_sel.csv",row.names=F)
-
-
-# Graph ---------------------------------------------------------------------------
-
-#tiff("Results/VitalRates_3/male_repr_alloc.tiff",unit="in",width=3.5,height=3.5,res=600,compression="lzw")
-
-#Start plotting
-par(mfcol=c(1,1),mar=c(2.8,3,1,0.1),mgp=c(1.4,0.5,0))
-
-#best model
-plot(spike_data$TotDensity,spike_data$CountSpikelets,pch=1, 
-     cex = spike_data$sr * 1.5,
-     ylab="Spikelet number",xlab="Planting density")
-#size <- mean(spike_data$log_l_t0)
-beta <- m_alloc_avg$avg
-xSeq <- seq(1,48,by =1)
-y_l  <- exp(beta[1] + beta[2]*xSeq + beta[3]*0.1 + beta[4]*xSeq*0.1)
-y_h  <- exp(beta[1] + beta[2]*xSeq + beta[3]*0.9 + beta[4]*xSeq*0.9)
-
-lines(xSeq,y_l,lwd=2,lty=2)
-lines(xSeq,y_h,lwd=2,lty=1)
-
-#dev.off()
+x <- plMod
+write.csv(mod_sel_res(plMod),
+          "Results/VitalRates_3/mod_sel_male_spikelets.csv",row.names=F)
+rm(x)
