@@ -17,7 +17,7 @@ pt_exp  <- 1.5
 tiff("Results/VitalRates_3/exp_design.tiff",unit="in",
      width=4,height=4,res=600,compression="lzw")
 
-par(mar = c(3.2,3.8,0.1,0.1), mgp = c(2.3,1,0))
+par(mar = c(3.5,3.8,0.1,0.1), mgp = c(2.3,1,0))
 
 plot(exp_des$F, exp_des$M, pch = 21, lwd = 2,
      xlab = "Female density", ylab = "Male density",

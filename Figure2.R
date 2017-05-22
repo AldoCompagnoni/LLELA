@@ -47,13 +47,15 @@ pred_till   <- mutate(pred_till, pred_new_t_pf = replace(pred_new_t_pf, pred_new
 # COMBINE MODELS #####################################################################
 
 # PANEL 1: Per capita/total seed production ------------------------------------------------
-seed_prod <- merge(select(subset(pred_flower, sexm == 0), sr,TotDensity,n_flowers_pc), 
-                   select(pred_seed, sr,TotDensity,seeds_per_f) )
+seed_prod <- merge(subset(pred_flower, sexm == 0)[,c("TotDensity","sr","TotDensity:sr","n_flowers_pc")], 
+                   pred_seed[,c("TotDensity","sr","TotDensity:sr","seeds_per_f")])
 seed_prod <- mutate(seed_prod, seed_prod    = seeds_per_f * n_flowers_pc * sr * TotDensity)
 seed_prod <- mutate(seed_prod, seed_prod_pf = seed_prod / (sr * TotDensity))
 seed_prod <- mutate(seed_prod, seed_prod_pc = seed_prod / TotDensity)
 
-# PANEL 2: Per capita/total seed production ------------------------------------------------
+
+# PANEL 2: Seed viability ------------------------------------------------
+
 
 # Number of female flowers (panicles) per plot 
 females     <- subset(pred_flower, sexm == 0)
@@ -74,8 +76,7 @@ des_v     <- flow_num %>% mutate(Intercept = 1,
                                   totFlow = n_m_flowers + n_f_flowers,
                                   sr_f = n_f_flowers / (n_m_flowers + n_f_flowers)
                                  )
-des_v     <- des_v %>% 
-              mutate(sr_f_x_totFlow = totFlow * sr_f)
+des_v     <- des_v %>% mutate(sr_f_x_totFlow = totFlow * sr_f)
 names(des_v)[c(7,10)] <- c("(Intercept)","sr_f:totFlow")
 viab_raw <- pred(des_v[,c("(Intercept)","sr_f","sr_f:totFlow","totFlow")], 
                   germ_beta, viab, inv.logit)
@@ -111,57 +112,6 @@ seed_3d <- form_3d_surf(seed_prod,seed_prod_pc)
 viab_3d <- form_3d_surf(pred_viab,viab)
 till_3d <- form_3d_surf(pred_till,pred_new_t_pc)
 vs_3d   <- form_3d_surf(reprod,reprod_pc)
-
-tiff("Results/VitalRates_3/figure2.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
-
-m_line <- -2
-par(mfrow=c(2,2),mar=c(0,2,0,0),mgp=c(3,1,0), oma=c(0,0,0,0),cex=0.7,
-    cex.axis = 0.7)
-
-persp(seed_3d$x,seed_3d$y,seed_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals",line = m_line,
-      ylab = "Density",ticktype = "detailed",
-      zlab = expression(Psi),mgp=c(2,1,0), sub = "a",
-      main = expression("a)   Reproductive potential ("*Psi*")"))
-persp(viab_3d$x,viab_3d$y,viab_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals", line = m_line,
-      ylab = "Density",ticktype = "detailed",
-      zlab = expression(omega),
-      main = expression("b)     Seed viability("*omega*")"))
-persp(till_3d$x,till_3d$y,till_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals", line = m_line,
-      ylab = "Density",ticktype = "detailed",
-      zlab = expression(gamma),
-      main = expression("c)    Production of new tillers("*gamma*")"))
-persp(vs_3d$x,vs_3d$y,vs_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
-      xlab = "Proportion of female individuals", 
-      ylab = "Density",ticktype = "detailed",line = m_line,
-      zlab = "R",
-      main = expression("d)   Regeneration(R)"))
-
-dev.off()
-
-
-# countour
-tiff("Results/VitalRates_3/figure2_contour.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
-
-par(mfrow=c(2,2),mar=c(2,2,1,0.2),mgp=c(2,0.5,0), oma=c(1,1,0,0),cex=0.7,
-    cex.axis = 0.7)
-
-contour(seed_3d$x,seed_3d$y,seed_3d$z, 
-        main = expression("a) Reproductive potential ("*Psi*")"))
-contour(viab_3d$x,viab_3d$y,viab_3d$z,
-        main = expression("b) Seed viability ("*omega*")"))
-contour(till_3d$x,till_3d$y,till_3d$z,
-        main = expression("c) Production of new tillers ("*gamma*")"))
-contour(vs_3d$x,vs_3d$y,vs_3d$z,
-        main = expression("d) Regeneration (R)"))
-
-mtext("Density",side=2,line=-0.2,outer=T,cex=1)
-mtext("Proportion of female individuals",at=0.5,line=-0.2,side=1,outer=T,cex=1)
-
-dev.off()
-
 
 # FIGURE 2 COUNTOUR ##################################################################################
 # NOTE: you need to export this file MANUALLY using R studio.
@@ -466,6 +416,59 @@ mtext("Density",side=2,line=-0.2,outer=T,cex=1)
 mtext("Proportion of female individuals",at=0.5,line=-0.2,side=1,outer=T,cex=1)
 
 
+
+
+
+
+tiff("Results/VitalRates_3/figure2.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
+
+m_line <- -2
+par(mfrow=c(2,2),mar=c(0,2,0,0),mgp=c(3,1,0), oma=c(0,0,0,0),cex=0.7,
+    cex.axis = 0.7)
+
+persp(seed_3d$x,seed_3d$y,seed_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
+      xlab = "Proportion of female individuals",line = m_line,
+      ylab = "Density",ticktype = "detailed",
+      zlab = expression(Psi),mgp=c(2,1,0), sub = "a",
+      main = expression("a)   Reproductive potential ("*Psi*")"))
+persp(viab_3d$x,viab_3d$y,viab_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
+      xlab = "Proportion of female individuals", line = m_line,
+      ylab = "Density",ticktype = "detailed",
+      zlab = expression(omega),
+      main = expression("b)     Seed viability("*omega*")"))
+persp(till_3d$x,till_3d$y,till_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
+      xlab = "Proportion of female individuals", line = m_line,
+      ylab = "Density",ticktype = "detailed",
+      zlab = expression(gamma),
+      main = expression("c)    Production of new tillers("*gamma*")"))
+persp(vs_3d$x,vs_3d$y,vs_3d$z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
+      xlab = "Proportion of female individuals", 
+      ylab = "Density",ticktype = "detailed",line = m_line,
+      zlab = "R",
+      main = expression("d)   Regeneration(R)"))
+
+dev.off()
+
+
+# countour
+tiff("Results/VitalRates_3/figure2_contour.tiff",unit="in",width=6.3,height=6.3,res=600,compression="lzw")
+
+par(mfrow=c(2,2),mar=c(2,2,1,0.2),mgp=c(2,0.5,0), oma=c(1,1,0,0),cex=0.7,
+    cex.axis = 0.7)
+
+contour(seed_3d$x,seed_3d$y,seed_3d$z, 
+        main = expression("a) Reproductive potential ("*Psi*")"))
+contour(viab_3d$x,viab_3d$y,viab_3d$z,
+        main = expression("b) Seed viability ("*omega*")"))
+contour(till_3d$x,till_3d$y,till_3d$z,
+        main = expression("c) Production of new tillers ("*gamma*")"))
+contour(vs_3d$x,vs_3d$y,vs_3d$z,
+        main = expression("d) Regeneration (R)"))
+
+mtext("Density",side=2,line=-0.2,outer=T,cex=1)
+mtext("Proportion of female individuals",at=0.5,line=-0.2,side=1,outer=T,cex=1)
+
+dev.off()
 
 
 # data for PER FEMALE data
