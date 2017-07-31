@@ -1,9 +1,9 @@
 ##Response variable: total number of tillers 
-setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
+setwd("C:/cloud/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
 library(bbmle) 
 library(glmmADMB) # Fit models with a Negative Binomial
 library(dplyr)
-source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
+source("C:/CODE/LLELA/model_avg.R")
 
 # load and format data -----------------------------------------------------
 x       <- read.csv("Data/vr.csv")
@@ -47,7 +47,7 @@ mal  <- N*0.95
 y_l  <- (beta[,"lam.f"]*fem) / (1 + beta[,"b.f"] * (fem + beta[,"a."]*mal)) + 
   (beta[,"lam.m"]*mal) / (1 + beta[,"b.m"] * (fem + beta[,"a."]*mal))
 lines(N,y_h,lwd=2, lty = 1) #col="#DCDCDC",
-lines(N,y_l,lwd=2, lty = 2) #col="#636363",
+lines(N,y_l,lwd=2, lty = 3) #col="#636363",
 
 # sex ratio legend
 colfunc = colorRampPalette(cRamp(unique(arrange(d15,sr)$sr)))
@@ -60,7 +60,7 @@ text(7, 180, "plot", pos = 4)
 
 # prediction legend
 legend(20,220, c("95% female plot", "5% female plot"), cex = 1,
-       lty = c(1,2), lwd=2,  bty = "n")
+       lty = c(1,3), lwd=2,  bty = "n")
 
 dev.off()
 
