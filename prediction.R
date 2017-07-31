@@ -39,11 +39,20 @@ pred <- function(design, mod_avg, pred_name, link){
   # }
   
   # Prediction
-  pred_val <- as.vector( as.matrix(design[,mod_avg$predictor]) %*% mod_avg$avg )
+  pred_val <- design %>%
+                .[c(mod_avg$predictor)] %>%
+                as.matrix %*% mod_avg$avg %>%
+                as.vector
+  
   pred_val <- eval(parse(text = paste0("sapply(pred_val,",link_f,")")) )
-  design   <- cbind(design,NA)
-  design[ncol(design)] <- pred_val
-  names(design)[ncol(design)] <- pred_name
+  design   <- design %>%
+                mutate( tmp = pred_val) %>%
+                rename_( .dots = setNames("tmp", pred_name ) )
+  
+  # pred_val <- as.vector( as.matrix(design[,mod_avg$predictor]) %*% mod_avg$avg )
+  # design   <- cbind(design,NA)
+  # design[ncol(design)] <- pred_val
+  # names(design)[ncol(design)] <- pred_name
   
   return(design)
   
