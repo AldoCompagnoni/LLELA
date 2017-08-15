@@ -1,11 +1,8 @@
 # Extract formulas
 form_extract <- function(x){
   
-  tmp <- formula(x) %>%
-    deparse() %>%
-    strsplit("~") 
   # only left part of formula
-  tmp <- tmp[[1]][[2]]
+  tmp <- formula(x)[[3]] %>% deparse()
   tmp <- gsub("\\+ \\(1 \\| plot\\)", "", tmp)
   tmp <- trimws(tmp)
   return(tmp)
