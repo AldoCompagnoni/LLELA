@@ -1,10 +1,11 @@
 # Codes produces summaries for the manuscript 
-setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
+setwd("C:/cloud/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
+wd    <- "C:/cloud/Dropbox/POAR--Aldo&Tom/"
 library(dplyr)
 
 # Summaries on replication
 d           <- read.csv("Data/vr.csv")
-trt_rep     <-  select(d,plot,F,M) %>% 
+trt_rep     <-  dplyr::select(d,plot,F,M) %>% 
                   distinct() %>% 
                   group_by(F,M) %>% 
                   summarise(rep = n())
@@ -16,6 +17,16 @@ rep_summ    <- data.frame(total_reps      = sum(trt_rep$rep),
 
 # total n. of planted individuals
 plant_idv   <- sum( (trt_rep$F + trt_rep$M) * trt_rep$rep )
+
+
+# Sex ratios in natural populations
+poar      <- read.csv(paste0(wd,"POAR GIS Final Data.csv")) %>%
+                mutate( sexratio = Total.Female.Infl. / (Total.Male.Infl.+POAR$Total.Female.Infl.) )
+sr_sum    <- c( mean(poar$sexratio),
+                min(poar$sexratio),
+                max(poar$sexratio),
+                length(unique(poar$Population)) ) %>%
+                  setNames( c("mean_sr","min_sr","max_sr","n_of_pops") )
 
 
 # summaries on seed ~ weight/length relationship
