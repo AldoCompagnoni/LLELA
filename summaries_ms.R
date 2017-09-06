@@ -40,21 +40,49 @@ plot(log(seeds$Seed.weight..mg.), log(seeds$SeedN) )
 mean(seeds$Seed.weight..mg. / seeds$SeedN, na.rm=T)
 
 
+# number of individuals AND panicles (samples) in tetrazolium analyses
+tetr_dat  <- read.csv("Data/Spring 2014/viability/tetra_germ_plot_data.csv", stringsAsFactors = F) %>%
+                mutate(totN = F + M) %>%
+                mutate(sr = F / totN) %>%
+                mutate(plot = as.factor(plot) ) %>%
+                subset( totFlow < 60) %>%
+                dplyr::select(Yes,fail,sr_f,totFlow,sr,totN,plot,focalI,P_ID,log_l_t0) %>%
+                na.omit() %>%
+                mutate( plot_x_focal = paste0(plot,focalI, sep="_") )
+
+# total n. of samples
+nrow(tetr_dat)
+
+# total n. of focal individuals
+tetr_dat$plot_x_focal %>% unique %>% length
+
+
 # correlation b/w germination and tetrazolium viability
 viabVr  <- read.csv("Data/Spring 2014/viability/tetra_germ_plot_data.csv",
                         stringsAsFactors = F)
 # Format viability data 
 viabVr  <- viabVr %>%
             mutate(totN = F + M) %>%
-            mutate(sr = F / totN) %>%
+            mutate(sr   = F / totN) %>%
             mutate(plot = as.factor(plot) ) %>%
             subset(totFlow < 60) %>%
-            select_(.dots=c("germ_ratio", "tetra_ratio")) %>%
+            select_(.dots=c("germ_ratio", "tetra_ratio") ) %>%
             na.omit()
+
+
+
+# Viability model selection ---------------------------------------------------------
+
+# Omit NAs for glmmadmb
+tetr_dat  <- na.omit(dplyr::select(viabVr,Yes,fail,sr_f,totFlow,sr,totN,plot,log_l_t0))
+
+
 
 # correlation b/w germination and tetrazolium viability data 
 cor.test(viabVr[,1] , viabVr[,2])
 
+
+tetr_dat  <- na.omit(dplyr::select(viabVr,Yes,fail,sr_f,totFlow,sr,totN,plot,log_l_t0))
 
 
 # table 1 main text -------------------------------------------------------
