@@ -1,10 +1,10 @@
 ##Sex predictor of flowering probability: SEX RATIO (female individuals/total individuals)
-setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
-library(bbmle) #For AIC weights, because I'm lazy!
+setwd("C:/cloud/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
+library(bbmle)
 library(glmmADMB)
 library(dplyr)
-source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
-source("C:/Users/ac79/Documents/CODE/LLELA/model_sel_results.R")
+source("C:/CODE/LLELA/model_avg.R")
+source("C:/CODE/LLELA/model_sel_results.R")
 
 
 # read in data -------------------------------------------------------------------------------
@@ -26,13 +26,14 @@ candidate_mods <- list(
 )
 
 # fit models and model averages
-nfMod         <- lapply(candidate_mods, function(x) glmmadmb(x,data=f14,family="nbinom2"))
+nfMod         <- lapply(candidate_mods, function(x) glmmadmb(x,data=f14,family="nbinom2") )
 n_flow_select <- AICtab(nfMod, weights=T)
 n_flow_avg    <- model_avg(n_flow_select, nfMod)
-write.csv(n_flow_avg, "Results/VitalRates_3/n_flowers_best.csv", row.names = F)
+write.csv(n_flow_avg, "Results/VitalRates_4_Cade2015/n_flowers_best.csv", row.names = F)
+
 
 # Model selection table
 x <- nfMod
 write.csv(mod_sel_res(nfMod), 
-          "Results/VitalRates_3/mod_sel_n_flowers.csv",row.names=F)
+          "Results/VitalRates_4_Cade2015/mod_sel_n_flowers.csv",row.names=F)
 rm(x)

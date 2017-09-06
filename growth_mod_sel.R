@@ -1,9 +1,9 @@
 # Sex competition predictor: SEX RATIO (female individuals/total individuals)
-setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
+setwd("C:/cloud/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
 library(bbmle)    
 library(glmmADMB) #Fit models with a Negative Binomial
 library(dplyr)
-source("C:/Users/ac79/Documents/CODE/LLELA/analysis/model_avg.R")
+source("C:/CODE/LLELA/model_avg.R")
 
 
 # Read data ------------------------------------------------------------------

@@ -1,10 +1,10 @@
-setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
+setwd("C:/cloud/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
 library(bbmle)
 library(lme4)
 library(dplyr)
 library(glmmADMB)
-source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
-source("C:/Users/ac79/Documents/CODE/LLELA/model_sel_results.R")
+source("C:/CODE/LLELA/model_avg.R")
+source("C:/CODE/LLELA/model_sel_results.R")
 
 # load and format data --------------------------------------------------------------
 d             <- read.csv("Data/vr.csv")
@@ -41,21 +41,16 @@ candidate_mods <- list(
   CountSpikelets ~ TotDensity + TotDensity:sr + ( 1 | plot)
 )
 
-# model specification
-fit_func <- function(x){
-  return( glmmadmb(x, family="nbinom2", data=spike_data) )
-}
-
 # fit the models 
-plMod <- lapply(candidate_mods,fit_func)
+pan_mod <- lapply(candidate_mods,function(x) glmmadmb(x,data=spike_data,family="nbinom2") )
 
 # Model average
-m_alloc_select    <- AICtab(plMod,weights=T)
-m_alloc_avg       <- model_avg(m_alloc_select, plMod)
-write.csv(m_alloc_avg, "Results/VitalRates_3/male_spikelets.csv", row.names = F)
+m_alloc_select    <- AICtab(pan_mod,weights=T)
+m_alloc_avg       <- model_avg(m_alloc_select, pan_mod)
+write.csv(m_alloc_avg, "Results/VitalRates_4_Cade2015/male_spikelets.csv", row.names = F)
 
 # Model selection table
-x <- plMod
-write.csv(mod_sel_res(plMod),
-          "Results/VitalRates_3/mod_sel_male_spikelets.csv",row.names=F)
+x <- pan_mod
+write.csv(mod_sel_res(pan_mod),
+          "Results/VitalRates_4_Cade2015/mod_sel_male_spikelets.csv",row.names=F)
 rm(x)

@@ -1,11 +1,11 @@
 ##Response variable: total number of tillers 
-setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
+setwd("C:/cloud/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
 library(bbmle)
 library(dplyr)
-source("C:/Users/ac79/Documents/CODE/LLELA/unload_mass.R")
+source("C:/CODE/LLELA/unload_mass.R")
 unload_mass()
-source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
-source("C:/Users/ac79/Documents/CODE/LLELA/bh_util_fnc.R")
+source("C:/CODE/LLELA/model_avg.R")
+source("C:/CODE/LLELA/bh_util_fnc.R")
 
 # load and format data -----------------------------------------------------
 x   <- read.csv("Data/vr.csv")
@@ -14,17 +14,74 @@ d14 <- subset(d, year == 2014)
 d15 <- subset(d, year == 2015)
 
 
+# model averaged prediction ------------------------------------------------
+
+# predicting 
+predict_nl <- function(x,des_mat){
+  
+  pars    <- x$par
+  
+  lam_par <- pars[grepl("lam.", names(pars))]
+  b_par   <- pars[grepl("b.", names(pars))]
+  a_par   <- pars[grepl("^a.$", names(pars))]
+  
+  # numerator --------------------------------------------------------------
+  
+  if(length(lam_par) == 1 ){
+    num_f     <- lam_par * des_mat$F
+    num_m     <- lam_par * des_mat$M
+  }else{
+    num_f     <- lam_par["lam.f"] * des_mat$F
+    num_m     <- lam_par["lam.m"] * des_mat$M
+  }
+  
+  # denominator --------------------------------------------------------------
+  
+  # No "a." parameter
+  if( any(names(pars) != "a.") ){
+    if( length(b_par) == 1 ){
+      
+      den_f     <- (1 + b_par * (des_mat$F + des_mat$M) )
+      den_m     <- (1 + b_par * (des_mat$F + des_mat$M) )
+      
+    }else{
+      
+      den_f     <- (1 + b_par["b.f"] * (des_mat$F + des_mat$M) )
+      den_m     <- (1 + b_par["b.m"] * (des_mat$F + des_mat$M) )
+      
+    }
+    # with "a." parameter
+  }else{
+    if( length(b_par) == 1 ){
+      
+      den_f     <- (1 + b_par * (des_mat$F + (a_par*des_mat$M) ) )
+      den_m     <- (1 + b_par * (des_mat$F + (a_par*des_mat$M) ) )
+      
+    }else{
+      
+      den_f     <- (1 + b_par["b.f"] * (des_mat$F + (a_par*des_mat$M) ) )
+      den_m     <- (1 + b_par["b.m"] * (des_mat$F + (a_par*des_mat$M) ) )
+      
+    }
+  }
+  
+  y_pred <- (num_f / den_f) + (num_m / den_m) 
+  return(y_pred)
+  
+}
+
+
 # Model fits 2014 ---------------------------------------------------------------
 res         <- list()
-res[[1]]    <-optim(par=c(2,0.1,5),         fn=fit_null, gr=NULL, d14, control=list(maxit=5000))
-res[[2]]    <-optim(par=c(5,5,0.5,5),       fn=fit_lam, gr=NULL, d14, control=list(maxit=5000))
-res[[3]]    <-optim(par=c(5,0.5,0.5,5),     fn=fit_b, gr=NULL, d14, control=list(maxit=5000))
-res[[4]]    <-optim(par=c(5,0.5,0.5,5), fn=fit_a, gr=NULL, d14, control=list(maxit=5000))
-res[[5]]    <-optim(par=c(5,5,0.5,0.5,5),       fn=fit_lam_b, gr=NULL, d14, control=list(maxit=5000))
-res[[6]]    <-optim(par=c(5,5,0.5,0.5,5),   fn=fit_lam_a, gr=NULL, d14, control=list(maxit=5000))
-res[[7]]    <-optim(par=c(1,0.1,0.1,0.1,5), fn=fit_b_a, gr=NULL, d14, control=list(maxit=5000))
-res[[8]]    <-optim(par=c(5,5,0.5,0.5,0.5,5), fn=fit_full, gr=NULL, d14, control=list(maxit=5000))
-res         <-setNames(res, c("null","lam","b","a","lam_b","lam_a","b_a","full"))
+res[[1]]    <- optim(par=c(2,0.1,5),         fn=fit_null, gr=NULL, d14, control=list(maxit=5000))
+res[[2]]    <- optim(par=c(5,5,0.5,5),       fn=fit_lam, gr=NULL, d14, control=list(maxit=5000))
+res[[3]]    <- optim(par=c(5,0.5,0.5,5),     fn=fit_b, gr=NULL, d14, control=list(maxit=5000))
+res[[4]]    <- optim(par=c(5,0.5,0.5,5),     fn=fit_a, gr=NULL, d14, control=list(maxit=5000))
+res[[5]]    <- optim(par=c(5,5,0.5,0.5,5),   fn=fit_lam_b, gr=NULL, d14, control=list(maxit=5000))
+res[[6]]    <- optim(par=c(5,5,0.5,0.5,5),   fn=fit_lam_a, gr=NULL, d14, control=list(maxit=5000))
+res[[7]]    <- optim(par=c(1,0.1,0.1,0.1,5), fn=fit_b_a, gr=NULL, d14, control=list(maxit=5000))
+res[[8]]    <- optim(par=c(5,5,0.5,0.5,0.5,5), fn=fit_full, gr=NULL, d14, control=list(maxit=5000))
+res         <- setNames(res, c("null","lam","b","a","lam_b","lam_a","b_a","full"))
 
 # parameter names
 res$null    <- par_names(res$null, null_par)
@@ -40,40 +97,33 @@ res$full    <- par_names(res$full, full_par)
 m14         <- lapply(res,aic_calc)
 mod_w       <- mod_weights(m14)
 
-# Model selection table
-write.csv(mod_w,"Results/VitalRates_3/new_tillers_BH14_mod_sel.csv",row.names=F)
 
-# Average AIC weight models --------------------------------------------------------------------------------------
-mat <- matrix(data = 1, nrow = length(res), ncol = 5) 
-for(i in 1:length(res)){
-  
-  params  <- c("lam.f","lam.m","b.f","b.m","a.")
-  
-  lam_r   <- grep("lam.",names(res[[i]]$par) )
-  b_r     <- grep("b.",names(res[[i]]$par) )
-  a_r     <- grep("^a.$",names(res[[i]]$par) )
-  
-  if( length(lam_r) > 0 ) mat[i,grep("lam.",params)] <- res[[i]]$par[lam_r]
-  if( length(b_r) > 0 )   mat[i,grep("b.",params)]   <- res[[i]]$par[b_r]
-  if( length(a_r) > 0 )   mat[i,grep("^a.$",params)]   <- res[[i]]$par[a_r]
-  
-}
-results   <- mat %>%
-              data.frame() %>%
-              setNames(params) %>%
-              mutate(model = names(res) ) %>%
-              merge(mod_w[,c("model","weights")]) %>%
-              arrange(desc(weights) ) %>%
-              mutate(cum_weight = cumsum(weights))
-# only the the models making up to 95% (included) weights
-min_cum_weight <- min(results$cum_weight[results$cum_weight > 0.95])
-weight_i  <- which(results$cum_weight == min_cum_weight)
-weighted  <- (select(results,lam.f:a.) * results$weights)[1:weight_i,]
-summed    <- apply(weighted,2,sum) 
-avg       <- summed / results$cum_weight[weight_i]
-avg14     <- as.data.frame(t(avg))
+# Average model output 
 
-write.csv(avg14, "Results/VitalRates_3/new_t_bh14_best.csv",row.names=F)
+# design matrix
+des_mat <- expand.grid( TotN = c(1:49),
+                        sr = round(seq(0,1,by=0.05),2) ) %>%
+  mutate( F = sr * TotN ) %>%
+  mutate( M = TotN - F )
+
+# store parameters, store predictions
+par_res     <- list(null = res$null, lam = res$lam, b = res$b, a = res$a, 
+                    lam_b = res$lam_b, lam_a = res$lam_a, b_a = res$b_a, full = res$full)
+predict_l   <- lapply(par_res, predict_nl, des_mat) 
+predict_df  <- Reduce(function(...) cbind(...), predict_l) %>% 
+  as.data.frame %>%
+  setNames( names(par_res) ) %>%
+  bind_cols( des_mat )
+id          <- max( which(cumsum(mod_w$weights) < 0.95) ) + 1
+weight_v    <- mod_w$weights[1:id]
+model_n     <- as.character(mod_w$model[1:id])
+pred_df14   <- predict_df %>%
+                  mutate( pred = (as.matrix(predict_df[,model_n]) %*% weight_v) / sum(weight_v) )
+
+# Model outputs
+write.csv(mod_w, "Results/VitalRates_4_Cade2015/new_tillers_BH14_mod_sel.csv", row.names=F)
+write.csv(pred_df14, "Results/VitalRates_4_Cade2015/new_t_bh14_best.csv", row.names=F)
+
 
 
 # Model fits 2015 ---------------------------------------------------------------
@@ -102,41 +152,24 @@ res$full    <- par_names(res$full, full_par)
 m15         <- lapply(res,aic_calc)
 mod_w       <- mod_weights(m15)
 
-# Model selection table
-write.csv(mod_w,"Results/VitalRates_3/new_tillers_BH15_mod_sel.csv",row.names=F)
+# store parameters, store predictions
+par_res     <- list(null = res$null, lam = res$lam, b = res$b, a = res$a, 
+                    lam_b = res$lam_b, lam_a = res$lam_a, b_a = res$b_a, full = res$full)
+predict_l   <- lapply(par_res, predict_nl, des_mat) 
+predict_df  <- Reduce(function(...) cbind(...), predict_l) %>% 
+                    as.data.frame %>%
+                    setNames( names(par_res) ) %>%
+                    bind_cols( des_mat )
+id          <- max( which(cumsum(mod_w$weights) < 0.95) ) + 1
+weight_v    <- mod_w$weights[1:id]
+model_n     <- as.character(mod_w$model[1:id])
+pred_df15   <- predict_df %>%
+                    mutate( pred = (as.matrix(predict_df[,model_n]) %*% weight_v) / sum(weight_v) )
 
-# Average AIC weight models --------------------------------------------------------------------------------------
-mat <- matrix(data = 1, nrow = length(res), ncol = 5) 
-for(i in 1:length(res)){
-  
-  #params  <- c("lam.f","lam.m","b.f","b.m","a.f","a.m")
-  params  <- c("lam.f","lam.m","b.f","b.m","a.")
-  
-  lam_r   <- grep("lam.",names(res[[i]]$par) )
-  b_r     <- grep("b.",names(res[[i]]$par) )
-  a_r     <- grep("^a.$",names(res[[i]]$par) )
-  
-  if( length(lam_r) > 0 ) mat[i,grep("lam.",params)] <- res[[i]]$par[lam_r]
-  if( length(b_r) > 0 )   mat[i,grep("b.",params)]   <- res[[i]]$par[b_r]
-  if( length(a_r) > 0 )   mat[i,grep("^a.$",params)]   <- res[[i]]$par[a_r]
-  
-}
-results   <- mat %>%
-              data.frame() %>%
-              setNames(params) %>%
-              mutate(model = names(res) ) %>%
-              merge(mod_w[,c("model","weights")]) %>%
-              arrange(desc(weights) ) %>%
-              mutate(cum_weight = cumsum(weights))
-# only the the models making up to 95% (included) weights
-min_cum_weight <- min(results$cum_weight[results$cum_weight > 0.95])
-weight_i  <- which(results$cum_weight == min_cum_weight)
-weighted  <- (select(results,lam.f:a.) * results$weights)[1:weight_i,]
-summed    <- apply(weighted,2,sum) 
-avg       <- summed / results$cum_weight[weight_i]
-avg15     <- as.data.frame(t(avg))
+# Model outputs
+write.csv(mod_w, "Results/VitalRates_4_Cade2015/new_tillers_BH15_mod_sel.csv", row.names=F)
+write.csv(pred_df15, "Results/VitalRates_4_Cade2015/new_t_bh15_best.csv",row.names=F)
 
-write.csv(avg15, "Results/VitalRates_3/new_t_bh15_best.csv",row.names=F)
 
 
 # graph ----------------------------------------------------------------------------------------
@@ -150,7 +183,7 @@ cRamp <- function(x){
 
 
 # Graph
-tiff("Results/VitalRates_3/figure_newtiller_prod.tiff",unit="in",width=6.3,height=4,res=600,compression="lzw")
+tiff("Results/VitalRates_4_Cade2015/figure_newtiller_prod.tiff",unit="in",width=6.3,height=4,res=600,compression="lzw")
 
 par(mfrow=c(1,2),mar=c(3,2.5,1,0.1),mgp=c(1.4,0.35,0),cex.lab=1.1,cex.axis=0.8,
     cex.main=1.2, oma=c(0,0,0.2,0),cex=0.9)
@@ -159,19 +192,12 @@ par(mfrow=c(1,2),mar=c(3,2.5,1,0.1),mgp=c(1.4,0.35,0),cex.lab=1.1,cex.axis=0.8,
 plot(d14$TotDensity,d14$new_t1,pch=21,ylab="Number of new tillers",
      xlab="Planting density", bg = cRamp(d14$sr), cex = 1.5,
      main = "2014")
-N    <- seq(0,48,1)
-beta <- as.data.frame(avg14)
-fem  <- N*0.95
-mal  <- N*0.05
-y_h  <- ((beta[,"lam.f"]*fem) / (1 + beta[,"b.f"] * (fem + beta[,"a."]*mal))) + 
-        ((beta[,"lam.m"]*mal) / (1 + beta[,"b.m"] * (fem + beta[,"a."]*mal)))
-fem  <- N*0.05
-mal  <- N*0.95
-y_l  <- ((beta[,"lam.f"]*fem) / (1 + beta[,"b.f"] * (fem + beta[,"a."]*mal))) + 
-        ((beta[,"lam.m"]*mal) / (1 + beta[,"b.m"] * (fem + beta[,"a."]*mal)))
-lines(N,y_h,lwd=2, lty = 1) #col="#DCDCDC",
-lines(N,y_l,lwd=2, lty = 2) #col="#636363",
 
+tmp <- subset(pred_df14, sr == 0.05)
+lines(tmp$TotN, tmp$pred)
+
+tmp <- subset(pred_df14, sr == 0.95)
+lines(tmp$TotN, tmp$pred)
 
 legend(-1,56,
        c("95% female plot","  5% female plot"),
@@ -182,18 +208,14 @@ legend(-1,56,
 plot(d15$TotDensity,d15$new_t1,pch=21,ylab="Number of new tillers",
      xlab="Planting density", bg = cRamp(d15$sr), cex = 1.5,
      main = "2015")
-N    <- seq(0,48,1)
-beta <- as.data.frame(avg15)
-fem  <- N*0.95
-mal  <- N*0.05
-y_h  <- (beta[,"lam.f"]*fem) / (1 + beta[,"b.f"] * (fem + beta[,"a."]*mal)) + 
-        (beta[,"lam.m"]*mal) / (1 + beta[,"b.m"] * (fem + beta[,"a."]*mal))
-fem  <- N*0.05
-mal  <- N*0.95
-y_l  <- (beta[,"lam.f"]*fem) / (1 + beta[,"b.f"] * (fem + beta[,"a."]*mal)) + 
-  (beta[,"lam.m"]*mal) / (1 + beta[,"b.m"] * (fem + beta[,"a."]*mal))
-lines(N,y_h,lwd=2, lty = 1) #col="#DCDCDC",
-lines(N,y_l,lwd=2, lty = 2) #col="#636363",
+
+
+tmp <- subset(pred_df15, sr == 0.05)
+lines(tmp$TotN, tmp$pred)
+
+tmp <- subset(pred_df15, sr == 0.95)
+lines(tmp$TotN, tmp$pred)
+
 
 colfunc = colorRampPalette(cRamp(unique(arrange(d14,sr)$sr)))
 legend_image <- as.raster(matrix(colfunc(19), ncol=1))
