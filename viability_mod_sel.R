@@ -1,10 +1,10 @@
 # Model selection for seed VIABILITY
 # Data: tetrazolium scoring and germination data 
-setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
+setwd("C:/cloud/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
 library(lme4) ; library(bbmle) ; library(boot) ; library(testthat)
 library(dplyr) ; library(glmmADMB)
-source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
-source("C:/Users/ac79/Documents/CODE/LLELA/model_sel_results.R")
+source("C:/CODE/LLELA/model_avg.R")
+source("C:/CODE/LLELA/model_sel_results.R")
 
 # Read in data and format -----------------------------------------------------------
 d           <- read.csv("Data/vr.csv")
@@ -52,15 +52,15 @@ candidate_mods <- list(
 )
 
 # fit models
-germ_flowN  <- lapply(candidate_mods, function(x) glmmadmb(x, family="binomial", data=germ_dat))
+germ_flowN      <- lapply(candidate_mods, function(x) glmmadmb(x, family="binomial", data=germ_dat))
 germ_flowN_sel  <- AICtab(germ_flowN,weights=T) 
 germ_flowN_avg  <- model_avg(germ_flowN_sel, germ_flowN)
-write.csv(germ_flowN_avg, "Results/VitalRates_3/germination_best.csv", row.names = F)
+write.csv(germ_flowN_avg, "Results/VitalRates_4_Cade2015/germination_best.csv", row.names = F)
 
 # Model selection table
 x <- germ_flowN
 write.csv(mod_sel_res(germ_flowN),
-          "Results/VitalRates_3/mod_sel_germination.csv",row.names=F)
+          "Results/VitalRates_4_Cade2015/mod_sel_germination.csv",row.names=F)
 rm(x)
 
 
@@ -77,10 +77,10 @@ candidate_mods <- list(
 tetr_flowN        <- lapply(candidate_mods, function(x) glmmadmb(x,family="binomial", data=tetr_dat))
 tetr_flowN_select <- AICtab(tetr_flowN,weights=T)
 tetr_flowN_avg    <- model_avg(tetr_flowN_select, tetr_flowN)
-write.csv(tetr_flowN_avg, "Results/VitalRates_3/tetrazolium_best.csv", row.names = F)
+write.csv(tetr_flowN_avg, "Results/VitalRates_4_Cade2015/tetrazolium_best.csv", row.names = F)
 
 # Model selection table
 x <- tetr_flowN
 write.csv(mod_sel_res(tetr_flowN),
-          "mod_sel_tetrazolium.csv",row.names=F)
+          "Results/VitalRates_4_Cade2015/mod_sel_tetrazolium.csv",row.names=F)
 rm(x)
