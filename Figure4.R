@@ -1,9 +1,9 @@
 ##Response variable: total number of tillers 
-setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
+setwd("C:/cloud/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation")
 library(bbmle) 
 library(glmmADMB) # Fit models with a Negative Binomial
 library(dplyr)
-source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
+source("C:/CODE/LLELA/model_avg.R")
 
 # load and format data -----------------------------------------------------
 x       <- read.csv("Data/vr.csv")
@@ -13,8 +13,8 @@ d15     <- subset(d, year == 2015)
 d15     <- subset(d15, plot != 149) # Remove outlier
 
 # Model averages
-avg14   <- read.csv("Results/VitalRates_3/new_t_bh14_best.csv")
-avg15   <- read.csv("Results/VitalRates_3/new_t_bh15_best.csv")
+avg14   <- read.csv("Results/VitalRates_4_Cade2015/new_t_bh14_best.csv")
+avg15   <- read.csv("Results/VitalRates_4_Cade2015/new_t_bh15_best.csv")
 
 
 # Graph -----------------------------------------------------------------------------
@@ -28,39 +28,33 @@ cRamp <- function(x){
 }  
 
 #Graph: total number of tillers -----------------------------------------------------
-tiff("Results/VitalRates_3/Figure4.tiff",unit="in",width=4,height=4,res=600,compression="lzw")
+tiff("Results/VitalRates_4_Cade2015/Figure4.tiff",unit="in",width=4,height=4,res=600,compression="lzw")
 
 par(mfrow=c(1,1),mar=c(2.6,2.5,0.2,0.1),mgp=c(1.4,0.5,0),oma=c(0,0,0,0.1))
 
-# 2014 ----------------------------------------------------------------------------
-# total number of tillers
-plot(d14$TotDensity,d14$new_t1,pch=21,ylab="Number of new tillers",
-     xlab="Planting density", bg = cRamp(d14$sr), cex = 1.5, 
-     ylim = c(0,100))
-N    <- seq(0,48,1)
-beta <- as.data.frame(avg14)
-fem  <- N*0.95
-mal  <- N*0.05
-y_h  <- (beta[,"lam.f"]*fem) / (1 + beta[,"b.f"] * (fem + beta[,"a.m"]*mal)) + 
-  (beta[,"lam.m"]*mal) / (1 + beta[,"b.m"]* (beta[,"a.f"]*fem + mal))
-fem  <- N*0.05
-mal  <- N*0.95
-y_l  <- (beta[,"lam.f"]*fem) / (1 + beta[,"b.f"] * (fem + beta[,"a.m"]*mal)) + 
-  (beta[,"lam.m"]*mal) / (1 + beta[,"b.m"]* (beta[,"a.f"]*fem + mal))
-lines(N,y_l,col="#636363",lwd=2)
-lines(N,y_h,col="#DCDCDC",lwd=2, lty = 2)
+plot(d15$TotDensity,d15$new_t1,pch=21,ylab="Number of new tillers",
+     xlab="Planting density", bg = cRamp(d14$sr), cex = 1.5)
+
+# select
+l_des <- subset(avg15, sr == 0.05)
+h_des <- subset(avg15, sr == 0.95)
+
+lines(h_des$TotN, h_des$pred, col="#ABABAB",lwd=2, lty = 2)
+lines(l_des$TotN, l_des$pred, col="#141414",lwd=2)
 
 # sex ratio legend
 colfunc = colorRampPalette(cRamp(unique(arrange(d15,sr)$sr)))
 legend_image <- as.raster(matrix(colfunc(21), ncol=1))
-text(x=2, y = seq(60,100,l=3), labels = seq(1,0,l=3))
-rasterImage(legend_image, 4, 60, 9.5, 100)
-text(8.8, 100, "Percent of", pos = 4)
-text(8.8, 80, "females in", pos = 4)
-text(8.8, 60, "plot", pos = 4)
+text(x=2, y = seq(185,225,l=3), labels = seq(1,0,l=3))
+rasterImage(legend_image, 4, 185, 9.4, 225)
+text(8.8, 225, "Percent of", pos = 4)
+text(8.8, 205, "females in", pos = 4)
+text(8.8, 185, "plot", pos = 4)
 
 # prediction legend
-legend("topright", c("5% female plot", "95% female plot"), cex = 1,
+# legend(22, par("usr")[4], c("5% female plot", "95% female plot"), cex = 0.9,
+#        lty = c(1,2), lwd=2, col=c("#636363","#DCDCDC"), bty = "n")
+legend(0, 180, c("5% female plot", "95% female plot"), cex = 1,
        lty = c(1,2), lwd=2, col=c("#636363","#DCDCDC"), bty = "n")
 
 dev.off()
