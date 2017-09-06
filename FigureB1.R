@@ -1,11 +1,11 @@
 # Code to produce figure B1
-setwd("C:/Users/ac79/Downloads/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
+setwd("C:/cloud/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
 #setwd("C:/Users/Aldo/Dropbox/POAR--Aldo&Tom/Response-Surface experiment/Experiment/Implementation/")
 library(bbmle) 
 library(dplyr)
 library(boot)
-source("C:/Users/ac79/Documents/CODE/LLELA/model_avg.R")
-source("C:/Users/ac79/Documents/CODE/LLELA/prediction.R")
+source("C:/CODE/LLELA/model_avg.R")
+source("C:/CODE/LLELA/prediction.R")
 
 
 #Read data--------------------------------------------------------------------
@@ -15,14 +15,8 @@ viabVr      <- read.csv("Data/Spring 2014/viability/tetra_germ_plot_data.csv",
 viabVr      <- subset(viabVr, totFlow < 60)
 
 # best models
-germ_beta   <- read.csv("Results/VitalRates_3/germination_best.csv")
-tetr_beta   <- read.csv("Results/VitalRates_3/tetrazolium_best.csv")
-
-# model matrix for prediction 
-mod_des   <- expand.grid("(Intercept)" = 1, 
-                         totFlow = seq(1,50,1),
-                         sr_f = round(seq(0,1,0.05),2)) 
-mod_des$'sr_f:totFlow' <- mod_des$totFlow * mod_des$sr_f
+germ_beta   <- read.csv("Results/VitalRates_4_Cade2015/germination_best.csv")
+tetr_beta   <- read.csv("Results/VitalRates_4_Cade2015/tetrazolium_best.csv")
 
 
 # Figure B1 ------------------------------------------------------------
@@ -37,42 +31,41 @@ cRamp <- function(x){
 
 
 # Graph
-tiff("Results/VitalRates_3/figureB1.tiff",unit="in",width=6.3,height=2.7,res=600,compression="lzw")
+tiff("Results/VitalRates_4_Cade2015/figureB1.tiff",unit="in",width=6.3,height=2.7,res=600,compression="lzw")
 
 par(mfrow=c(1,2), mar=c(2.5,2.3,1,0.1),mgp=c(1.4,0.3,0),cex.lab=1,cex.axis=0.8,
     cex.main=0.9, oma=c(0,0,0,9), tcl = -0.3)
-
-# three lines: three model matrices
-l_des <- subset(mod_des,sr_f == 0.05)
-m_des <- subset(mod_des,sr_f == 0.5)
-h_des <- subset(mod_des,sr_f == 0.95)
 
 # tetrazolium data ----------------------------------------------------------------
 plot(jitter(viabVr$totFlow,factor = 2),jitter(viabVr$tetra_ratio,factor = 2),pch=21,ylim=c(0,1), 
      bg = cRamp(viabVr$sr_f), cex = 1.1, main = "Tetrazolium data",
      xlab="",ylab="Seed viability rate")
-# predicted values using 'pred' function
-l_pred <- pred(l_des, tetr_beta, viab, inv.logit)
-m_pred <- pred(m_des, tetr_beta, viab, inv.logit)
-h_pred <- pred(h_des, tetr_beta, viab, inv.logit)
+
+# three lines: three model matrices
+l_des <- subset(tetr_beta, sr_f == 0.05)
+m_des <- subset(tetr_beta, sr_f == 0.5)
+h_des <- subset(tetr_beta, sr_f == 0.95)
+
 # plot lines
-lines(l_des$totFlow,l_pred$viab,lwd=2,lty=3)
-lines(m_des$totFlow,m_pred$viab,lwd=2,lty=2)
-lines(h_des$totFlow,h_pred$viab,lwd=2,lty=1)
+lines(l_des$totFlow,l_des$pred,lwd=2,lty=3)
+lines(m_des$totFlow,m_des$pred,lwd=2,lty=2)
+lines(h_des$totFlow,h_des$pred,lwd=2,lty=1)
 
 
 # germination data -----------------------------------------------------------------
 plot(jitter(viabVr$totFlow,factor = 2),jitter(viabVr$germ_ratio,factor = 2),pch=21,ylim=c(0,1), 
      bg = cRamp(viabVr$sr_f), cex = 1.1, main = "Germination data",
      xlab="",ylab="")
-# predicted values using 'pred' function
-l_pred <- pred(l_des, germ_beta, viab, inv.logit)
-m_pred <- pred(m_des, germ_beta, viab, inv.logit)
-h_pred <- pred(h_des, germ_beta, viab, inv.logit)
+
+# three lines: three model matrices
+l_des <- subset(germ_beta, sr_f == 0.05)
+m_des <- subset(germ_beta, sr_f == 0.5)
+h_des <- subset(germ_beta, sr_f == 0.95)
+
 # plot lines
-lines(l_des$totFlow,l_pred$viab,lwd=2,lty=3)
-lines(m_des$totFlow,m_pred$viab,lwd=2,lty=2)
-lines(h_des$totFlow,h_pred$viab,lwd=2,lty=1)
+lines(l_des$totFlow,l_des$pred,lwd=2,lty=3)
+lines(m_des$totFlow,m_des$pred,lwd=2,lty=2)
+lines(h_des$totFlow,h_des$pred,lwd=2,lty=1)
 
 mtext("Number of panicles", 1, line = 1.2, at = -10)
 
