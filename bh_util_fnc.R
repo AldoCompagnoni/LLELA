@@ -139,7 +139,7 @@ par_names <- function(results, par_names){
   
 }
 
-# calculate aic value from skratch
+# calculate aic value from scratch
 aic_calc <- function(x){
   
   out <- 2*x$value + 2*length(x$par)
