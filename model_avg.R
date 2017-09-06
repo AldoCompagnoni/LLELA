@@ -1,7 +1,22 @@
-# Function that averages model coefficients of models that make up 95% of AIC weight
-model_avg = function(model_sel,model_list){ #,
-
-  mod_list1    <- model_list
+model_avg <- function(model_sel,model_list, dat = NULL){
+  
+  # construct "design matrices"
+  vars          <- lapply(model_list, function(x) names(fixef(x)) ) %>% unlist
+  
+  if( any(vars == "totFlow") ){
+    # model design for panicles
+    mod_des   <- expand.grid(totFlow = seq(1,49,1),
+                             sr_f = round(seq(0,1,0.05),2) )
+  }else{
+    if( any(grepl("sex",vars)) ){
+      mod_des <- expand.grid(TotDensity = seq(1,49,1),
+                             sr = round(seq(0,1,0.05),2),
+                             sex = as.factor( c("f","m") ) )
+    }else{
+      mod_des <- expand.grid(TotDensity = seq(1,49,1),
+                             sr = round(seq(0,1,0.05),2) )
+    }
+  }
   
   # test that mod sel table is sorted.
   n <- seq_along(model_sel$weight)
@@ -10,10 +25,8 @@ model_avg = function(model_sel,model_list){ #,
   }
   
   # extract model rank
-  betaList <- list()
-  mod_rank <- do.call(rbind,strsplit(attributes(model_sel)$row.names , "model"))
-  mod_rank <- as.numeric(mod_rank[,2])
-  
+  mod_rank <- gsub("model", "", attributes(model_sel)$row.names) %>% as.numeric
+    
   # Models that make up more than 95% of weight
   k <- 0 ; sumW <- 0 
   while(sumW < 0.95){ 
@@ -21,50 +34,16 @@ model_avg = function(model_sel,model_list){ #,
     sumW <- sum(model_sel$weight[1:k])
   }
   
-  # Store values
-  for(i in 1:k){
-    
-    # for lmer models
-    if(class(model_list[[mod_rank[i]]])[1] == "lmerMod" |
-       class(model_list[[mod_rank[i]]])[1] == "glmerMod") {
-      
-      estimates <- fixef(model_list[[mod_rank[i]]])
-      
-    } else estimates <- coef(model_list[[mod_rank[i]]])
-    
-    # ANNOYING: Translate "TotDensity:sexm" into "sexm:TotDensity"
-    if(any(names(estimates) == "TotDensity:sexm")){
-      fixI      <- grep("TotDensity:sexm", names(estimates))
-      names(estimates)[fixI] <- "sexm:TotDensity"
-    }
-    if(any(names(estimates) == "new_t1:sexm")){
-      fixI      <- grep("new_t1:sexm", names(estimates))
-      names(estimates)[fixI] <- "sexm:new_t1"
-    }
-    if(any(names(estimates) == "sr:sexm")){
-      fixI      <- grep("sr:sexm", names(estimates))
-      names(estimates)[fixI] <- "sexm:sr"
-    }
-    if(any(names(estimates) == "c_t0:sexm")){
-      fixI      <- grep("c_t0:sexm", names(estimates))
-      names(estimates)[fixI] <- "sexm:c_t0"
-    }
-    
-    betaList[[i]] <- data.frame(predictor = names(estimates),
-                                parameter = estimates)
-    names(betaList[[i]])[2] <- paste0("parameter_",i)
-    
-  }
+  # create prediction data frame
+  pred_l  <- lapply(model_list[mod_rank[1:k]], 
+                    function(x) predict(x, newdata = mod_des, re.form = NA, type = "response") )
+  preds   <- ( do.call(cbind, pred_l) %*% model_sel$weight[1:k] ) / sum(model_sel$weight[1:k])
+  pred_df <- mutate(mod_des, pred = preds)
   
-  # Model averages
-  beta_avg                  <- Reduce(function(...) merge(...,all=T), betaList)
-  beta_avg[is.na(beta_avg)] <- 0
-  mod_weights               <- model_sel$weight[1:k]
-  beta_avg$avg              <- as.matrix(beta_avg[,-1]) %*% mod_weights / sum(mod_weights)
-  
-  return(beta_avg)
+  return(pred_df)
   
 }
+
 
 # function formats the growth data 
 format_growth <- function(x){
